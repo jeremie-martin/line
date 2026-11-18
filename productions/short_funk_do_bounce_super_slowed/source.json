@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-14-FUNK DO BOUNCE (Super Slowed).webm",
+  "sha256": "cd74d2a02fbb4d3e57a3586f1a808e04b50bf0523677e83aa9d37c9bc91534d6",
+  "sourceStartSeconds": 67.007,
+  "sourceEndSeconds": 112.986,
+  "decodedExcerptSeconds": 45.979,
+  "audioSha256": "e6fa0f30ea054cc611f5faaa4cf7ccb205e35f26c1b09768a647c49f75f6d0a2",
+  "title": "FUNK DO BOUNCE (Super Slowed)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "914c919f864deab50225661b499244974b8d07a51e639472a12d571bbeca2326",
+      "bass": "9e4e0378ab16b8a7d8df2f4c3f9610b9107bc6d7310762a9c422f04d8eadaa4f",
+      "vocals": "7726d86da35ce9fdcc7108261382a1597232a9a0f047c0abf65270734bf3e441",
+      "other": "047709b6aa26367138cdbe5bf6366a26a6d12e971bfbb23bdafaad26aa32e481"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "funk_do_bounce_super_slowed_selection",
+    "from": 7.007,
+    "to": 52.986
+  },
+  "artist": "Ariis",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Ariis",
+    "title": "FUNK DO BOUNCE (Slowed)",
+    "album": "FUNK DO BOUNCE (Slowed) - Single",
+    "released": "2024",
+    "genre": "Dance"
+  }
+}

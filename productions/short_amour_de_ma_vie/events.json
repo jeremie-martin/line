@@ -1,0 +1,4478 @@
+{
+  "schema": "line.music-events.v1",
+  "song": "short_amour_de_ma_vie",
+  "loudness_unit": "fraction of the mix's 99th-percentile RMS",
+  "separation": "demucs htdemucs",
+  "drums": "ADTOF Frame_RNN adtofAll fold 0",
+  "events": [
+    {
+      "t": 0.058,
+      "sources": {
+        "vocals": {
+          "t": 0.058,
+          "peak": 0.033,
+          "rise": 0.026
+        },
+        "other": {
+          "t": 0.058,
+          "peak": 0.107,
+          "rise": 0.046
+        }
+      },
+      "mix": {
+        "peak": 0.111,
+        "rise": 0.017
+      }
+    },
+    {
+      "t": 0.232,
+      "sources": {
+        "vocals": {
+          "t": 0.232,
+          "peak": 0.062,
+          "rise": 0.059
+        }
+      },
+      "mix": {
+        "peak": 0.141,
+        "rise": 0.047
+      }
+    },
+    {
+      "t": 0.488,
+      "sources": {
+        "other": {
+          "t": 0.488,
+          "peak": 0.115,
+          "rise": 0.021
+        }
+      },
+      "mix": {
+        "peak": 0.112,
+        "rise": 0.014
+      }
+    },
+    {
+      "t": 0.546,
+      "sources": {
+        "vocals": {
+          "t": 0.546,
+          "peak": 0.05,
+          "rise": 0.038
+        }
+      },
+      "mix": {
+        "peak": 0.163,
+        "rise": 0.078
+      }
+    },
+    {
+      "t": 0.604,
+      "sources": {
+        "vocals": {
+          "t": 0.604,
+          "peak": 0.217,
+          "rise": 0.203
+        }
+      },
+      "mix": {
+        "peak": 0.285,
+        "rise": 0.201
+      }
+    },
+    {
+      "t": 0.65,
+      "sources": {
+        "other": {
+          "t": 0.65,
+          "peak": 0.047,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.312,
+        "rise": 0.228
+      }
+    },
+    {
+      "t": 1.057,
+      "sources": {
+        "vocals": {
+          "t": 1.057,
+          "peak": 0.328,
+          "rise": 0.024
+        }
+      },
+      "mix": {
+        "peak": 0.395,
+        "rise": 0.085
+      }
+    },
+    {
+      "t": 1.231,
+      "sources": {
+        "other": {
+          "t": 1.231,
+          "peak": 0.394,
+          "rise": 0.316
+        }
+      },
+      "mix": {
+        "peak": 0.592,
+        "rise": 0.193
+      }
+    },
+    {
+      "t": 1.358,
+      "sources": {
+        "other": {
+          "t": 1.358,
+          "peak": 0.282,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.414,
+        "rise": 0
+      }
+    },
+    {
+      "t": 1.625,
+      "sources": {
+        "vocals": {
+          "t": 1.625,
+          "peak": 0.307,
+          "rise": 0.135
+        }
+      },
+      "mix": {
+        "peak": 0.331,
+        "rise": 0.093
+      }
+    },
+    {
+      "t": 1.881,
+      "sources": {
+        "other": {
+          "t": 1.881,
+          "peak": 0.189,
+          "rise": 0.09
+        },
+        "bass": {
+          "t": 1.892,
+          "peak": 0.003,
+          "rise": 0.003
+        }
+      },
+      "mix": {
+        "peak": 0.361,
+        "rise": 0.081
+      }
+    },
+    {
+      "t": 1.962,
+      "sources": {
+        "vocals": {
+          "t": 1.962,
+          "peak": 0.347,
+          "rise": 0.148
+        }
+      },
+      "mix": {
+        "peak": 0.36,
+        "rise": 0.08
+      }
+    },
+    {
+      "t": 2.101,
+      "sources": {
+        "vocals": {
+          "t": 2.101,
+          "peak": 0.027,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.123,
+        "rise": 0.01
+      }
+    },
+    {
+      "t": 2.264,
+      "sources": {
+        "vocals": {
+          "t": 2.264,
+          "peak": 0.341,
+          "rise": 0.319
+        }
+      },
+      "mix": {
+        "peak": 0.381,
+        "rise": 0.225
+      }
+    },
+    {
+      "t": 2.508,
+      "sources": {
+        "vocals": {
+          "t": 2.508,
+          "peak": 0.172,
+          "rise": 0.034
+        }
+      },
+      "mix": {
+        "peak": 0.256,
+        "rise": 0.019
+      }
+    },
+    {
+      "t": 2.601,
+      "sources": {
+        "other": {
+          "t": 2.601,
+          "peak": 0.155,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.188,
+        "rise": 0.021
+      }
+    },
+    {
+      "t": 2.717,
+      "sources": {
+        "vocals": {
+          "t": 2.717,
+          "peak": 0.124,
+          "rise": 0.004
+        }
+      },
+      "mix": {
+        "peak": 0.117,
+        "rise": 0
+      }
+    },
+    {
+      "t": 2.868,
+      "sources": {
+        "vocals": {
+          "t": 2.868,
+          "peak": 0.155,
+          "rise": 0.085
+        }
+      },
+      "mix": {
+        "peak": 0.144,
+        "rise": 0.033
+      }
+    },
+    {
+      "t": 3.065,
+      "sources": {
+        "vocals": {
+          "t": 3.065,
+          "peak": 0.139,
+          "rise": 0.046
+        }
+      },
+      "mix": {
+        "peak": 0.153,
+        "rise": 0.047
+      }
+    },
+    {
+      "t": 3.228,
+      "sources": {
+        "bass": {
+          "t": 3.204,
+          "peak": 0.027,
+          "rise": 0.027
+        },
+        "other": {
+          "t": 3.228,
+          "peak": 0.425,
+          "rise": 0.369
+        },
+        "vocals": {
+          "t": 3.239,
+          "peak": 0.107,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.992,
+        "rise": 0.853
+      }
+    },
+    {
+      "t": 3.251,
+      "sources": {
+        "drums": {
+          "t": 3.251,
+          "peak": 0.782,
+          "rise": 0.781,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.992,
+        "rise": 0.694
+      }
+    },
+    {
+      "t": 3.587,
+      "sources": {
+        "bass": {
+          "t": 3.553,
+          "peak": 0.098,
+          "rise": 0.093
+        },
+        "other": {
+          "t": 3.553,
+          "peak": 0.236,
+          "rise": 0.221
+        },
+        "vocals": {
+          "t": 3.576,
+          "peak": 0.177,
+          "rise": 0.031
+        },
+        "drums": {
+          "t": 3.587,
+          "peak": 0.798,
+          "rise": 0.661,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.956,
+        "rise": 0.589
+      }
+    },
+    {
+      "t": 3.75,
+      "sources": {
+        "vocals": {
+          "t": 3.75,
+          "peak": 0.315,
+          "rise": 0.142
+        }
+      },
+      "mix": {
+        "peak": 0.537,
+        "rise": 0.03
+      }
+    },
+    {
+      "t": 3.924,
+      "sources": {
+        "drums": {
+          "t": 3.924,
+          "peak": 0.833,
+          "rise": 0.635,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 3.924,
+          "peak": 0.205,
+          "rise": 0.175
+        }
+      },
+      "mix": {
+        "peak": 1.028,
+        "rise": 0.661
+      }
+    },
+    {
+      "t": 3.982,
+      "sources": {
+        "bass": {
+          "t": 3.982,
+          "peak": 0.295,
+          "rise": 0.292
+        }
+      },
+      "mix": {
+        "peak": 0.662,
+        "rise": 0.016
+      }
+    },
+    {
+      "t": 4.272,
+      "sources": {
+        "drums": {
+          "t": 4.272,
+          "peak": 0.053,
+          "rise": 0.023,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.567,
+        "rise": 0.033
+      }
+    },
+    {
+      "t": 4.423,
+      "sources": {
+        "drums": {
+          "t": 4.423,
+          "peak": 0.02,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.576,
+        "rise": 0.021
+      }
+    },
+    {
+      "t": 4.528,
+      "sources": {
+        "vocals": {
+          "t": 4.528,
+          "peak": 0.092,
+          "rise": 0.018
+        }
+      },
+      "mix": {
+        "peak": 0.691,
+        "rise": 0.144
+      }
+    },
+    {
+      "t": 4.586,
+      "sources": {
+        "other": {
+          "t": 4.574,
+          "peak": 0.28,
+          "rise": 0.029
+        },
+        "drums": {
+          "t": 4.586,
+          "peak": 0.451,
+          "rise": 0.438,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.632,
+        "rise": 0.074
+      }
+    },
+    {
+      "t": 4.795,
+      "sources": {
+        "vocals": {
+          "t": 4.795,
+          "peak": 0.315,
+          "rise": 0.304
+        }
+      },
+      "mix": {
+        "peak": 0.34,
+        "rise": 0.165
+      }
+    },
+    {
+      "t": 4.934,
+      "sources": {
+        "vocals": {
+          "t": 4.934,
+          "peak": 0.321,
+          "rise": 0.047
+        }
+      },
+      "mix": {
+        "peak": 0.342,
+        "rise": 0.047
+      }
+    },
+    {
+      "t": 5.097,
+      "sources": {
+        "drums": {
+          "t": 5.097,
+          "peak": 0.006,
+          "rise": 0.001,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.305,
+        "rise": 0.073
+      }
+    },
+    {
+      "t": 5.236,
+      "sources": {
+        "drums": {
+          "t": 5.236,
+          "peak": 0.845,
+          "rise": 0.842,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 5.259,
+          "peak": 0.16,
+          "rise": 0.126
+        },
+        "bass": {
+          "t": 5.271,
+          "peak": 0.294,
+          "rise": 0.293
+        }
+      },
+      "mix": {
+        "peak": 1.036,
+        "rise": 0.741
+      }
+    },
+    {
+      "t": 5.422,
+      "sources": {
+        "vocals": {
+          "t": 5.422,
+          "peak": 0.172,
+          "rise": 0.018
+        }
+      },
+      "mix": {
+        "peak": 0.307,
+        "rise": 0
+      }
+    },
+    {
+      "t": 5.584,
+      "sources": {
+        "other": {
+          "t": 5.573,
+          "peak": 0.255,
+          "rise": 0.131
+        },
+        "drums": {
+          "t": 5.584,
+          "peak": 0.871,
+          "rise": 0.832,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 5.596,
+          "peak": 0.243,
+          "rise": 0.239
+        }
+      },
+      "mix": {
+        "peak": 1.084,
+        "rise": 0.876
+      }
+    },
+    {
+      "t": 5.654,
+      "sources": {
+        "vocals": {
+          "t": 5.654,
+          "peak": 0.254,
+          "rise": 0.169
+        }
+      },
+      "mix": {
+        "peak": 0.75,
+        "rise": 0
+      }
+    },
+    {
+      "t": 5.909,
+      "sources": {
+        "drums": {
+          "t": 5.909,
+          "peak": 0.458,
+          "rise": 0.429,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 5.909,
+          "peak": 0.121,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.641,
+        "rise": 0.177
+      }
+    },
+    {
+      "t": 6.014,
+      "sources": {
+        "vocals": {
+          "t": 6.014,
+          "peak": 0.286,
+          "rise": 0.134
+        }
+      },
+      "mix": {
+        "peak": 0.333,
+        "rise": 0
+      }
+    },
+    {
+      "t": 6.246,
+      "sources": {
+        "drums": {
+          "t": 6.246,
+          "peak": 0.863,
+          "rise": 0.86,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 6.246,
+          "peak": 0.208,
+          "rise": 0.208
+        },
+        "other": {
+          "t": 6.246,
+          "peak": 0.176,
+          "rise": 0.136
+        }
+      },
+      "mix": {
+        "peak": 1.073,
+        "rise": 1.008
+      }
+    },
+    {
+      "t": 6.316,
+      "sources": {
+        "vocals": {
+          "t": 6.316,
+          "peak": 0.295,
+          "rise": 0.285
+        }
+      },
+      "mix": {
+        "peak": 0.668,
+        "rise": 0
+      }
+    },
+    {
+      "t": 6.432,
+      "sources": {
+        "drums": {
+          "t": 6.432,
+          "peak": 0.064,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.494,
+        "rise": 0.003
+      }
+    },
+    {
+      "t": 6.594,
+      "sources": {
+        "drums": {
+          "t": 6.594,
+          "peak": 0.058,
+          "rise": 0.013,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.455,
+        "rise": 0.009
+      }
+    },
+    {
+      "t": 6.803,
+      "sources": {
+        "vocals": {
+          "t": 6.803,
+          "peak": 0.246,
+          "rise": 0.056
+        }
+      },
+      "mix": {
+        "peak": 0.486,
+        "rise": 0.056
+      }
+    },
+    {
+      "t": 6.943,
+      "sources": {
+        "drums": {
+          "t": 6.943,
+          "peak": 0.025,
+          "rise": 0.024,
+          "classes": [
+            "hat"
+          ]
+        },
+        "vocals": {
+          "t": 6.954,
+          "peak": 0.158,
+          "rise": 0.002
+        },
+        "other": {
+          "t": 6.954,
+          "peak": 0.144,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.427,
+        "rise": 0.004
+      }
+    },
+    {
+      "t": 7.129,
+      "sources": {
+        "vocals": {
+          "t": 7.129,
+          "peak": 0.067,
+          "rise": 0.013
+        }
+      },
+      "mix": {
+        "peak": 0.58,
+        "rise": 0.18
+      }
+    },
+    {
+      "t": 7.245,
+      "sources": {
+        "other": {
+          "t": 7.233,
+          "peak": 0.184,
+          "rise": 0.074
+        },
+        "drums": {
+          "t": 7.245,
+          "peak": 0.442,
+          "rise": 0.441,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.622,
+        "rise": 0.195
+      }
+    },
+    {
+      "t": 7.326,
+      "sources": {
+        "vocals": {
+          "t": 7.326,
+          "peak": 0.269,
+          "rise": 0.249
+        }
+      },
+      "mix": {
+        "peak": 0.325,
+        "rise": 0
+      }
+    },
+    {
+      "t": 7.581,
+      "sources": {
+        "drums": {
+          "t": 7.581,
+          "peak": 0.794,
+          "rise": 0.793,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 7.581,
+          "peak": 0.238,
+          "rise": 0.237
+        }
+      },
+      "mix": {
+        "peak": 0.9,
+        "rise": 0.654
+      }
+    },
+    {
+      "t": 7.651,
+      "sources": {
+        "other": {
+          "t": 7.651,
+          "peak": 0.078,
+          "rise": 0.023
+        }
+      },
+      "mix": {
+        "peak": 0.49,
+        "rise": 0
+      }
+    },
+    {
+      "t": 7.918,
+      "sources": {
+        "bass": {
+          "t": 7.906,
+          "peak": 0.246,
+          "rise": 0.206
+        },
+        "drums": {
+          "t": 7.918,
+          "peak": 0.841,
+          "rise": 0.808,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 7.93,
+          "peak": 0.123,
+          "rise": 0.081
+        }
+      },
+      "mix": {
+        "peak": 0.998,
+        "rise": 0.733
+      }
+    },
+    {
+      "t": 8.092,
+      "sources": {
+        "vocals": {
+          "t": 8.092,
+          "peak": 0.131,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.277,
+        "rise": 0
+      }
+    },
+    {
+      "t": 8.255,
+      "sources": {
+        "drums": {
+          "t": 8.255,
+          "peak": 0.81,
+          "rise": 0.772,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 8.255,
+          "peak": 0.233,
+          "rise": 0.215
+        },
+        "other": {
+          "t": 8.266,
+          "peak": 0.261,
+          "rise": 0.158
+        },
+        "vocals": {
+          "t": 8.278,
+          "peak": 0.249,
+          "rise": 0.208
+        }
+      },
+      "mix": {
+        "peak": 1.083,
+        "rise": 0.897
+      }
+    },
+    {
+      "t": 8.58,
+      "sources": {
+        "drums": {
+          "t": 8.58,
+          "peak": 0.537,
+          "rise": 0.489,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.705,
+        "rise": 0.239
+      }
+    },
+    {
+      "t": 8.766,
+      "sources": {
+        "other": {
+          "t": 8.766,
+          "peak": 0.062,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.332,
+        "rise": 0.002
+      }
+    },
+    {
+      "t": 8.916,
+      "sources": {
+        "bass": {
+          "t": 8.905,
+          "peak": 0.287,
+          "rise": 0.286
+        },
+        "drums": {
+          "t": 8.916,
+          "peak": 0.775,
+          "rise": 0.77,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 8.928,
+          "peak": 0.024,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.875,
+        "rise": 0.57
+      }
+    },
+    {
+      "t": 9.091,
+      "sources": {
+        "drums": {
+          "t": 9.091,
+          "peak": 0.066,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.396,
+        "rise": 0.029
+      }
+    },
+    {
+      "t": 9.253,
+      "sources": {
+        "bass": {
+          "t": 9.23,
+          "peak": 0.254,
+          "rise": 0.097
+        },
+        "other": {
+          "t": 9.242,
+          "peak": 0.116,
+          "rise": 0.075
+        },
+        "drums": {
+          "t": 9.253,
+          "peak": 0.817,
+          "rise": 0.771,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.075,
+        "rise": 0.685
+      }
+    },
+    {
+      "t": 9.601,
+      "sources": {
+        "drums": {
+          "t": 9.601,
+          "peak": 0.031,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.45,
+        "rise": 0.022
+      }
+    },
+    {
+      "t": 9.776,
+      "sources": {
+        "drums": {
+          "t": 9.776,
+          "peak": 0.007,
+          "rise": 0.002,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 9.776,
+          "peak": 0.109,
+          "rise": 0.001
+        }
+      },
+      "mix": {
+        "peak": 0.448,
+        "rise": 0.027
+      }
+    },
+    {
+      "t": 9.857,
+      "sources": {
+        "vocals": {
+          "t": 9.857,
+          "peak": 0.101,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.736,
+        "rise": 0.311
+      }
+    },
+    {
+      "t": 9.915,
+      "sources": {
+        "drums": {
+          "t": 9.915,
+          "peak": 0.509,
+          "rise": 0.503,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 9.915,
+          "peak": 0.213,
+          "rise": 0.119
+        }
+      },
+      "mix": {
+        "peak": 0.728,
+        "rise": 0.302
+      }
+    },
+    {
+      "t": 9.985,
+      "sources": {
+        "vocals": {
+          "t": 9.985,
+          "peak": 0.095,
+          "rise": 0.055
+        }
+      },
+      "mix": {
+        "peak": 0.299,
+        "rise": 0
+      }
+    },
+    {
+      "t": 10.286,
+      "sources": {
+        "drums": {
+          "t": 10.275,
+          "peak": 0.01,
+          "rise": 0.006,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 10.275,
+          "peak": 0.104,
+          "rise": 0.03
+        },
+        "vocals": {
+          "t": 10.286,
+          "peak": 0.4,
+          "rise": 0.369
+        }
+      },
+      "mix": {
+        "peak": 0.426,
+        "rise": 0.306
+      }
+    },
+    {
+      "t": 10.519,
+      "sources": {
+        "vocals": {
+          "t": 10.519,
+          "peak": 0.148,
+          "rise": 0.024
+        }
+      },
+      "mix": {
+        "peak": 0.971,
+        "rise": 0.835
+      }
+    },
+    {
+      "t": 10.588,
+      "sources": {
+        "bass": {
+          "t": 10.565,
+          "peak": 0.299,
+          "rise": 0.299
+        },
+        "drums": {
+          "t": 10.588,
+          "peak": 0.83,
+          "rise": 0.829,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 10.588,
+          "peak": 0.033,
+          "rise": 0.012
+        }
+      },
+      "mix": {
+        "peak": 1.003,
+        "rise": 0.862
+      }
+    },
+    {
+      "t": 10.646,
+      "sources": {
+        "vocals": {
+          "t": 10.646,
+          "peak": 0.337,
+          "rise": 0.217
+        }
+      },
+      "mix": {
+        "peak": 0.715,
+        "rise": 0
+      }
+    },
+    {
+      "t": 10.925,
+      "sources": {
+        "bass": {
+          "t": 10.913,
+          "peak": 0.232,
+          "rise": 0.211
+        },
+        "other": {
+          "t": 10.913,
+          "peak": 0.14,
+          "rise": 0.07
+        },
+        "drums": {
+          "t": 10.925,
+          "peak": 0.789,
+          "rise": 0.755,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.976,
+        "rise": 0.602
+      }
+    },
+    {
+      "t": 11.157,
+      "sources": {
+        "vocals": {
+          "t": 11.157,
+          "peak": 0.081,
+          "rise": 0.005
+        }
+      },
+      "mix": {
+        "peak": 0.635,
+        "rise": 0.226
+      }
+    },
+    {
+      "t": 11.25,
+      "sources": {
+        "other": {
+          "t": 11.238,
+          "peak": 0.251,
+          "rise": 0.019
+        },
+        "drums": {
+          "t": 11.25,
+          "peak": 0.508,
+          "rise": 0.46,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.642,
+        "rise": 0.236
+      }
+    },
+    {
+      "t": 11.331,
+      "sources": {
+        "vocals": {
+          "t": 11.331,
+          "peak": 0.213,
+          "rise": 0.144
+        }
+      },
+      "mix": {
+        "peak": 0.293,
+        "rise": 0
+      }
+    },
+    {
+      "t": 11.587,
+      "sources": {
+        "other": {
+          "t": 11.564,
+          "peak": 0.178,
+          "rise": 0.12
+        },
+        "bass": {
+          "t": 11.575,
+          "peak": 0.18,
+          "rise": 0.175
+        },
+        "drums": {
+          "t": 11.587,
+          "peak": 0.868,
+          "rise": 0.864,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.061,
+        "rise": 0.715
+      }
+    },
+    {
+      "t": 11.761,
+      "sources": {
+        "drums": {
+          "t": 11.761,
+          "peak": 0.106,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.543,
+        "rise": 0
+      }
+    },
+    {
+      "t": 11.947,
+      "sources": {
+        "drums": {
+          "t": 11.923,
+          "peak": 0.039,
+          "rise": 0.002,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 11.947,
+          "peak": 0.163,
+          "rise": 0.073
+        }
+      },
+      "mix": {
+        "peak": 0.505,
+        "rise": 0.03
+      }
+    },
+    {
+      "t": 12.26,
+      "sources": {
+        "drums": {
+          "t": 12.26,
+          "peak": 0.014,
+          "rise": 0.012,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.441,
+        "rise": 0.025
+      }
+    },
+    {
+      "t": 12.434,
+      "sources": {
+        "drums": {
+          "t": 12.434,
+          "peak": 0.004,
+          "rise": 0.003,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.506,
+        "rise": 0.047
+      }
+    },
+    {
+      "t": 12.574,
+      "sources": {
+        "other": {
+          "t": 12.562,
+          "peak": 0.181,
+          "rise": 0.12
+        },
+        "drums": {
+          "t": 12.574,
+          "peak": 0.509,
+          "rise": 0.508,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "vocals": {
+          "t": 12.585,
+          "peak": 0.363,
+          "rise": 0.18
+        }
+      },
+      "mix": {
+        "peak": 0.744,
+        "rise": 0.279
+      }
+    },
+    {
+      "t": 12.922,
+      "sources": {
+        "drums": {
+          "t": 12.922,
+          "peak": 0.805,
+          "rise": 0.803,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 12.934,
+          "peak": 0.219,
+          "rise": 0.218
+        }
+      },
+      "mix": {
+        "peak": 1.038,
+        "rise": 0.72
+      }
+    },
+    {
+      "t": 13.108,
+      "sources": {
+        "drums": {
+          "t": 13.108,
+          "peak": 0.042,
+          "rise": 0.005,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.283,
+        "rise": 0.033
+      }
+    },
+    {
+      "t": 13.247,
+      "sources": {
+        "other": {
+          "t": 13.235,
+          "peak": 0.168,
+          "rise": 0.134
+        },
+        "drums": {
+          "t": 13.247,
+          "peak": 0.788,
+          "rise": 0.748,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 13.259,
+          "peak": 0.29,
+          "rise": 0.281
+        }
+      },
+      "mix": {
+        "peak": 0.986,
+        "rise": 0.713
+      }
+    },
+    {
+      "t": 13.479,
+      "sources": {
+        "vocals": {
+          "t": 13.479,
+          "peak": 0.049,
+          "rise": 0.003
+        }
+      },
+      "mix": {
+        "peak": 0.595,
+        "rise": 0.417
+      }
+    },
+    {
+      "t": 13.572,
+      "sources": {
+        "other": {
+          "t": 13.56,
+          "peak": 0.212,
+          "rise": 0.077
+        },
+        "drums": {
+          "t": 13.572,
+          "peak": 0.832,
+          "rise": 0.79,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "vocals": {
+          "t": 13.572,
+          "peak": 0.15,
+          "rise": 0.106
+        },
+        "bass": {
+          "t": 13.595,
+          "peak": 0.252,
+          "rise": 0.225
+        }
+      },
+      "mix": {
+        "peak": 1.067,
+        "rise": 0.894
+      }
+    },
+    {
+      "t": 13.642,
+      "sources": {
+        "vocals": {
+          "t": 13.642,
+          "peak": 0.266,
+          "rise": 0.221
+        }
+      },
+      "mix": {
+        "peak": 0.703,
+        "rise": 0
+      }
+    },
+    {
+      "t": 13.92,
+      "sources": {
+        "drums": {
+          "t": 13.92,
+          "peak": 0.478,
+          "rise": 0.437,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 13.92,
+          "peak": 0.163,
+          "rise": 0.013
+        },
+        "vocals": {
+          "t": 13.932,
+          "peak": 0.234,
+          "rise": 0.007
+        }
+      },
+      "mix": {
+        "peak": 0.685,
+        "rise": 0.179
+      }
+    },
+    {
+      "t": 14.257,
+      "sources": {
+        "drums": {
+          "t": 14.257,
+          "peak": 0.843,
+          "rise": 0.838,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "vocals": {
+          "t": 14.257,
+          "peak": 0.28,
+          "rise": 0.005
+        },
+        "bass": {
+          "t": 14.269,
+          "peak": 0.187,
+          "rise": 0.185
+        },
+        "other": {
+          "t": 14.269,
+          "peak": 0.105,
+          "rise": 0.032
+        }
+      },
+      "mix": {
+        "peak": 1.029,
+        "rise": 0.685
+      }
+    },
+    {
+      "t": 14.466,
+      "sources": {
+        "drums": {
+          "t": 14.431,
+          "peak": 0.04,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        },
+        "vocals": {
+          "t": 14.466,
+          "peak": 0.355,
+          "rise": 0.043
+        }
+      },
+      "mix": {
+        "peak": 0.503,
+        "rise": 0.072
+      }
+    },
+    {
+      "t": 14.594,
+      "sources": {
+        "bass": {
+          "t": 14.582,
+          "peak": 0.158,
+          "rise": 0.065
+        },
+        "drums": {
+          "t": 14.594,
+          "peak": 0.861,
+          "rise": 0.832,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "vocals": {
+          "t": 14.594,
+          "peak": 0.186,
+          "rise": 0
+        },
+        "other": {
+          "t": 14.605,
+          "peak": 0.246,
+          "rise": 0.166
+        }
+      },
+      "mix": {
+        "peak": 1.086,
+        "rise": 0.657
+      }
+    },
+    {
+      "t": 14.675,
+      "sources": {
+        "bass": {
+          "t": 14.675,
+          "peak": 0.354,
+          "rise": 0.282
+        }
+      },
+      "mix": {
+        "peak": 0.686,
+        "rise": 0
+      }
+    },
+    {
+      "t": 15.244,
+      "sources": {
+        "vocals": {
+          "t": 15.209,
+          "peak": 0.151,
+          "rise": 0
+        },
+        "other": {
+          "t": 15.244,
+          "peak": 0.211,
+          "rise": 0.177
+        }
+      },
+      "mix": {
+        "peak": 0.739,
+        "rise": 0.316
+      }
+    },
+    {
+      "t": 15.267,
+      "sources": {
+        "drums": {
+          "t": 15.267,
+          "peak": 0.543,
+          "rise": 0.539,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "bass": {
+          "t": 15.279,
+          "peak": 0.215,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.737,
+        "rise": 0.313
+      }
+    },
+    {
+      "t": 15.348,
+      "sources": {
+        "vocals": {
+          "t": 15.348,
+          "peak": 0.111,
+          "rise": 0.061
+        }
+      },
+      "mix": {
+        "peak": 0.266,
+        "rise": 0
+      }
+    },
+    {
+      "t": 15.604,
+      "sources": {
+        "drums": {
+          "t": 15.604,
+          "peak": 0.011,
+          "rise": 0.007,
+          "classes": [
+            "hat"
+          ]
+        },
+        "vocals": {
+          "t": 15.604,
+          "peak": 0.418,
+          "rise": 0.386
+        }
+      },
+      "mix": {
+        "peak": 0.456,
+        "rise": 0.33
+      }
+    },
+    {
+      "t": 15.79,
+      "sources": {
+        "other": {
+          "t": 15.79,
+          "peak": 0.088,
+          "rise": 0.01
+        }
+      },
+      "mix": {
+        "peak": 0.556,
+        "rise": 0.187
+      }
+    },
+    {
+      "t": 15.917,
+      "sources": {
+        "bass": {
+          "t": 15.894,
+          "peak": 0.298,
+          "rise": 0.298
+        },
+        "other": {
+          "t": 15.906,
+          "peak": 0.129,
+          "rise": 0.049
+        },
+        "drums": {
+          "t": 15.917,
+          "peak": 0.832,
+          "rise": 0.83,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.023,
+        "rise": 0.629
+      }
+    },
+    {
+      "t": 15.999,
+      "sources": {
+        "vocals": {
+          "t": 15.999,
+          "peak": 0.308,
+          "rise": 0.068
+        }
+      },
+      "mix": {
+        "peak": 0.645,
+        "rise": 0
+      }
+    },
+    {
+      "t": 16.254,
+      "sources": {
+        "vocals": {
+          "t": 16.231,
+          "peak": 0.222,
+          "rise": 0.144
+        },
+        "other": {
+          "t": 16.231,
+          "peak": 0.165,
+          "rise": 0.004
+        },
+        "drums": {
+          "t": 16.254,
+          "peak": 0.828,
+          "rise": 0.798,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 16.254,
+          "peak": 0.276,
+          "rise": 0.236
+        }
+      },
+      "mix": {
+        "peak": 1.036,
+        "rise": 0.814
+      }
+    },
+    {
+      "t": 16.44,
+      "sources": {
+        "vocals": {
+          "t": 16.44,
+          "peak": 0.217,
+          "rise": 0.174
+        },
+        "drums": {
+          "t": 16.451,
+          "peak": 0.05,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.56,
+        "rise": 0.104
+      }
+    },
+    {
+      "t": 16.591,
+      "sources": {
+        "other": {
+          "t": 16.556,
+          "peak": 0.112,
+          "rise": 0
+        },
+        "drums": {
+          "t": 16.591,
+          "peak": 0.573,
+          "rise": 0.536,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.751,
+        "rise": 0.191
+      }
+    },
+    {
+      "t": 16.8,
+      "sources": {
+        "vocals": {
+          "t": 16.8,
+          "peak": 0.07,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.779,
+        "rise": 0.672
+      }
+    },
+    {
+      "t": 16.904,
+      "sources": {
+        "other": {
+          "t": 16.893,
+          "peak": 0.151,
+          "rise": 0.075
+        },
+        "drums": {
+          "t": 16.904,
+          "peak": 0.872,
+          "rise": 0.865,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 16.916,
+          "peak": 0.269,
+          "rise": 0.268
+        }
+      },
+      "mix": {
+        "peak": 1.153,
+        "rise": 1.045
+      }
+    },
+    {
+      "t": 16.974,
+      "sources": {
+        "vocals": {
+          "t": 16.974,
+          "peak": 0.412,
+          "rise": 0.373
+        }
+      },
+      "mix": {
+        "peak": 0.732,
+        "rise": 0
+      }
+    },
+    {
+      "t": 17.252,
+      "sources": {
+        "drums": {
+          "t": 17.252,
+          "peak": 0.044,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.552,
+        "rise": 0.05
+      }
+    },
+    {
+      "t": 17.589,
+      "sources": {
+        "drums": {
+          "t": 17.589,
+          "peak": 0.015,
+          "rise": 0.014,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 17.624,
+          "peak": 0.16,
+          "rise": 0.01
+        }
+      },
+      "mix": {
+        "peak": 0.576,
+        "rise": 0.056
+      }
+    },
+    {
+      "t": 17.74,
+      "sources": {
+        "vocals": {
+          "t": 17.74,
+          "peak": 0.198,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.545,
+        "rise": 0.047
+      }
+    },
+    {
+      "t": 17.868,
+      "sources": {
+        "drums": {
+          "t": 17.868,
+          "peak": 0.496,
+          "rise": 0.494,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "bass": {
+          "t": 17.868,
+          "peak": 0.39,
+          "rise": 0.009
+        }
+      },
+      "mix": {
+        "peak": 0.722,
+        "rise": 0.239
+      }
+    },
+    {
+      "t": 17.926,
+      "sources": {
+        "drums": {
+          "t": 17.926,
+          "peak": 0.516,
+          "rise": 0.474,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 17.937,
+          "peak": 0.159,
+          "rise": 0.028
+        }
+      },
+      "mix": {
+        "peak": 0.671,
+        "rise": 0.157
+      }
+    },
+    {
+      "t": 17.984,
+      "sources": {
+        "vocals": {
+          "t": 17.984,
+          "peak": 0.113,
+          "rise": 0.071
+        }
+      },
+      "mix": {
+        "peak": 0.268,
+        "rise": 0
+      }
+    },
+    {
+      "t": 18.251,
+      "sources": {
+        "bass": {
+          "t": 18.239,
+          "peak": 0.195,
+          "rise": 0.195
+        },
+        "drums": {
+          "t": 18.251,
+          "peak": 0.8,
+          "rise": 0.796,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 18.251,
+          "peak": 0.114,
+          "rise": 0.046
+        }
+      },
+      "mix": {
+        "peak": 0.942,
+        "rise": 0.826
+      }
+    },
+    {
+      "t": 18.286,
+      "sources": {
+        "vocals": {
+          "t": 18.286,
+          "peak": 0.165,
+          "rise": 0.111
+        }
+      },
+      "mix": {
+        "peak": 0.622,
+        "rise": 0
+      }
+    },
+    {
+      "t": 18.471,
+      "sources": {
+        "vocals": {
+          "t": 18.471,
+          "peak": 0.136,
+          "rise": 0.123
+        }
+      },
+      "mix": {
+        "peak": 0.598,
+        "rise": 0.41
+      }
+    },
+    {
+      "t": 18.576,
+      "sources": {
+        "other": {
+          "t": 18.564,
+          "peak": 0.083,
+          "rise": 0.01
+        },
+        "drums": {
+          "t": 18.576,
+          "peak": 0.764,
+          "rise": 0.733,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 18.576,
+          "peak": 0.18,
+          "rise": 0.136
+        }
+      },
+      "mix": {
+        "peak": 0.963,
+        "rise": 0.773
+      }
+    },
+    {
+      "t": 18.622,
+      "sources": {
+        "vocals": {
+          "t": 18.622,
+          "peak": 0.41,
+          "rise": 0.274
+        }
+      },
+      "mix": {
+        "peak": 0.751,
+        "rise": 0.153
+      }
+    },
+    {
+      "t": 18.913,
+      "sources": {
+        "bass": {
+          "t": 18.901,
+          "peak": 0.227,
+          "rise": 0.221
+        },
+        "drums": {
+          "t": 18.913,
+          "peak": 0.702,
+          "rise": 0.665,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "vocals": {
+          "t": 18.913,
+          "peak": 0.382,
+          "rise": 0.241
+        },
+        "other": {
+          "t": 18.913,
+          "peak": 0.157,
+          "rise": 0.024
+        }
+      },
+      "mix": {
+        "peak": 0.899,
+        "rise": 0.581
+      }
+    },
+    {
+      "t": 18.982,
+      "sources": {
+        "vocals": {
+          "t": 18.982,
+          "peak": 0.557,
+          "rise": 0.417
+        }
+      },
+      "mix": {
+        "peak": 0.785,
+        "rise": 0.047
+      }
+    },
+    {
+      "t": 19.249,
+      "sources": {
+        "drums": {
+          "t": 19.249,
+          "peak": 0.509,
+          "rise": 0.48,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 19.249,
+          "peak": 0.124,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.712,
+        "rise": 0.201
+      }
+    },
+    {
+      "t": 19.516,
+      "sources": {
+        "vocals": {
+          "t": 19.516,
+          "peak": 0.429,
+          "rise": 0.084
+        }
+      },
+      "mix": {
+        "peak": 0.835,
+        "rise": 0.402
+      }
+    },
+    {
+      "t": 19.586,
+      "sources": {
+        "drums": {
+          "t": 19.586,
+          "peak": 0.671,
+          "rise": 0.668,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 19.586,
+          "peak": 0.241,
+          "rise": 0.24
+        },
+        "other": {
+          "t": 19.586,
+          "peak": 0.037,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.882,
+        "rise": 0.442
+      }
+    },
+    {
+      "t": 19.749,
+      "sources": {
+        "vocals": {
+          "t": 19.749,
+          "peak": 0.475,
+          "rise": 0.116
+        }
+      },
+      "mix": {
+        "peak": 0.539,
+        "rise": 0.023
+      }
+    },
+    {
+      "t": 19.923,
+      "sources": {
+        "drums": {
+          "t": 19.923,
+          "peak": 0.811,
+          "rise": 0.78,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 19.923,
+          "peak": 0.301,
+          "rise": 0.119
+        },
+        "other": {
+          "t": 19.934,
+          "peak": 0.102,
+          "rise": 0.045
+        }
+      },
+      "mix": {
+        "peak": 1.03,
+        "rise": 0.496
+      }
+    },
+    {
+      "t": 20.271,
+      "sources": {
+        "drums": {
+          "t": 20.271,
+          "peak": 0.029,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.64,
+        "rise": 0.057
+      }
+    },
+    {
+      "t": 20.596,
+      "sources": {
+        "other": {
+          "t": 20.584,
+          "peak": 0.085,
+          "rise": 0.048
+        },
+        "drums": {
+          "t": 20.596,
+          "peak": 0.499,
+          "rise": 0.493,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.74,
+        "rise": 0.132
+      }
+    },
+    {
+      "t": 20.735,
+      "sources": {
+        "vocals": {
+          "t": 20.735,
+          "peak": 0.44,
+          "rise": 0.12
+        }
+      },
+      "mix": {
+        "peak": 0.465,
+        "rise": 0.036
+      }
+    },
+    {
+      "t": 20.933,
+      "sources": {
+        "vocals": {
+          "t": 20.921,
+          "peak": 0.412,
+          "rise": 0.018
+        },
+        "drums": {
+          "t": 20.933,
+          "peak": 0.012,
+          "rise": 0.008,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 20.933,
+          "peak": 0.132,
+          "rise": 0.028
+        }
+      },
+      "mix": {
+        "peak": 0.444,
+        "rise": 0.021
+      }
+    },
+    {
+      "t": 21.13,
+      "sources": {
+        "other": {
+          "t": 21.13,
+          "peak": 0.043,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.512,
+        "rise": 0.075
+      }
+    },
+    {
+      "t": 21.258,
+      "sources": {
+        "bass": {
+          "t": 21.235,
+          "peak": 0.36,
+          "rise": 0.36
+        },
+        "other": {
+          "t": 21.246,
+          "peak": 0.04,
+          "rise": 0.009
+        },
+        "drums": {
+          "t": 21.258,
+          "peak": 0.784,
+          "rise": 0.782,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.011,
+        "rise": 0.539
+      }
+    },
+    {
+      "t": 21.595,
+      "sources": {
+        "drums": {
+          "t": 21.595,
+          "peak": 0.798,
+          "rise": 0.765,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 21.595,
+          "peak": 0.295,
+          "rise": 0.247
+        },
+        "other": {
+          "t": 21.595,
+          "peak": 0.15,
+          "rise": 0.057
+        }
+      },
+      "mix": {
+        "peak": 0.974,
+        "rise": 0.543
+      }
+    },
+    {
+      "t": 21.92,
+      "sources": {
+        "drums": {
+          "t": 21.92,
+          "peak": 0.505,
+          "rise": 0.464,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 21.931,
+          "peak": 0.093,
+          "rise": 0.013
+        }
+      },
+      "mix": {
+        "peak": 0.691,
+        "rise": 0.125
+      }
+    },
+    {
+      "t": 22.256,
+      "sources": {
+        "bass": {
+          "t": 22.233,
+          "peak": 0.214,
+          "rise": 0.213
+        },
+        "other": {
+          "t": 22.245,
+          "peak": 0.078,
+          "rise": 0.013
+        },
+        "drums": {
+          "t": 22.256,
+          "peak": 0.784,
+          "rise": 0.779,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.105,
+        "rise": 0.817
+      }
+    },
+    {
+      "t": 22.291,
+      "sources": {
+        "vocals": {
+          "t": 22.291,
+          "peak": 0.346,
+          "rise": 0.112
+        }
+      },
+      "mix": {
+        "peak": 0.927,
+        "rise": 0.323
+      }
+    },
+    {
+      "t": 22.605,
+      "sources": {
+        "drums": {
+          "t": 22.605,
+          "peak": 0.035,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 22.605,
+          "peak": 0.108,
+          "rise": 0.008
+        }
+      },
+      "mix": {
+        "peak": 0.552,
+        "rise": 0.035
+      }
+    },
+    {
+      "t": 22.767,
+      "sources": {
+        "vocals": {
+          "t": 22.767,
+          "peak": 0.354,
+          "rise": 0.141
+        }
+      },
+      "mix": {
+        "peak": 0.633,
+        "rise": 0.08
+      }
+    },
+    {
+      "t": 22.93,
+      "sources": {
+        "drums": {
+          "t": 22.93,
+          "peak": 0.011,
+          "rise": 0.008,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 22.93,
+          "peak": 0.12,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.611,
+        "rise": 0.007
+      }
+    },
+    {
+      "t": 23.208,
+      "sources": {
+        "bass": {
+          "t": 23.208,
+          "peak": 0.382,
+          "rise": 0
+        },
+        "other": {
+          "t": 23.208,
+          "peak": 0.119,
+          "rise": 0.043
+        }
+      },
+      "mix": {
+        "peak": 0.75,
+        "rise": 0.19
+      }
+    },
+    {
+      "t": 23.255,
+      "sources": {
+        "drums": {
+          "t": 23.255,
+          "peak": 0.542,
+          "rise": 0.54,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.711,
+        "rise": 0.152
+      }
+    },
+    {
+      "t": 23.371,
+      "sources": {
+        "vocals": {
+          "t": 23.371,
+          "peak": 0.094,
+          "rise": 0.065
+        }
+      },
+      "mix": {
+        "peak": 0.129,
+        "rise": 0
+      }
+    },
+    {
+      "t": 23.591,
+      "sources": {
+        "drums": {
+          "t": 23.58,
+          "peak": 0.029,
+          "rise": 0.025,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 23.58,
+          "peak": 0.089,
+          "rise": 0.048
+        },
+        "bass": {
+          "t": 23.591,
+          "peak": 0.418,
+          "rise": 0.409
+        }
+      },
+      "mix": {
+        "peak": 0.433,
+        "rise": 0.336
+      }
+    },
+    {
+      "t": 23.766,
+      "sources": {
+        "vocals": {
+          "t": 23.766,
+          "peak": 0.372,
+          "rise": 0.346
+        },
+        "other": {
+          "t": 23.777,
+          "peak": 0.019,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.507,
+        "rise": 0.201
+      }
+    },
+    {
+      "t": 23.905,
+      "sources": {
+        "drums": {
+          "t": 23.905,
+          "peak": 0.85,
+          "rise": 0.85,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 23.917,
+          "peak": 0.012,
+          "rise": 0.001
+        },
+        "bass": {
+          "t": 23.928,
+          "peak": 0.132,
+          "rise": 0
+        },
+        "vocals": {
+          "t": 23.94,
+          "peak": 0.412,
+          "rise": 0.1
+        }
+      },
+      "mix": {
+        "peak": 1.03,
+        "rise": 0.528
+      }
+    },
+    {
+      "t": 24.242,
+      "sources": {
+        "drums": {
+          "t": 24.242,
+          "peak": 0.897,
+          "rise": 0.687,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 24.242,
+          "peak": 0.008,
+          "rise": 0.004
+        }
+      },
+      "mix": {
+        "peak": 1.052,
+        "rise": 0.775
+      }
+    },
+    {
+      "t": 24.3,
+      "sources": {
+        "vocals": {
+          "t": 24.3,
+          "peak": 0.377,
+          "rise": 0.257
+        }
+      },
+      "mix": {
+        "peak": 0.692,
+        "rise": 0
+      }
+    },
+    {
+      "t": 24.706,
+      "sources": {
+        "other": {
+          "t": 24.694,
+          "peak": 0.005,
+          "rise": 0.003
+        },
+        "vocals": {
+          "t": 24.706,
+          "peak": 0.47,
+          "rise": 0.129
+        }
+      },
+      "mix": {
+        "peak": 0.49,
+        "rise": 0.115
+      }
+    },
+    {
+      "t": 24.961,
+      "sources": {
+        "vocals": {
+          "t": 24.961,
+          "peak": 0.474,
+          "rise": 0.07
+        }
+      },
+      "mix": {
+        "peak": 0.459,
+        "rise": 0.041
+      }
+    },
+    {
+      "t": 25.252,
+      "sources": {
+        "other": {
+          "t": 25.24,
+          "peak": 0.113,
+          "rise": 0.109
+        },
+        "drums": {
+          "t": 25.252,
+          "peak": 0.866,
+          "rise": 0.854,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 25.263,
+          "peak": 0.22,
+          "rise": 0.22
+        }
+      },
+      "mix": {
+        "peak": 1.046,
+        "rise": 0.73
+      }
+    },
+    {
+      "t": 25.925,
+      "sources": {
+        "other": {
+          "t": 25.902,
+          "peak": 0.135,
+          "rise": 0.025
+        },
+        "drums": {
+          "t": 25.925,
+          "peak": 0.429,
+          "rise": 0.422,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.788,
+        "rise": 0.269
+      }
+    },
+    {
+      "t": 26.273,
+      "sources": {
+        "other": {
+          "t": 26.273,
+          "peak": 0.101,
+          "rise": 0.052
+        }
+      },
+      "mix": {
+        "peak": 0.59,
+        "rise": 0.053
+      }
+    },
+    {
+      "t": 26.587,
+      "sources": {
+        "other": {
+          "t": 26.575,
+          "peak": 0.127,
+          "rise": 0.086
+        },
+        "drums": {
+          "t": 26.587,
+          "peak": 0.726,
+          "rise": 0.721,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.96,
+        "rise": 0.464
+      }
+    },
+    {
+      "t": 26.633,
+      "sources": {
+        "bass": {
+          "t": 26.633,
+          "peak": 0.36,
+          "rise": 0.189
+        }
+      },
+      "mix": {
+        "peak": 0.753,
+        "rise": 0.087
+      }
+    },
+    {
+      "t": 26.924,
+      "sources": {
+        "drums": {
+          "t": 26.924,
+          "peak": 0.802,
+          "rise": 0.77,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 26.924,
+          "peak": 0.179,
+          "rise": 0.045
+        },
+        "bass": {
+          "t": 26.947,
+          "peak": 0.293,
+          "rise": 0.246
+        }
+      },
+      "mix": {
+        "peak": 0.993,
+        "rise": 0.554
+      }
+    },
+    {
+      "t": 27.249,
+      "sources": {
+        "drums": {
+          "t": 27.249,
+          "peak": 0.441,
+          "rise": 0.396,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 27.26,
+          "peak": 0.105,
+          "rise": 0
+        },
+        "bass": {
+          "t": 27.272,
+          "peak": 0.383,
+          "rise": 0.042
+        }
+      },
+      "mix": {
+        "peak": 0.698,
+        "rise": 0.174
+      }
+    },
+    {
+      "t": 27.597,
+      "sources": {
+        "other": {
+          "t": 27.574,
+          "peak": 0.122,
+          "rise": 0.033
+        },
+        "drums": {
+          "t": 27.597,
+          "peak": 0.846,
+          "rise": 0.838,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 27.609,
+          "peak": 0.27,
+          "rise": 0.034
+        }
+      },
+      "mix": {
+        "peak": 1.081,
+        "rise": 0.558
+      }
+    },
+    {
+      "t": 27.957,
+      "sources": {
+        "drums": {
+          "t": 27.957,
+          "peak": 0.023,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.598,
+        "rise": 0.009
+      }
+    },
+    {
+      "t": 28.282,
+      "sources": {
+        "drums": {
+          "t": 28.282,
+          "peak": 0.015,
+          "rise": 0.01,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.542,
+        "rise": 0.021
+      }
+    },
+    {
+      "t": 28.584,
+      "sources": {
+        "drums": {
+          "t": 28.584,
+          "peak": 0.472,
+          "rise": 0.467,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 28.584,
+          "peak": 0.138,
+          "rise": 0.002
+        },
+        "vocals": {
+          "t": 28.595,
+          "peak": 0.208,
+          "rise": 0
+        },
+        "bass": {
+          "t": 28.607,
+          "peak": 0.396,
+          "rise": 0.047
+        }
+      },
+      "mix": {
+        "peak": 0.734,
+        "rise": 0.227
+      }
+    },
+    {
+      "t": 28.92,
+      "sources": {
+        "drums": {
+          "t": 28.92,
+          "peak": 0.747,
+          "rise": 0.739,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 28.92,
+          "peak": 0.158,
+          "rise": 0.049
+        }
+      },
+      "mix": {
+        "peak": 0.968,
+        "rise": 0.574
+      }
+    },
+    {
+      "t": 29.257,
+      "sources": {
+        "drums": {
+          "t": 29.257,
+          "peak": 0.777,
+          "rise": 0.733,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 29.269,
+          "peak": 0.302,
+          "rise": 0.185
+        },
+        "other": {
+          "t": 29.269,
+          "peak": 0.149,
+          "rise": 0.04
+        },
+        "vocals": {
+          "t": 29.28,
+          "peak": 0.265,
+          "rise": 0.134
+        }
+      },
+      "mix": {
+        "peak": 1,
+        "rise": 0.661
+      }
+    },
+    {
+      "t": 29.594,
+      "sources": {
+        "other": {
+          "t": 29.571,
+          "peak": 0.16,
+          "rise": 0.024
+        },
+        "drums": {
+          "t": 29.594,
+          "peak": 0.77,
+          "rise": 0.74,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.932,
+        "rise": 0.572
+      }
+    },
+    {
+      "t": 29.617,
+      "sources": {
+        "vocals": {
+          "t": 29.617,
+          "peak": 0.111,
+          "rise": 0.028
+        }
+      },
+      "mix": {
+        "peak": 0.8,
+        "rise": 0.37
+      }
+    },
+    {
+      "t": 29.919,
+      "sources": {
+        "drums": {
+          "t": 29.919,
+          "peak": 0.446,
+          "rise": 0.41,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 29.931,
+          "peak": 0.165,
+          "rise": 0.01
+        },
+        "bass": {
+          "t": 29.942,
+          "peak": 0.353,
+          "rise": 0.045
+        }
+      },
+      "mix": {
+        "peak": 0.672,
+        "rise": 0.267
+      }
+    },
+    {
+      "t": 30.047,
+      "sources": {
+        "vocals": {
+          "t": 30.047,
+          "peak": 0.109,
+          "rise": 0.022
+        }
+      },
+      "mix": {
+        "peak": 0.437,
+        "rise": 0.005
+      }
+    },
+    {
+      "t": 30.256,
+      "sources": {
+        "drums": {
+          "t": 30.256,
+          "peak": 0.786,
+          "rise": 0.78,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 30.256,
+          "peak": 0.121,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.93,
+        "rise": 0.576
+      }
+    },
+    {
+      "t": 30.592,
+      "sources": {
+        "other": {
+          "t": 30.557,
+          "peak": 0.189,
+          "rise": 0.099
+        },
+        "vocals": {
+          "t": 30.569,
+          "peak": 0.377,
+          "rise": 0.243
+        },
+        "drums": {
+          "t": 30.592,
+          "peak": 0.788,
+          "rise": 0.746,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.023,
+        "rise": 0.591
+      }
+    },
+    {
+      "t": 30.941,
+      "sources": {
+        "other": {
+          "t": 30.941,
+          "peak": 0.137,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.591,
+        "rise": 0.036
+      }
+    },
+    {
+      "t": 31.254,
+      "sources": {
+        "other": {
+          "t": 31.231,
+          "peak": 0.209,
+          "rise": 0.074
+        },
+        "drums": {
+          "t": 31.254,
+          "peak": 0.47,
+          "rise": 0.462,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.726,
+        "rise": 0.115
+      }
+    },
+    {
+      "t": 31.277,
+      "sources": {
+        "bass": {
+          "t": 31.277,
+          "peak": 0.354,
+          "rise": 0.012
+        }
+      },
+      "mix": {
+        "peak": 0.651,
+        "rise": 0.028
+      }
+    },
+    {
+      "t": 31.602,
+      "sources": {
+        "drums": {
+          "t": 31.602,
+          "peak": 0.022,
+          "rise": 0.015,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 31.602,
+          "peak": 0.093,
+          "rise": 0.035
+        }
+      },
+      "mix": {
+        "peak": 0.518,
+        "rise": 0.043
+      }
+    },
+    {
+      "t": 31.916,
+      "sources": {
+        "drums": {
+          "t": 31.916,
+          "peak": 0.729,
+          "rise": 0.724,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 31.916,
+          "peak": 0.085,
+          "rise": 0.031
+        }
+      },
+      "mix": {
+        "peak": 0.918,
+        "rise": 0.422
+      }
+    },
+    {
+      "t": 32.253,
+      "sources": {
+        "other": {
+          "t": 32.241,
+          "peak": 0.205,
+          "rise": 0.08
+        },
+        "drums": {
+          "t": 32.253,
+          "peak": 0.797,
+          "rise": 0.762,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 32.253,
+          "peak": 0.233,
+          "rise": 0.093
+        },
+        "vocals": {
+          "t": 32.264,
+          "peak": 0.323,
+          "rise": 0.032
+        }
+      },
+      "mix": {
+        "peak": 1.014,
+        "rise": 0.603
+      }
+    },
+    {
+      "t": 32.589,
+      "sources": {
+        "drums": {
+          "t": 32.589,
+          "peak": 0.454,
+          "rise": 0.425,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 32.589,
+          "peak": 0.172,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.714,
+        "rise": 0.213
+      }
+    },
+    {
+      "t": 32.914,
+      "sources": {
+        "other": {
+          "t": 32.903,
+          "peak": 0.119,
+          "rise": 0.062
+        },
+        "drums": {
+          "t": 32.914,
+          "peak": 0.823,
+          "rise": 0.816,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 32.926,
+          "peak": 0.244,
+          "rise": 0.016
+        }
+      },
+      "mix": {
+        "peak": 1.092,
+        "rise": 0.672
+      }
+    },
+    {
+      "t": 33.251,
+      "sources": {
+        "drums": {
+          "t": 33.251,
+          "peak": 0.034,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.539,
+        "rise": 0
+      }
+    },
+    {
+      "t": 33.402,
+      "sources": {
+        "other": {
+          "t": 33.402,
+          "peak": 0.125,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.454,
+        "rise": 0.005
+      }
+    },
+    {
+      "t": 33.564,
+      "sources": {
+        "vocals": {
+          "t": 33.564,
+          "peak": 0.115,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.426,
+        "rise": 0
+      }
+    },
+    {
+      "t": 33.913,
+      "sources": {
+        "other": {
+          "t": 33.878,
+          "peak": 0.106,
+          "rise": 0
+        },
+        "drums": {
+          "t": 33.913,
+          "peak": 0.469,
+          "rise": 0.465,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.796,
+        "rise": 0.394
+      }
+    },
+    {
+      "t": 33.924,
+      "sources": {
+        "bass": {
+          "t": 33.924,
+          "peak": 0.398,
+          "rise": 0.026
+        },
+        "vocals": {
+          "t": 33.924,
+          "peak": 0.426,
+          "rise": 0.402
+        }
+      },
+      "mix": {
+        "peak": 0.796,
+        "rise": 0.394
+      }
+    },
+    {
+      "t": 34.064,
+      "sources": {
+        "other": {
+          "t": 34.064,
+          "peak": 0.041,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.576,
+        "rise": 0.004
+      }
+    },
+    {
+      "t": 34.261,
+      "sources": {
+        "drums": {
+          "t": 34.261,
+          "peak": 0.797,
+          "rise": 0.79,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 34.273,
+          "peak": 0.035,
+          "rise": 0.014
+        }
+      },
+      "mix": {
+        "peak": 1.052,
+        "rise": 0.643
+      }
+    },
+    {
+      "t": 34.307,
+      "sources": {
+        "bass": {
+          "t": 34.307,
+          "peak": 0.346,
+          "rise": 0.188
+        }
+      },
+      "mix": {
+        "peak": 0.769,
+        "rise": 0
+      }
+    },
+    {
+      "t": 34.598,
+      "sources": {
+        "drums": {
+          "t": 34.598,
+          "peak": 0.817,
+          "rise": 0.765,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 34.609,
+          "peak": 0.247,
+          "rise": 0.144
+        },
+        "other": {
+          "t": 34.609,
+          "peak": 0.076,
+          "rise": 0.051
+        }
+      },
+      "mix": {
+        "peak": 0.977,
+        "rise": 0.662
+      }
+    },
+    {
+      "t": 34.911,
+      "sources": {
+        "drums": {
+          "t": 34.911,
+          "peak": 0.765,
+          "rise": 0.71,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "vocals": {
+          "t": 34.911,
+          "peak": 0.192,
+          "rise": 0.108
+        }
+      },
+      "mix": {
+        "peak": 1.011,
+        "rise": 0.697
+      }
+    },
+    {
+      "t": 35.155,
+      "sources": {
+        "vocals": {
+          "t": 35.155,
+          "peak": 0.377,
+          "rise": 0.037
+        }
+      },
+      "mix": {
+        "peak": 0.665,
+        "rise": 0.173
+      }
+    },
+    {
+      "t": 35.248,
+      "sources": {
+        "drums": {
+          "t": 35.248,
+          "peak": 0.442,
+          "rise": 0.392,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "vocals": {
+          "t": 35.26,
+          "peak": 0.293,
+          "rise": 0.015
+        },
+        "other": {
+          "t": 35.26,
+          "peak": 0.076,
+          "rise": 0.063
+        }
+      },
+      "mix": {
+        "peak": 0.724,
+        "rise": 0.239
+      }
+    },
+    {
+      "t": 35.585,
+      "sources": {
+        "drums": {
+          "t": 35.585,
+          "peak": 0.799,
+          "rise": 0.793,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 35.596,
+          "peak": 0.027,
+          "rise": 0
+        },
+        "bass": {
+          "t": 35.619,
+          "peak": 0.324,
+          "rise": 0.159
+        }
+      },
+      "mix": {
+        "peak": 1.026,
+        "rise": 0.589
+      }
+    },
+    {
+      "t": 35.921,
+      "sources": {
+        "other": {
+          "t": 35.898,
+          "peak": 0.267,
+          "rise": 0.243
+        },
+        "drums": {
+          "t": 35.921,
+          "peak": 0.866,
+          "rise": 0.827,
+          "classes": [
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 1.049,
+        "rise": 0.572
+      }
+    },
+    {
+      "t": 36.049,
+      "sources": {
+        "vocals": {
+          "t": 36.049,
+          "peak": 0.218,
+          "rise": 0.058
+        }
+      },
+      "mix": {
+        "peak": 0.535,
+        "rise": 0.004
+      }
+    },
+    {
+      "t": 36.583,
+      "sources": {
+        "other": {
+          "t": 36.571,
+          "peak": 0.185,
+          "rise": 0.022
+        },
+        "drums": {
+          "t": 36.583,
+          "peak": 0.449,
+          "rise": 0.435,
+          "classes": [
+            "cymbal",
+            "hat",
+            "snare"
+          ]
+        },
+        "bass": {
+          "t": 36.606,
+          "peak": 0.286,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.69,
+        "rise": 0.174
+      }
+    },
+    {
+      "t": 36.955,
+      "sources": {
+        "drums": {
+          "t": 36.943,
+          "peak": 0.019,
+          "rise": 0.01,
+          "classes": [
+            "hat"
+          ]
+        },
+        "other": {
+          "t": 36.955,
+          "peak": 0.149,
+          "rise": 0.068
+        }
+      },
+      "mix": {
+        "peak": 0.428,
+        "rise": 0
+      }
+    },
+    {
+      "t": 37.117,
+      "sources": {
+        "other": {
+          "t": 37.117,
+          "peak": 0.082,
+          "rise": 0.013
+        }
+      },
+      "mix": {
+        "peak": 0.302,
+        "rise": 0
+      }
+    },
+    {
+      "t": 37.245,
+      "sources": {
+        "drums": {
+          "t": 37.245,
+          "peak": 0.721,
+          "rise": 0.712,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 37.245,
+          "peak": 0.257,
+          "rise": 0.131
+        },
+        "other": {
+          "t": 37.256,
+          "peak": 0.163,
+          "rise": 0.085
+        }
+      },
+      "mix": {
+        "peak": 0.895,
+        "rise": 0.711
+      }
+    },
+    {
+      "t": 37.477,
+      "sources": {
+        "other": {
+          "t": 37.477,
+          "peak": 0.255,
+          "rise": 0.049
+        }
+      },
+      "mix": {
+        "peak": 0.639,
+        "rise": 0.386
+      }
+    },
+    {
+      "t": 37.581,
+      "sources": {
+        "other": {
+          "t": 37.57,
+          "peak": 0.214,
+          "rise": 0.024
+        },
+        "drums": {
+          "t": 37.581,
+          "peak": 0.804,
+          "rise": 0.778,
+          "classes": [
+            "cymbal",
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 37.593,
+          "peak": 0.295,
+          "rise": 0.288
+        }
+      },
+      "mix": {
+        "peak": 0.999,
+        "rise": 0.753
+      }
+    },
+    {
+      "t": 37.918,
+      "sources": {
+        "other": {
+          "t": 37.895,
+          "peak": 0.188,
+          "rise": 0
+        },
+        "drums": {
+          "t": 37.918,
+          "peak": 0.486,
+          "rise": 0.453,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "bass": {
+          "t": 37.93,
+          "peak": 0.348,
+          "rise": 0.009
+        }
+      },
+      "mix": {
+        "peak": 0.712,
+        "rise": 0.293
+      }
+    },
+    {
+      "t": 38.243,
+      "sources": {
+        "drums": {
+          "t": 38.243,
+          "peak": 0.761,
+          "rise": 0.754,
+          "classes": [
+            "cymbal",
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 38.255,
+          "peak": 0.285,
+          "rise": 0.203
+        },
+        "bass": {
+          "t": 38.266,
+          "peak": 0.281,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.895,
+        "rise": 0.563
+      }
+    },
+    {
+      "t": 38.592,
+      "sources": {
+        "drums": {
+          "t": 38.592,
+          "peak": 0.028,
+          "rise": 0,
+          "classes": [
+            "cymbal",
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.537,
+        "rise": 0.016
+      }
+    },
+    {
+      "t": 38.928,
+      "sources": {
+        "drums": {
+          "t": 38.928,
+          "peak": 0.018,
+          "rise": 0.013,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.513,
+        "rise": 0.005
+      }
+    },
+    {
+      "t": 39.253,
+      "sources": {
+        "other": {
+          "t": 39.242,
+          "peak": 0.222,
+          "rise": 0.067
+        },
+        "drums": {
+          "t": 39.253,
+          "peak": 0.456,
+          "rise": 0.451,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.685,
+        "rise": 0.228
+      }
+    },
+    {
+      "t": 39.288,
+      "sources": {
+        "bass": {
+          "t": 39.288,
+          "peak": 0.353,
+          "rise": 0.035
+        }
+      },
+      "mix": {
+        "peak": 0.526,
+        "rise": 0.01
+      }
+    },
+    {
+      "t": 39.335,
+      "sources": {
+        "vocals": {
+          "t": 39.335,
+          "peak": 0.052,
+          "rise": 0.049
+        }
+      },
+      "mix": {
+        "peak": 0.408,
+        "rise": 0.007
+      }
+    },
+    {
+      "t": 39.59,
+      "sources": {
+        "drums": {
+          "t": 39.59,
+          "peak": 0.72,
+          "rise": 0.714,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 39.602,
+          "peak": 0.304,
+          "rise": 0.168
+        },
+        "other": {
+          "t": 39.602,
+          "peak": 0.151,
+          "rise": 0.099
+        }
+      },
+      "mix": {
+        "peak": 0.909,
+        "rise": 0.682
+      }
+    },
+    {
+      "t": 39.636,
+      "sources": {
+        "other": {
+          "t": 39.636,
+          "peak": 0.151,
+          "rise": 0.1
+        }
+      },
+      "mix": {
+        "peak": 0.572,
+        "rise": 0
+      }
+    },
+    {
+      "t": 39.706,
+      "sources": {
+        "vocals": {
+          "t": 39.706,
+          "peak": 0.279,
+          "rise": 0.275
+        }
+      },
+      "mix": {
+        "peak": 0.501,
+        "rise": 0.081
+      }
+    },
+    {
+      "t": 39.915,
+      "sources": {
+        "drums": {
+          "t": 39.915,
+          "peak": 0.652,
+          "rise": 0.624,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 39.915,
+          "peak": 0.253,
+          "rise": 0.185
+        },
+        "other": {
+          "t": 39.915,
+          "peak": 0.3,
+          "rise": 0.218
+        }
+      },
+      "mix": {
+        "peak": 0.855,
+        "rise": 0.489
+      }
+    },
+    {
+      "t": 39.985,
+      "sources": {
+        "vocals": {
+          "t": 39.985,
+          "peak": 0.27,
+          "rise": 0.018
+        }
+      },
+      "mix": {
+        "peak": 0.624,
+        "rise": 0.008
+      }
+    },
+    {
+      "t": 40.252,
+      "sources": {
+        "other": {
+          "t": 40.24,
+          "peak": 0.169,
+          "rise": 0
+        },
+        "drums": {
+          "t": 40.252,
+          "peak": 0.777,
+          "rise": 0.74,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.948,
+        "rise": 0.539
+      }
+    },
+    {
+      "t": 40.287,
+      "sources": {
+        "bass": {
+          "t": 40.287,
+          "peak": 0.215,
+          "rise": 0.088
+        }
+      },
+      "mix": {
+        "peak": 0.644,
+        "rise": 0
+      }
+    },
+    {
+      "t": 40.519,
+      "sources": {
+        "vocals": {
+          "t": 40.519,
+          "peak": 0.379,
+          "rise": 0.049
+        }
+      },
+      "mix": {
+        "peak": 0.662,
+        "rise": 0.128
+      }
+    },
+    {
+      "t": 40.588,
+      "sources": {
+        "other": {
+          "t": 40.565,
+          "peak": 0.151,
+          "rise": 0.002
+        },
+        "drums": {
+          "t": 40.588,
+          "peak": 0.417,
+          "rise": 0.382,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.644,
+        "rise": 0.111
+      }
+    },
+    {
+      "t": 40.693,
+      "sources": {
+        "vocals": {
+          "t": 40.693,
+          "peak": 0.186,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.399,
+        "rise": 0
+      }
+    },
+    {
+      "t": 40.914,
+      "sources": {
+        "drums": {
+          "t": 40.914,
+          "peak": 0.756,
+          "rise": 0.751,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 40.914,
+          "peak": 0.268,
+          "rise": 0.096
+        },
+        "other": {
+          "t": 40.937,
+          "peak": 0.172,
+          "rise": 0.129
+        }
+      },
+      "mix": {
+        "peak": 0.875,
+        "rise": 0.557
+      }
+    },
+    {
+      "t": 41.25,
+      "sources": {
+        "drums": {
+          "t": 41.25,
+          "peak": 0.785,
+          "rise": 0.754,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 41.273,
+          "peak": 0.339,
+          "rise": 0.096
+        }
+      },
+      "mix": {
+        "peak": 1.032,
+        "rise": 0.651
+      }
+    },
+    {
+      "t": 41.599,
+      "sources": {
+        "drums": {
+          "t": 41.599,
+          "peak": 0.016,
+          "rise": 0,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.5,
+        "rise": 0.044
+      }
+    },
+    {
+      "t": 41.808,
+      "sources": {
+        "vocals": {
+          "t": 41.808,
+          "peak": 0.309,
+          "rise": 0.113
+        }
+      },
+      "mix": {
+        "peak": 0.678,
+        "rise": 0.196
+      }
+    },
+    {
+      "t": 41.924,
+      "sources": {
+        "other": {
+          "t": 41.912,
+          "peak": 0.172,
+          "rise": 0.016
+        },
+        "drums": {
+          "t": 41.924,
+          "peak": 0.455,
+          "rise": 0.452,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "bass": {
+          "t": 41.935,
+          "peak": 0.353,
+          "rise": 0
+        },
+        "vocals": {
+          "t": 41.935,
+          "peak": 0.346,
+          "rise": 0.072
+        }
+      },
+      "mix": {
+        "peak": 0.702,
+        "rise": 0.168
+      }
+    },
+    {
+      "t": 42.26,
+      "sources": {
+        "other": {
+          "t": 42.26,
+          "peak": 0.18,
+          "rise": 0.106
+        },
+        "drums": {
+          "t": 42.272,
+          "peak": 0.015,
+          "rise": 0.01,
+          "classes": [
+            "hat"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.598,
+        "rise": 0.084
+      }
+    },
+    {
+      "t": 42.469,
+      "sources": {
+        "vocals": {
+          "t": 42.469,
+          "peak": 0.118,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.504,
+        "rise": 0.082
+      }
+    },
+    {
+      "t": 42.585,
+      "sources": {
+        "bass": {
+          "t": 42.574,
+          "peak": 0.299,
+          "rise": 0
+        },
+        "drums": {
+          "t": 42.585,
+          "peak": 0.749,
+          "rise": 0.746,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "other": {
+          "t": 42.585,
+          "peak": 0.237,
+          "rise": 0.188
+        }
+      },
+      "mix": {
+        "peak": 0.977,
+        "rise": 0.551
+      }
+    },
+    {
+      "t": 42.643,
+      "sources": {
+        "vocals": {
+          "t": 42.643,
+          "peak": 0.199,
+          "rise": 0.156
+        }
+      },
+      "mix": {
+        "peak": 0.717,
+        "rise": 0
+      }
+    },
+    {
+      "t": 42.91,
+      "sources": {
+        "other": {
+          "t": 42.887,
+          "peak": 0.223,
+          "rise": 0.042
+        },
+        "drums": {
+          "t": 42.91,
+          "peak": 0.777,
+          "rise": 0.739,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.908,
+        "rise": 0.59
+      }
+    },
+    {
+      "t": 42.969,
+      "sources": {
+        "bass": {
+          "t": 42.969,
+          "peak": 0.334,
+          "rise": 0.328
+        },
+        "vocals": {
+          "t": 42.98,
+          "peak": 0.074,
+          "rise": 0
+        }
+      },
+      "mix": {
+        "peak": 0.574,
+        "rise": 0
+      }
+    },
+    {
+      "t": 43.236,
+      "sources": {
+        "drums": {
+          "t": 43.236,
+          "peak": 0.482,
+          "rise": 0.449,
+          "classes": [
+            "hat",
+            "snare"
+          ]
+        },
+        "other": {
+          "t": 43.247,
+          "peak": 0.14,
+          "rise": 0
+        },
+        "vocals": {
+          "t": 43.259,
+          "peak": 0.009,
+          "rise": 0.001
+        }
+      },
+      "mix": {
+        "peak": 0.672,
+        "rise": 0.27
+      }
+    },
+    {
+      "t": 43.584,
+      "sources": {
+        "other": {
+          "t": 43.561,
+          "peak": 0.168,
+          "rise": 0.112
+        },
+        "drums": {
+          "t": 43.584,
+          "peak": 0.858,
+          "rise": 0.848,
+          "classes": [
+            "hat",
+            "kick"
+          ]
+        },
+        "bass": {
+          "t": 43.595,
+          "peak": 0.307,
+          "rise": 0.06
+        }
+      },
+      "mix": {
+        "peak": 0.985,
+        "rise": 0.668
+      }
+    },
+    {
+      "t": 43.921,
+      "sources": {
+        "other": {
+          "t": 43.921,
+          "peak": 0.231,
+          "rise": 0.033
+        }
+      },
+      "mix": {
+        "peak": 0.472,
+        "rise": 0.063
+      }
+    },
+    {
+      "t": 44.118,
+      "sources": {
+        "drums": {
+          "t": 44.118,
+          "peak": 0.028,
+          "rise": 0.018,
+          "classes": [
+            "snare"
+          ]
+        }
+      },
+      "mix": {
+        "peak": 0.473,
+        "rise": 0.024
+      }
+    }
+  ]
+}

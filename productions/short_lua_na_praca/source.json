@@ -1,0 +1,45 @@
+{
+  "file": "20260101-120514-LUA NA PRACA.mp3",
+  "sha256": "205346ecbcf2b7f284bdd9cffa7e2918866d85c2dbf21e4303847b5ab5a01a68",
+  "sourceStartSeconds": 31.309,
+  "sourceEndSeconds": 81,
+  "decodedExcerptSeconds": 49.691,
+  "audioSha256": "1d0cbae82f11baaf5e66b81af45a6a78acb3aab523ed4a53a7e8042dcfb716b5",
+  "title": "LUA NA PRAÇA",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "e22367c448ead83f394093209441587706b81f235a65b1d73dac5dc7ad0de38d",
+      "bass": "60d62f62f57a0b7bb6af8bf95609ad9ff105bbfde95fd967480c1041a606653c",
+      "vocals": "0d0423235d42ec71f6c3665512403434e2de54eee24d8d161594d3fc68d97899",
+      "other": "bdc430712ff55c529d91109266996848b99070b68cc4046cbd1da2e1d30825a9"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "lua_na_praca_selection",
+    "from": 2.309,
+    "to": 52
+  },
+  "artist": "dj Samir, DJ Zarek, DJ DUDA & LUNxdiE",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "dj Samir, DJ Zarek, DJ DUDA & LUNxdiE",
+    "title": "LUA NA PRAÇA",
+    "album": "LUA NA PRAÇA - EP",
+    "released": "2025",
+    "genre": "Electronic"
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-09-LUNA BALA.webm",
+  "sha256": "3593607a1d6f3b076f92a17f0bf1f7d2faaf53dc6920e2224b29e4cb1de831f9",
+  "sourceStartSeconds": 47.899,
+  "sourceEndSeconds": 87.272,
+  "decodedExcerptSeconds": 39.373,
+  "audioSha256": "cc633a170b5b8cdd0c3cad6209f907a27e3ac6405286c571edfdcafe730998be",
+  "title": "LUNA BALA",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "a332e2872a9daf00b063bc0a7a02ffd1a654ded196fe2f3c70780faba93bd638",
+      "bass": "23fca3e4e017ff50b7826f7b5ef812a815d8af5178079ddf4c0ea4e6833c1e4b",
+      "vocals": "29c73383ef90fd423ecf05b6ba7a2716674f51bdbd0808c6ce38cab63836ac80",
+      "other": "81188ed69f9ea337f0c7952df9f84d16148f5860597586cf8820626b36f40aad"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "luna_bala_original_selection",
+    "from": 1.899,
+    "to": 41.272
+  },
+  "artist": "Ariis & Yb Wasg'ood",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Ariis & Yb Wasg'ood",
+    "title": "LUNA BALA",
+    "album": "LUNA BALA - Single",
+    "released": "2025",
+    "genre": "Electronic"
+  }
+}

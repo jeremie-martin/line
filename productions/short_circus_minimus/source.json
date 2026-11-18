@@ -1,0 +1,21 @@
+{
+  "file": "circus_minimus.aac",
+  "sha256": "dec1673d0c66870086a287a7bb73b21c6b995f3e7d4ad1aa7025f67c6bfe843c",
+  "sourceStartSeconds": 19.782,
+  "sourceEndSeconds": 77.044,
+  "cutOf": {
+    "song": "circus_minimus_77s",
+    "from": 19.782,
+    "to": 77.044
+  },
+  "title": "Circus Minimus",
+  "artist": "JVZEL & Neon Haze",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "JVZEL & Neon Haze",
+    "title": "Circus Minimus",
+    "album": "Cyberpunk 2077: More Music from Night City Radio (Original Soundtrack)",
+    "released": "2021",
+    "genre": "Soundtrack"
+  }
+}

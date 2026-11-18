@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-05-LOS VOLTAJE (Slowed).webm",
+  "sha256": "d0d25865f8e2cc32deeb2034cfb62b41fae30dcfd2c78ccd095ce52e40a25f04",
+  "sourceStartSeconds": 45.521,
+  "sourceEndSeconds": 97,
+  "decodedExcerptSeconds": 51.479,
+  "audioSha256": "d4c0ba2503455fa1ab107e84d51bd028504c4ecec939b2b40c3b1ec3dea0d52f",
+  "title": "LOS VOLTAJE (Slowed)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "94655ca3707e90a837d55e02dd1e58cd0ec1c3ff05cd8cec75baf45bb5e72062",
+      "bass": "97967c80c26394a98b20dd31bfd58f68679a28bb49914180947cb02178aac885",
+      "vocals": "2fd6d72dffe982cddfd14207ac132788bf3aa707a1a7559f38b41188cb2560a4",
+      "other": "e45827bdb5b038373eb4cc535e852fb39f3f30f9cdb6d932e1bfd37826630d34"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "los_voltaje_slowed_selection",
+    "from": 6.521,
+    "to": 58
+  },
+  "artist": "Sayfalse, Yb Wasg'ood & Ariis",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Sayfalse, Yb Wasg'ood & Ariis",
+    "title": "LOS VOLTAJE (Slowed)",
+    "album": "LOS VOLTAJE - EP",
+    "released": "2025",
+    "genre": "Dance"
+  }
+}

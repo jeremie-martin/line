@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-08-MXZI - MONTAGEM TOMADA [EXTENDED].webm",
+  "sha256": "8f01ffb879fa30c460501def6a04d3f6f45c5f2c0ad38658912e47ebcc272e7b",
+  "sourceStartSeconds": 183.402,
+  "sourceEndSeconds": 237.175,
+  "decodedExcerptSeconds": 53.773,
+  "audioSha256": "8efeb3f1539e7eee91c02e68f04fcf8b4997cc8e343281eae360b9cae8162994",
+  "title": "MONTAGEM TOMADA (Extended)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "9ffdff914f6ae99afe5710a1a62d2435b0af6951bdd3675029fc221e775fe8a2",
+      "bass": "a54e95bc43391c0a1fa6e617c2137a85c0a5459b775d8f29779eb90d9752b8de",
+      "vocals": "f8d23a39abc80e96f42cab9730ee07e40e9bd37db5691910c4a85ec2f0fa1208",
+      "other": "9e90ca314889895f17623b4af37e9f82e653d1e2f8c7597b4c4be7c255c55a86"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "montagem_tomada_extended_selection",
+    "from": 2.402,
+    "to": 56.175
+  },
+  "artist": "MXZI",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "MXZI",
+    "title": "MONTAGEM TOMADA",
+    "album": "MONTAGEM TOMADA - EP",
+    "released": "2025",
+    "genre": "Baile Funk"
+  }
+}

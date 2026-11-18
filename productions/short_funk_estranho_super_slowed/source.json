@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-06-FUNK ESTRANHO (SUPER SLOWED).webm",
+  "sha256": "077251286d4906cdf1cfeec4bebbac2fe4d0b462061093554a64aebcfb257ef0",
+  "sourceStartSeconds": 36.714,
+  "sourceEndSeconds": 82.148,
+  "decodedExcerptSeconds": 45.434,
+  "audioSha256": "a9ebe2fb2150417f002f3a177fc3993090d20495199ac14bf9d525902b11b8fc",
+  "title": "FUNK ESTRANHO (Super Slowed)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "ed5ef692a095ade1e8791121b4feed306153759512f8bec94a5c2d24ff03e4c2",
+      "bass": "d9c79072924513103031667087d1f3031e7dd64b9060c2d48408e1dbd0466fe7",
+      "vocals": "31514e45d5406429dc7239420ec9ce333709002343e88376b2f57140adc0ea7e",
+      "other": "81859ea7a2a82a61b806d3dd52475e76c53b837dabfecd349058b2549a0b3539"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "funk_estranho_super_slowed_selection",
+    "from": 3.714,
+    "to": 49.148
+  },
+  "artist": "Astora",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Astora",
+    "title": "FUNK ESTRANHO (SUPER SLOWED)",
+    "album": "FUNK ESTRANHO (TECHNO Remix) - EP",
+    "released": "2024",
+    "genre": "Electronic"
+  }
+}

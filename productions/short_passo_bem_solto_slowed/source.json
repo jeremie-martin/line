@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-07-PASSO BEM SOLTO (Slowed).webm",
+  "sha256": "f825f431bf81033e66fb573570409a3abacc2f9c88127f0e3bf44c08169019bf",
+  "sourceStartSeconds": 53.971,
+  "sourceEndSeconds": 101,
+  "decodedExcerptSeconds": 47.029,
+  "audioSha256": "3f958c7546d8d13c8898f0fad40227e6dfe0456a0d4408cc2bffa9722e59e511",
+  "title": "PASSO BEM SOLTO (Slowed)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "cd89128aa47f9aed236f39bf753fa0e7e56e5e55f465b142dfba1eb89897b5d6",
+      "bass": "b413570c77d5211e0757fe144368adc11bc359777659ecf05ab8e5b9ccc86ef7",
+      "vocals": "c52af00aa1b61e531086d1343d9b79e4587de632bdb148f60f015534443308e2",
+      "other": "54c2a314b9646057574f10f16f4223767ded7b329caecdb16166d6eabb0192a6"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "passo_bem_solto_slowed_selection",
+    "from": 10.971,
+    "to": 58
+  },
+  "artist": "ATLXS",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "ATLXS",
+    "title": "PASSO BEM SOLTO (Super Slowed)",
+    "album": "PASSO BEM SOLTO - EP",
+    "released": "2024",
+    "genre": "Latino"
+  }
+}

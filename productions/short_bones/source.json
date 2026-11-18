@@ -1,0 +1,45 @@
+{
+  "file": "bones.aac",
+  "sha256": "19d9881b14ee76972fd8a12b233efb42751d77170d8c1481120bc6e6740841c8",
+  "sourceStartSeconds": 109.055,
+  "sourceEndSeconds": 157.478,
+  "decodedExcerptSeconds": 48.423,
+  "audioSha256": "cca204e8a543f69a213bb775c0fcfec042810178412cd3e3e6d7b7074641e365",
+  "title": "Bones",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "6b1ec5e7418928c61ba576ca2e1cc97f071c00b2ff8e8c4e7dcb8396cc710f5f",
+      "bass": "05b62c40cf56aa71251de15ab9186f08a910ebf6472864fb9ddad534bbc79879",
+      "vocals": "27efb2c0f06180a5522a94fef8bb43825a2d3e4ed8cf55b2b6cfba22b5355b7f",
+      "other": "5a0f3fb49031a5fb74bcf6ffca6590530a0bfbc99f03e424fc573eae0990f4f0"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "bones_selection",
+    "from": 4.055,
+    "to": 52.478
+  },
+  "artist": "Imagine Dragons",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Imagine Dragons",
+    "title": "Bones",
+    "album": "Bones - Single",
+    "released": "2021",
+    "genre": "Alternative"
+  }
+}

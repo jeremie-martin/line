@@ -1,0 +1,20 @@
+{
+  "file": "amor_na_praia_46s.mp3",
+  "sourceStartSeconds": 0,
+  "sourceEndSeconds": 46,
+  "cutOf": {
+    "song": "amor_na_praia_46s",
+    "from": 0,
+    "to": 46
+  },
+  "title": "Amor Na Praia (Slowed)",
+  "artist": "Flame Runner",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Flame Runner",
+    "title": "Amor Na Praia (Slowed)",
+    "album": "Amor Na Praia - EP",
+    "released": "2025",
+    "genre": "Dance"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "file": "believer.mp3",
+  "sha256": "5b13a93b685b594c8ea729f3e10484db70f7af09e9887226bc2f638de38f302a",
+  "sourceStartSeconds": 33.091,
+  "sourceEndSeconds": 84.175,
+  "cutOf": {
+    "song": "believer_78s",
+    "from": 25.791,
+    "to": 76.875
+  },
+  "title": "Believer",
+  "artist": "Imagine Dragons",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Imagine Dragons",
+    "title": "Believer",
+    "album": "Evolve",
+    "released": "2017",
+    "genre": "Alternative"
+  }
+}

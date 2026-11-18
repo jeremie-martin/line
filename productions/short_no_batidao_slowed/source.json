@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-18-NO BATIDÃO (Slowed).webm",
+  "sha256": "54f66154b1a84d8e52d12d56fb4a61e7bbcbf323acd811c0adfc13438d9526d5",
+  "sourceStartSeconds": 49.073,
+  "sourceEndSeconds": 89.856,
+  "decodedExcerptSeconds": 40.783,
+  "audioSha256": "ffd10c2d987468c7b5863adc850423bc1dc191f0dd397e1703d0cbdec46d690d",
+  "title": "NO BATIDÃO (Slowed)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "681351a32d1f20044bdf6c3a86e761c2ba3865c486e703a665e7703b582d002f",
+      "bass": "b9a50576b7f1ae63cdadcc148c677d1f7a5346aa57634f3fc89223355fa839b6",
+      "vocals": "0ab9d55e81c78200012a76f1560db21e787593156aff16db4ae2f8fc3952345b",
+      "other": "dfda0b4a83593b0f5cc0198a09144f9685f2a499a0aaea15538fdf9e9a8625bf"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "no_batidao_slowed_selection",
+    "from": 1.073,
+    "to": 41.856
+  },
+  "artist": "ZXKAI & slxughter",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "ZXKAI & slxughter",
+    "title": "NO BATIDÃO (Slowed)",
+    "album": "NO BATIDÃO - Single",
+    "released": "2025",
+    "genre": "Electronic"
+  }
+}

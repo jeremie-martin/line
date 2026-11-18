@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-16-ANDROMEDA - MONTAGEM COMA.webm",
+  "sha256": "288770b8785ba3cac8720a959c1ae8cb6d5673130b56355181c23ba6710bc3fd",
+  "sourceStartSeconds": 24.981,
+  "sourceEndSeconds": 73,
+  "decodedExcerptSeconds": 48.019,
+  "audioSha256": "fd33c70a077a6f593a5268a39db3ffe2a96f58a1cf56733746a5dfd0d7c1a493",
+  "title": "MONTAGEM COMA",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "8cd351082945788b18995824ff298be6cd537452b69d539322193112f2d03976",
+      "bass": "9b2ded5f1587bc64a3a8de4a836b1f0413b6c06035ce97b609c44abc1d030050",
+      "vocals": "5291285d53f9f80e1ac3c86c885de50b01da27256939826360c94101d6e90dae",
+      "other": "e51ac580c21eabea3589cef4ed461ed3f5abac76da7c952008ad43193410daec"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "montagem_coma_selection",
+    "from": 10.981,
+    "to": 59
+  },
+  "artist": "Andromeda",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Andromeda",
+    "title": "MONTAGEM COMA",
+    "album": "MONTAGEM PEGADORA",
+    "released": "2026",
+    "genre": "Baile Funk"
+  }
+}

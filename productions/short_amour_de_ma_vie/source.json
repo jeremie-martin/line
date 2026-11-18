@@ -1,0 +1,20 @@
+{
+  "file": "amour_de_ma_vie_108s.mp3",
+  "sourceStartSeconds": 0,
+  "sourceEndSeconds": 44.187,
+  "cutOf": {
+    "song": "amour_de_ma_vie_108s",
+    "from": 0,
+    "to": 44.187
+  },
+  "title": "L’AMOUR DE MA VIE",
+  "artist": "Billie Eilish",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Billie Eilish",
+    "title": "L’AMOUR DE MA VIE",
+    "album": "HIT ME HARD AND SOFT",
+    "released": "2024",
+    "genre": "Alternative"
+  }
+}

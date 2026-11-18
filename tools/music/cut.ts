@@ -152,7 +152,7 @@ export function cutSource(data: Json | null, c: Cut & {to: number}, parent: stri
   const cutOf = {song: parent, from: c.from, to: c.to};
   // a parent with no full recording is its cut's recording: what leads into the cut is in the parent's own excerpt
   if (!data?.file) return {...(data ?? {}), file: `${parent}.mp3`, sourceStartSeconds: Number(c.from.toFixed(3)), sourceEndSeconds: Number((c.from + c.length).toFixed(3)), cutOf};
-  const {match: _match, note: _note, ...rest} = data, out: Json = {...rest};
+  const {match: _match, note: _note, intent: _intent, reviewStatus: _status, ...rest} = data, out: Json = {...rest};  // words about the parent's excerpt are not the cut's
   if (typeof data.sourceStartSeconds === 'number') {
     out.sourceStartSeconds = Number((data.sourceStartSeconds + c.from).toFixed(3));
     out.sourceEndSeconds = Number((data.sourceStartSeconds + c.from + c.length).toFixed(3));

@@ -1,0 +1,20 @@
+{
+  "file": "trouble_50s.mp3",
+  "sourceStartSeconds": 0,
+  "sourceEndSeconds": 44.646,
+  "cutOf": {
+    "song": "trouble_50s",
+    "from": 0,
+    "to": 44.646
+  },
+  "title": "I Knew You Were Trouble (Taylor's Version)",
+  "artist": "Taylor Swift",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Taylor Swift",
+    "title": "I Knew You Were Trouble (Taylor's Version)",
+    "album": "Red (Taylor’s Version)",
+    "released": "2021",
+    "genre": "Pop"
+  }
+}

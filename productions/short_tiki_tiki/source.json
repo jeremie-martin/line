@@ -1,0 +1,21 @@
+{
+  "file": "TIKI TIKI (Slowed) [bEYiPCbHAtM].opus",
+  "sha256": "b84e87ae2c3885222167301204b3b23260f5aa9d5f413c8e2f78fc9670c3dda7",
+  "sourceStartSeconds": 0,
+  "sourceEndSeconds": 48,
+  "cutOf": {
+    "song": "tiki_tiki_48s",
+    "from": 0,
+    "to": 48
+  },
+  "title": "TIKI TIKI (Slowed)",
+  "artist": "QMIIR",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "QMIIR",
+    "title": "TIKI TIKI (Slowed)",
+    "album": "TIKI TIKI - EP",
+    "released": "1997",
+    "genre": "Electronic"
+  }
+}

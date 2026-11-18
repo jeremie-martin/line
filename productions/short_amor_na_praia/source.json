@@ -1,0 +1,45 @@
+{
+  "file": "20251222-124532-04-Amor Na Praia.webm",
+  "sha256": "3a650f4dbe5bc1689938e762df2bcecafaaa0eb2f9c986ef20c4fa86ec01ec0b",
+  "sourceStartSeconds": 56.649,
+  "sourceEndSeconds": 109,
+  "decodedExcerptSeconds": 52.351,
+  "audioSha256": "32731efc6eab3a66ee9c584d0ad7c7ebdd07234f9842f26ae3e7148dd67956f7",
+  "title": "Amor Na Praia (Slowed)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "bf0fc3bd0a1ce4e5ade13eda1474d483c5ee92e1ccf4983ea6a506f4fbed281d",
+      "bass": "f1155af174272e95f4e1f488db1d48ed46eb9fc1296a37f651d17aee355452d5",
+      "vocals": "0a011540db3d412b06846adf94a6cd0c7ee1297be68fe7853a80ff127e1b7dd0",
+      "other": "739bb918d5085dbc68ab989bb52c14a419c251dd3ef45b5f198cae1706e79f2a"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "amor_na_praia_selection",
+    "from": 7.649,
+    "to": 60
+  },
+  "artist": "Flame Runner",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Flame Runner",
+    "title": "Amor Na Praia (Slowed)",
+    "album": "Amor Na Praia - EP",
+    "released": "2025",
+    "genre": "Dance"
+  }
+}

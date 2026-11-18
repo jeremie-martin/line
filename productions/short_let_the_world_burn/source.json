@@ -1,0 +1,45 @@
+{
+  "file": "20260105-122436-Chris Grey - LET THE WORLD BURN Official Lyric Video.mp3",
+  "sha256": "0bd0c9f4293e0c09742efd41e9d328474694ed84ab2d7ddad122aa6a31463738",
+  "sourceStartSeconds": 104,
+  "sourceEndSeconds": 150.98,
+  "decodedExcerptSeconds": 46.98,
+  "audioSha256": "c98f531109da250e18f98d7b2ce5130d8b7b89a47fbd6dd8ff276ff83260129f",
+  "title": "LET THE WORLD BURN (Remix)",
+  "separation": {
+    "model": "htdemucs",
+    "scope": "full recording, then sample-aligned excerpt",
+    "shifts": 1,
+    "overlap": 0.25,
+    "seed": 0,
+    "seedScope": "One torch seed at the start of the full 22-recording inventory order; not reset per song.",
+    "stemSha256": {
+      "drums": "a4f393999c5d7ac7406e8ed87a8d82578ff9c3b02f7744086fca6b91a8f2a12c",
+      "bass": "9ecae06190759b3affdf4d912db44dfd9a9fe56f5910ddd3f7e5332da78acd27",
+      "vocals": "3f2a42e1634d472ebc4fc3bbd5ddb69911dc4b7c6dcefa1756ce61d9b811a603",
+      "other": "43be65e998c47d13ef4c1cbd56aff903c635bf4c51e46283d2a1657883fd1cc6"
+    }
+  },
+  "drumClasses": "not measured; source labels refer to separated stems, not kick/snare classification",
+  "analysis": {
+    "sampleRateHz": 22050,
+    "onsetHopSamples": 256,
+    "vocalEvidenceWindowSamples": 1024,
+    "drumClassification": "not run",
+    "sourceTimestampConvention": "Measured onset estimates preserved; no grid snapping or automatic contact selection."
+  },
+  "cutOf": {
+    "song": "let_the_world_burn_selection",
+    "from": 0,
+    "to": 46.98
+  },
+  "artist": "Chris Grey, G-Eazy & Ari Abdul",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Chris Grey, G-Eazy & Ari Abdul",
+    "title": "LET THE WORLD BURN (Remix)",
+    "album": "LET THE WORLD BURN (Remix) - Single",
+    "released": "2024",
+    "genre": "Contemporary R&B"
+  }
+}

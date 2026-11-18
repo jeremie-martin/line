@@ -1,0 +1,21 @@
+{
+  "file": "LUNA BALA (Slowed) [dukNdSgaLtc].opus",
+  "sha256": "34f2bec33193b9c72e0932c410242e68a27d6903b40f43969549fe7048dfeb2f",
+  "sourceStartSeconds": 0,
+  "sourceEndSeconds": 44,
+  "cutOf": {
+    "song": "luna_bala_44s",
+    "from": 0,
+    "to": 44
+  },
+  "title": "LUNA BALA (Slowed)",
+  "artist": "Yb Wasg'ood & Ariis",
+  "recognised": {
+    "by": "SongRec (Shazam), 2026-11-18, on this excerpt",
+    "artist": "Yb Wasg'ood & Ariis",
+    "title": "LUNA BALA (Slowed)",
+    "album": "LUNA BALA - EP",
+    "released": "2025",
+    "genre": "Electronic"
+  }
+}

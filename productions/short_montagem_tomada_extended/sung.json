@@ -1,0 +1,2281 @@
+{
+  "schema": "line.music-sung.v1",
+  "song": "short_montagem_tomada_extended",
+  "source": "vocals stem (demucs htdemucs): loudness rises, spectral flatness, librosa pyin",
+  "loudness_unit": "fraction of the mix's 99th-percentile RMS",
+  "salience": "min(1, rise_db / 12) * share",
+  "notes": [
+    {
+      "t": 0.408,
+      "rise_db": 41.4,
+      "peak": 0.088,
+      "share": 0.05,
+      "flatness": 0.035,
+      "voicing": 0.59,
+      "salience": 0.05,
+      "borderline": true,
+      "pitch": "C♯4",
+      "dur": 0.26,
+      "event": {
+        "t": 0.408,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 0.663,
+      "rise_db": 11.1,
+      "peak": 0.241,
+      "share": 0.57,
+      "flatness": 0.032,
+      "voicing": 0.83,
+      "salience": 0.53,
+      "borderline": true,
+      "pitch": "F♯4",
+      "interval": 5,
+      "dur": 0.12,
+      "event": {
+        "t": 0.651,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 0.895,
+      "rise_db": 7.9,
+      "peak": 0.22,
+      "share": 0.66,
+      "flatness": 0.043,
+      "voicing": 0.53,
+      "salience": 0.43,
+      "borderline": true,
+      "pitch": "F♯4",
+      "interval": 0,
+      "dur": 0.07,
+      "event": {
+        "t": 0.884,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 1.72,
+      "rise_db": 4.3,
+      "peak": 0.254,
+      "share": 0.83,
+      "flatness": 0.036,
+      "voicing": 0.29,
+      "salience": 0.3,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.33,
+      "event": {
+        "t": 1.696,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 2.172,
+      "rise_db": 17,
+      "peak": 0.31,
+      "share": 0.3,
+      "flatness": 0.025,
+      "voicing": 0.69,
+      "salience": 0.3,
+      "borderline": true,
+      "pitch": "D♯4",
+      "dur": 0.37,
+      "event": {
+        "t": 2.161,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 2.544,
+      "rise_db": 3,
+      "peak": 0.286,
+      "share": 0.27,
+      "flatness": 0.015,
+      "voicing": 0.83,
+      "salience": 0.07,
+      "pitch": "D4",
+      "interval": -1,
+      "dur": 0.31,
+      "event": null
+    },
+    {
+      "t": 3.566,
+      "rise_db": 15.4,
+      "peak": 0.244,
+      "share": 0.19,
+      "flatness": 0.023,
+      "voicing": 0.64,
+      "salience": 0.19,
+      "pitch": "C4",
+      "dur": 0.34,
+      "event": {
+        "t": 3.554,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 4.018,
+      "rise_db": 16,
+      "peak": 0.289,
+      "share": 0.26,
+      "flatness": 0.022,
+      "voicing": 0.69,
+      "salience": 0.26,
+      "pitch": "D♯4",
+      "interval": 3,
+      "dur": 0.73,
+      "event": {
+        "t": 4.007,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 4.97,
+      "rise_db": 18.3,
+      "peak": 0.23,
+      "share": 0.16,
+      "flatness": 0.029,
+      "voicing": 0.36,
+      "salience": 0.16,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.31,
+      "event": {
+        "t": 4.959,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 5.4,
+      "rise_db": 19.5,
+      "peak": 0.261,
+      "share": 0.89,
+      "flatness": 0.013,
+      "voicing": 0.69,
+      "salience": 0.89,
+      "pitch": "C4",
+      "dur": 0.34,
+      "event": {
+        "t": 5.388,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 5.864,
+      "rise_db": 20.3,
+      "peak": 0.287,
+      "share": 0.26,
+      "flatness": 0.023,
+      "voicing": 0.69,
+      "salience": 0.26,
+      "pitch": "D♯4",
+      "interval": 3,
+      "dur": 0.69,
+      "event": {
+        "t": 5.853,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 6.782,
+      "rise_db": 18.8,
+      "peak": 0.226,
+      "share": 0.11,
+      "flatness": 0.036,
+      "voicing": 0.51,
+      "salience": 0.11,
+      "borderline": true,
+      "pitch": "C4",
+      "interval": -3,
+      "dur": 0.35,
+      "event": {
+        "t": 6.77,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 8.662,
+      "rise_db": 9.6,
+      "peak": 0.228,
+      "share": 0.17,
+      "flatness": 0.029,
+      "voicing": 0.23,
+      "salience": 0.14,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.31,
+      "event": {
+        "t": 8.616,
+        "stems": [
+          "bass",
+          "drums",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 9.173,
+      "rise_db": 19.5,
+      "peak": 0.277,
+      "share": 0.55,
+      "flatness": 0.016,
+      "voicing": 0.69,
+      "salience": 0.55,
+      "pitch": "E4",
+      "dur": 0.23,
+      "event": {
+        "t": 9.162,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 9.405,
+      "rise_db": 3.3,
+      "peak": 0.259,
+      "share": 0.21,
+      "flatness": 0.016,
+      "voicing": 0.91,
+      "salience": 0.06,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.16,
+      "event": null
+    },
+    {
+      "t": 9.696,
+      "rise_db": 5.4,
+      "peak": 0.203,
+      "share": 0.13,
+      "flatness": 0.023,
+      "voicing": 0.93,
+      "salience": 0.06,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.12,
+      "event": {
+        "t": 9.742,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 10.137,
+      "rise_db": 15.6,
+      "peak": 0.035,
+      "share": 0,
+      "flatness": 0.04,
+      "voicing": 0.66,
+      "salience": 0,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.07,
+      "event": {
+        "t": 10.114,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 10.532,
+      "rise_db": 29.1,
+      "peak": 0.206,
+      "share": 0.13,
+      "flatness": 0.025,
+      "voicing": 0.51,
+      "salience": 0.13,
+      "pitch": "D♯4",
+      "interval": 1,
+      "dur": 0.3,
+      "event": {
+        "t": 10.52,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 10.996,
+      "rise_db": 22.5,
+      "peak": 0.259,
+      "share": 0.2,
+      "flatness": 0.014,
+      "voicing": 0.64,
+      "salience": 0.2,
+      "pitch": "E4",
+      "interval": 1,
+      "dur": 0.24,
+      "event": {
+        "t": 10.984,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 11.24,
+      "rise_db": 3.3,
+      "peak": 0.261,
+      "share": 0.21,
+      "flatness": 0.018,
+      "voicing": 0.97,
+      "salience": 0.06,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.16,
+      "event": {
+        "t": 11.228,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 11.553,
+      "rise_db": 6.9,
+      "peak": 0.198,
+      "share": 0.13,
+      "flatness": 0.041,
+      "voicing": 0.07,
+      "salience": 0.07,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.09,
+      "event": null
+    },
+    {
+      "t": 12.366,
+      "rise_db": 42.4,
+      "peak": 0.206,
+      "share": 0.15,
+      "flatness": 0.009,
+      "voicing": 0.76,
+      "salience": 0.15,
+      "pitch": "C4",
+      "dur": 0.31,
+      "event": {
+        "t": 12.389,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 12.865,
+      "rise_db": 21.9,
+      "peak": 0.276,
+      "share": 0.71,
+      "flatness": 0.01,
+      "voicing": 0.73,
+      "salience": 0.71,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.24,
+      "event": {
+        "t": 12.854,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 13.109,
+      "rise_db": 4.2,
+      "peak": 0.259,
+      "share": 0.21,
+      "flatness": 0.015,
+      "voicing": 0.98,
+      "salience": 0.07,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.15,
+      "event": null
+    },
+    {
+      "t": 13.33,
+      "rise_db": 5.8,
+      "peak": 0.2,
+      "share": 0.13,
+      "flatness": 0.035,
+      "voicing": 0.73,
+      "salience": 0.06,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.16,
+      "event": {
+        "t": 13.341,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 13.829,
+      "rise_db": 23.5,
+      "peak": 0.091,
+      "share": 0.02,
+      "flatness": 0.006,
+      "voicing": 0.87,
+      "salience": 0.02,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.23,
+      "event": {
+        "t": 13.864,
+        "stems": [
+          "bass",
+          "other"
+        ]
+      }
+    },
+    {
+      "t": 14.258,
+      "rise_db": 35.4,
+      "peak": 0.222,
+      "share": 0.15,
+      "flatness": 0.011,
+      "voicing": 0.76,
+      "salience": 0.15,
+      "pitch": "C4",
+      "interval": -2,
+      "dur": 0.26,
+      "event": {
+        "t": 14.258,
+        "stems": [
+          "bass"
+        ]
+      }
+    },
+    {
+      "t": 14.7,
+      "rise_db": 20.7,
+      "peak": 0.263,
+      "share": 0.21,
+      "flatness": 0.02,
+      "voicing": 0.57,
+      "salience": 0.21,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.37,
+      "event": {
+        "t": 14.676,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 15.164,
+      "rise_db": 10.4,
+      "peak": 0.334,
+      "share": 0.64,
+      "flatness": 0.021,
+      "voicing": 0.41,
+      "salience": 0.55,
+      "pitch": null,
+      "dur": 0.63,
+      "event": {
+        "t": 15.164,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 16.069,
+      "rise_db": 8.6,
+      "peak": 0.216,
+      "share": 0.16,
+      "flatness": 0.02,
+      "voicing": 0.47,
+      "salience": 0.11,
+      "pitch": null,
+      "dur": 0.29,
+      "event": {
+        "t": 16.035,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 16.569,
+      "rise_db": 21.6,
+      "peak": 0.278,
+      "share": 0.69,
+      "flatness": 0.012,
+      "voicing": 0.87,
+      "salience": 0.69,
+      "pitch": "E4",
+      "dur": 0.26,
+      "event": {
+        "t": 16.545,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 16.824,
+      "rise_db": 3.9,
+      "peak": 0.265,
+      "share": 0.21,
+      "flatness": 0.02,
+      "voicing": 0.98,
+      "salience": 0.07,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.12,
+      "event": null
+    },
+    {
+      "t": 17.022,
+      "rise_db": 6.3,
+      "peak": 0.188,
+      "share": 0.12,
+      "flatness": 0.011,
+      "voicing": 0.89,
+      "salience": 0.06,
+      "pitch": "D♯4",
+      "interval": 1,
+      "dur": 0.31,
+      "event": {
+        "t": 17.033,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 17.521,
+      "rise_db": 21.4,
+      "peak": 0.106,
+      "share": 0.03,
+      "flatness": 0.015,
+      "voicing": 0.78,
+      "salience": 0.03,
+      "pitch": "D4",
+      "interval": -1,
+      "dur": 0.23,
+      "event": {
+        "t": 17.532,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 17.95,
+      "rise_db": 28,
+      "peak": 0.222,
+      "share": 0.15,
+      "flatness": 0.043,
+      "voicing": 0.71,
+      "salience": 0.15,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.26,
+      "event": {
+        "t": 17.95,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 18.392,
+      "rise_db": 24.3,
+      "peak": 0.261,
+      "share": 0.2,
+      "flatness": 0.016,
+      "voicing": 0.64,
+      "salience": 0.2,
+      "pitch": "E4",
+      "interval": 2,
+      "dur": 0.23,
+      "event": {
+        "t": 18.391,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 18.624,
+      "rise_db": 3.2,
+      "peak": 0.258,
+      "share": 0.21,
+      "flatness": 0.014,
+      "voicing": 0.97,
+      "salience": 0.05,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.16,
+      "event": {
+        "t": 18.612,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 18.891,
+      "rise_db": 7.3,
+      "peak": 0.208,
+      "share": 0.14,
+      "flatness": 0.039,
+      "voicing": 0.21,
+      "salience": 0.08,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.14,
+      "event": {
+        "t": 18.856,
+        "stems": [
+          "bass",
+          "other"
+        ]
+      }
+    },
+    {
+      "t": 19.773,
+      "rise_db": 41.8,
+      "peak": 0.22,
+      "share": 0.14,
+      "flatness": 0.011,
+      "voicing": 0.83,
+      "salience": 0.14,
+      "pitch": "C4",
+      "dur": 0.28,
+      "event": {
+        "t": 19.761,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 20.249,
+      "rise_db": 20.2,
+      "peak": 0.276,
+      "share": 0.56,
+      "flatness": 0.012,
+      "voicing": 0.69,
+      "salience": 0.56,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.22,
+      "event": {
+        "t": 20.249,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 20.47,
+      "rise_db": 3.2,
+      "peak": 0.26,
+      "share": 0.22,
+      "flatness": 0.016,
+      "voicing": 0.98,
+      "salience": 0.06,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.16,
+      "event": null
+    },
+    {
+      "t": 20.748,
+      "rise_db": 9.6,
+      "peak": 0.169,
+      "share": 0.09,
+      "flatness": 0.025,
+      "voicing": 0.47,
+      "salience": 0.07,
+      "pitch": null,
+      "dur": 0.29,
+      "event": {
+        "t": 20.737,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 21.166,
+      "rise_db": 8.2,
+      "peak": 0.169,
+      "share": 0.1,
+      "flatness": 0.032,
+      "voicing": 0.09,
+      "salience": 0.07,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.22,
+      "event": {
+        "t": 21.178,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 21.631,
+      "rise_db": 24.7,
+      "peak": 0.215,
+      "share": 0.13,
+      "flatness": 0.039,
+      "voicing": 0.51,
+      "salience": 0.13,
+      "borderline": true,
+      "pitch": "C4",
+      "dur": 0.27,
+      "event": {
+        "t": 21.619,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 22.06,
+      "rise_db": 21.4,
+      "peak": 0.249,
+      "share": 0.19,
+      "flatness": 0.019,
+      "voicing": 0.64,
+      "salience": 0.19,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.26,
+      "event": {
+        "t": 22.06,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 22.56,
+      "rise_db": 5.6,
+      "peak": 0.207,
+      "share": 0.27,
+      "flatness": 0.039,
+      "voicing": 0.38,
+      "salience": 0.13,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.27,
+      "event": {
+        "t": 22.559,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 23.442,
+      "rise_db": 4.9,
+      "peak": 0.283,
+      "share": 0.71,
+      "flatness": 0.03,
+      "voicing": 0.21,
+      "salience": 0.29,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.42,
+      "event": {
+        "t": 23.43,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 23.86,
+      "rise_db": 3.5,
+      "peak": 0.22,
+      "share": 0.87,
+      "flatness": 0.014,
+      "voicing": 0.71,
+      "salience": 0.25,
+      "pitch": "G4",
+      "dur": 0.23,
+      "event": {
+        "t": 23.86,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 24.197,
+      "rise_db": 4.6,
+      "peak": 0.142,
+      "share": 0.25,
+      "flatness": 0.016,
+      "voicing": 0.8,
+      "salience": 0.09,
+      "pitch": "G4",
+      "interval": 0,
+      "dur": 0.15,
+      "event": {
+        "t": 24.185,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 24.347,
+      "rise_db": 7.7,
+      "peak": 0.254,
+      "share": 0.57,
+      "flatness": 0.008,
+      "voicing": 0.8,
+      "salience": 0.36,
+      "pitch": "F4",
+      "interval": -2,
+      "dur": 0.31,
+      "event": {
+        "t": 24.336,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 24.8,
+      "rise_db": 17.7,
+      "peak": 0.284,
+      "share": 0.46,
+      "flatness": 0.004,
+      "voicing": 0.87,
+      "salience": 0.46,
+      "pitch": "G♯4",
+      "interval": 3,
+      "dur": 0.77,
+      "event": {
+        "t": 24.789,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 26.251,
+      "rise_db": 31.9,
+      "peak": 0.1,
+      "share": 0.07,
+      "flatness": 0.041,
+      "voicing": 0.36,
+      "salience": 0.07,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.26,
+      "event": {
+        "t": 26.217,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 26.507,
+      "rise_db": 11.1,
+      "peak": 0.258,
+      "share": 0.61,
+      "flatness": 0.037,
+      "voicing": 0.59,
+      "salience": 0.57,
+      "borderline": true,
+      "pitch": "F♯4",
+      "dur": 0.12,
+      "event": {
+        "t": 26.495,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 26.739,
+      "rise_db": 7.1,
+      "peak": 0.167,
+      "share": 0.42,
+      "flatness": 0.047,
+      "voicing": 0.41,
+      "salience": 0.25,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.07,
+      "event": {
+        "t": 26.739,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 27.169,
+      "rise_db": 3.4,
+      "peak": 0.225,
+      "share": 0.39,
+      "flatness": 0.012,
+      "voicing": 0.76,
+      "salience": 0.11,
+      "pitch": "D♯4",
+      "dur": 0.59,
+      "event": {
+        "t": 27.157,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 29.943,
+      "rise_db": 40,
+      "peak": 0.109,
+      "share": 0.08,
+      "flatness": 0.04,
+      "voicing": 0.51,
+      "salience": 0.08,
+      "borderline": true,
+      "pitch": "C4",
+      "dur": 0.27,
+      "event": {
+        "t": 29.932,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 30.21,
+      "rise_db": 9.7,
+      "peak": 0.246,
+      "share": 0.6,
+      "flatness": 0.033,
+      "voicing": 0.8,
+      "salience": 0.48,
+      "borderline": true,
+      "pitch": "F♯4",
+      "interval": 6,
+      "dur": 0.1,
+      "event": {
+        "t": 30.199,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 31.244,
+      "rise_db": 4.1,
+      "peak": 0.241,
+      "share": 0.8,
+      "flatness": 0.038,
+      "voicing": 0.25,
+      "salience": 0.27,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.35,
+      "event": {
+        "t": 31.232,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 31.708,
+      "rise_db": 17.2,
+      "peak": 0.299,
+      "share": 0.29,
+      "flatness": 0.022,
+      "voicing": 0.69,
+      "salience": 0.29,
+      "pitch": "D♯4",
+      "dur": 0.3,
+      "event": {
+        "t": 31.697,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 32.01,
+      "rise_db": 3.1,
+      "peak": 0.275,
+      "share": 0.25,
+      "flatness": 0.015,
+      "voicing": 0.85,
+      "salience": 0.06,
+      "pitch": "D4",
+      "interval": -1,
+      "dur": 0.38,
+      "event": null
+    },
+    {
+      "t": 33.101,
+      "rise_db": 16.7,
+      "peak": 0.239,
+      "share": 0.19,
+      "flatness": 0.024,
+      "voicing": 0.62,
+      "salience": 0.19,
+      "pitch": "C4",
+      "dur": 0.34,
+      "event": {
+        "t": 33.078,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 33.566,
+      "rise_db": 15.2,
+      "peak": 0.285,
+      "share": 0.24,
+      "flatness": 0.021,
+      "voicing": 0.71,
+      "salience": 0.24,
+      "pitch": "D♯4",
+      "interval": 3,
+      "dur": 0.71,
+      "event": {
+        "t": 33.542,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 34.495,
+      "rise_db": 24,
+      "peak": 0.226,
+      "share": 0.16,
+      "flatness": 0.032,
+      "voicing": 0.18,
+      "salience": 0.16,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.33,
+      "event": {
+        "t": 34.483,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 34.947,
+      "rise_db": 18.1,
+      "peak": 0.251,
+      "share": 0.88,
+      "flatness": 0.013,
+      "voicing": 0.66,
+      "salience": 0.88,
+      "pitch": "C4",
+      "dur": 0.33,
+      "event": {
+        "t": 34.924,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 35.4,
+      "rise_db": 18.8,
+      "peak": 0.284,
+      "share": 0.26,
+      "flatness": 0.021,
+      "voicing": 0.73,
+      "salience": 0.26,
+      "pitch": "D♯4",
+      "interval": 3,
+      "dur": 0.68,
+      "event": {
+        "t": 35.388,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 36.317,
+      "rise_db": 19.3,
+      "peak": 0.225,
+      "share": 0.1,
+      "flatness": 0.037,
+      "voicing": 0.51,
+      "salience": 0.1,
+      "borderline": true,
+      "pitch": "C4",
+      "interval": -3,
+      "dur": 0.35,
+      "event": {
+        "t": 36.306,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 38.175,
+      "rise_db": 9.8,
+      "peak": 0.216,
+      "share": 0.16,
+      "flatness": 0.04,
+      "voicing": 0.23,
+      "salience": 0.13,
+      "borderline": true,
+      "pitch": null,
+      "dur": 0.34,
+      "event": {
+        "t": 38.152,
+        "stems": [
+          "bass",
+          "drums",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 38.663,
+      "rise_db": 19.7,
+      "peak": 0.278,
+      "share": 0.7,
+      "flatness": 0.017,
+      "voicing": 0.66,
+      "salience": 0.7,
+      "pitch": "E4",
+      "dur": 0.43,
+      "event": {
+        "t": 38.616,
+        "stems": [
+          "bass",
+          "drums",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 39.173,
+      "rise_db": 6.2,
+      "peak": 0.208,
+      "share": 0.13,
+      "flatness": 0.028,
+      "voicing": 0.59,
+      "salience": 0.07,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.3,
+      "event": {
+        "t": 39.185,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 39.673,
+      "rise_db": 21.9,
+      "peak": 0.084,
+      "share": 0.02,
+      "flatness": 0.018,
+      "voicing": 0.8,
+      "salience": 0.02,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.07,
+      "event": {
+        "t": 39.707,
+        "stems": [
+          "bass",
+          "other"
+        ]
+      }
+    },
+    {
+      "t": 40.102,
+      "rise_db": 26,
+      "peak": 0.213,
+      "share": 0.13,
+      "flatness": 0.033,
+      "voicing": 0.76,
+      "salience": 0.13,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.26,
+      "event": {
+        "t": 40.102,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 40.543,
+      "rise_db": 21.9,
+      "peak": 0.262,
+      "share": 0.21,
+      "flatness": 0.015,
+      "voicing": 0.66,
+      "salience": 0.21,
+      "pitch": "E4",
+      "interval": 2,
+      "dur": 0.23,
+      "event": {
+        "t": 40.532,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 40.776,
+      "rise_db": 3.5,
+      "peak": 0.265,
+      "share": 0.22,
+      "flatness": 0.015,
+      "voicing": 0.97,
+      "salience": 0.06,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.16,
+      "event": {
+        "t": 40.752,
+        "stems": [
+          "drums",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 41.042,
+      "rise_db": 7.2,
+      "peak": 0.205,
+      "share": 0.14,
+      "flatness": 0.028,
+      "voicing": 0.8,
+      "salience": 0.08,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.15,
+      "event": {
+        "t": 41.019,
+        "stems": [
+          "bass",
+          "other"
+        ]
+      }
+    },
+    {
+      "t": 41.925,
+      "rise_db": 32.7,
+      "peak": 0.213,
+      "share": 0.15,
+      "flatness": 0.012,
+      "voicing": 0.76,
+      "salience": 0.15,
+      "pitch": "C4",
+      "interval": -2,
+      "dur": 0.28,
+      "event": {
+        "t": 41.925,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 42.401,
+      "rise_db": 21.1,
+      "peak": 0.272,
+      "share": 0.52,
+      "flatness": 0.01,
+      "voicing": 0.8,
+      "salience": 0.52,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.26,
+      "event": {
+        "t": 42.389,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 42.656,
+      "rise_db": 3.4,
+      "peak": 0.248,
+      "share": 0.19,
+      "flatness": 0.011,
+      "voicing": 0.96,
+      "salience": 0.05,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.14,
+      "event": null
+    },
+    {
+      "t": 43.782,
+      "rise_db": 32.2,
+      "peak": 0.218,
+      "share": 0.15,
+      "flatness": 0.012,
+      "voicing": 0.76,
+      "salience": 0.15,
+      "pitch": "C4",
+      "dur": 0.27,
+      "event": {
+        "t": 43.759,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 44.235,
+      "rise_db": 22.1,
+      "peak": 0.258,
+      "share": 0.21,
+      "flatness": 0.016,
+      "voicing": 0.59,
+      "salience": 0.21,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.23,
+      "event": {
+        "t": 44.235,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 44.711,
+      "rise_db": 10.5,
+      "peak": 0.335,
+      "share": 0.64,
+      "flatness": 0.018,
+      "voicing": 0.6,
+      "salience": 0.56,
+      "pitch": "G♯4",
+      "interval": 4,
+      "dur": 0.62,
+      "event": {
+        "t": 44.7,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 45.617,
+      "rise_db": 10.5,
+      "peak": 0.218,
+      "share": 0.15,
+      "flatness": 0.017,
+      "voicing": 0.53,
+      "salience": 0.13,
+      "pitch": "D♯4",
+      "interval": -5,
+      "dur": 0.28,
+      "event": {
+        "t": 45.64,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 46.105,
+      "rise_db": 19.8,
+      "peak": 0.282,
+      "share": 0.69,
+      "flatness": 0.013,
+      "voicing": 0.89,
+      "salience": 0.69,
+      "pitch": "E4",
+      "interval": 1,
+      "dur": 0.26,
+      "event": {
+        "t": 46.093,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 46.36,
+      "rise_db": 3.1,
+      "peak": 0.248,
+      "share": 0.19,
+      "flatness": 0.021,
+      "voicing": 0.97,
+      "salience": 0.05,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.12,
+      "event": {
+        "t": 46.406,
+        "stems": [
+          "bass"
+        ]
+      }
+    },
+    {
+      "t": 46.557,
+      "rise_db": 6.3,
+      "peak": 0.196,
+      "share": 0.12,
+      "flatness": 0.023,
+      "voicing": 0.85,
+      "salience": 0.06,
+      "pitch": "D♯4",
+      "interval": 1,
+      "dur": 0.3,
+      "event": {
+        "t": 46.569,
+        "stems": [
+          "bass",
+          "other"
+        ]
+      }
+    },
+    {
+      "t": 47.068,
+      "rise_db": 15.2,
+      "peak": 0.059,
+      "share": 0.01,
+      "flatness": 0.016,
+      "voicing": 0.8,
+      "salience": 0.01,
+      "pitch": "D4",
+      "interval": -1,
+      "dur": 0.22,
+      "event": {
+        "t": 47.022,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 47.486,
+      "rise_db": 32.2,
+      "peak": 0.19,
+      "share": 0.11,
+      "flatness": 0.036,
+      "voicing": 0.78,
+      "salience": 0.11,
+      "borderline": true,
+      "pitch": "D♯4",
+      "interval": 1,
+      "dur": 0.27,
+      "event": {
+        "t": 47.474,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 47.927,
+      "rise_db": 22.6,
+      "peak": 0.26,
+      "share": 0.2,
+      "flatness": 0.012,
+      "voicing": 0.66,
+      "salience": 0.2,
+      "pitch": "E4",
+      "interval": 1,
+      "dur": 0.22,
+      "event": {
+        "t": 47.904,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 48.148,
+      "rise_db": 3.7,
+      "peak": 0.264,
+      "share": 0.21,
+      "flatness": 0.014,
+      "voicing": 0.97,
+      "salience": 0.07,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.17,
+      "event": null
+    },
+    {
+      "t": 48.415,
+      "rise_db": 7.2,
+      "peak": 0.199,
+      "share": 0.13,
+      "flatness": 0.034,
+      "voicing": 0.53,
+      "salience": 0.07,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.17,
+      "event": {
+        "t": 48.415,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 49.355,
+      "rise_db": 34.6,
+      "peak": 0.213,
+      "share": 0.15,
+      "flatness": 0.012,
+      "voicing": 0.8,
+      "salience": 0.15,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.23,
+      "event": {
+        "t": 49.332,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 49.785,
+      "rise_db": 21.6,
+      "peak": 0.276,
+      "share": 0.67,
+      "flatness": 0.012,
+      "voicing": 0.78,
+      "salience": 0.67,
+      "pitch": "E4",
+      "interval": 2,
+      "dur": 0.27,
+      "event": {
+        "t": 49.773,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 50.052,
+      "rise_db": 3.4,
+      "peak": 0.247,
+      "share": 0.19,
+      "flatness": 0.026,
+      "voicing": 0.95,
+      "salience": 0.05,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": -2,
+      "dur": 0.13,
+      "event": null
+    },
+    {
+      "t": 50.249,
+      "rise_db": 5.9,
+      "peak": 0.202,
+      "share": 0.14,
+      "flatness": 0.028,
+      "voicing": 0.76,
+      "salience": 0.07,
+      "borderline": true,
+      "pitch": "D4",
+      "interval": 0,
+      "dur": 0.16,
+      "event": {
+        "t": 50.272,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 51.166,
+      "rise_db": 30.7,
+      "peak": 0.212,
+      "share": 0.14,
+      "flatness": 0.008,
+      "voicing": 0.76,
+      "salience": 0.14,
+      "pitch": "C4",
+      "interval": -2,
+      "dur": 0.27,
+      "event": {
+        "t": 51.155,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 51.608,
+      "rise_db": 20.6,
+      "peak": 0.248,
+      "share": 0.19,
+      "flatness": 0.008,
+      "voicing": 0.73,
+      "salience": 0.19,
+      "pitch": "E4",
+      "interval": 4,
+      "dur": 0.39,
+      "event": {
+        "t": 51.608,
+        "stems": [
+          "bass",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 52.176,
+      "rise_db": 6.5,
+      "peak": 0.196,
+      "share": 0.25,
+      "flatness": 0.018,
+      "voicing": 0.83,
+      "salience": 0.13,
+      "pitch": "C4",
+      "interval": -4,
+      "dur": 0.12,
+      "event": {
+        "t": 52.2,
+        "stems": [
+          "vocals"
+        ]
+      }
+    }
+  ],
+  "unpitched": [
+    {
+      "t": 0.013,
+      "rise_db": 5.3,
+      "peak": 0.001,
+      "share": 0,
+      "flatness": 0.289,
+      "voicing": 0.01,
+      "salience": 0,
+      "event": null
+    },
+    {
+      "t": 1.046,
+      "rise_db": 8.8,
+      "peak": 0.241,
+      "share": 0.59,
+      "flatness": 0.082,
+      "voicing": 0.36,
+      "salience": 0.43,
+      "borderline": true,
+      "event": {
+        "t": 1.011,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 1.302,
+      "rise_db": 5.3,
+      "peak": 0.231,
+      "share": 0.17,
+      "flatness": 0.07,
+      "voicing": 0.01,
+      "salience": 0.07,
+      "borderline": true,
+      "event": {
+        "t": 1.29,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 3.124,
+      "rise_db": 18.5,
+      "peak": 0.243,
+      "share": 0.18,
+      "flatness": 0.052,
+      "voicing": 0.27,
+      "salience": 0.18,
+      "borderline": true,
+      "event": {
+        "t": 3.101,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 7.257,
+      "rise_db": 15.2,
+      "peak": 0.224,
+      "share": 0.1,
+      "flatness": 0.053,
+      "voicing": 0.27,
+      "salience": 0.1,
+      "borderline": true,
+      "event": {
+        "t": 7.246,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 10.369,
+      "rise_db": 14.3,
+      "peak": 0.064,
+      "share": 0.01,
+      "flatness": 0.251,
+      "voicing": 0.93,
+      "salience": 0.01,
+      "event": {
+        "t": 10.346,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 13.608,
+      "rise_db": 3.9,
+      "peak": 0.13,
+      "share": 0.06,
+      "flatness": 0.135,
+      "voicing": 0.8,
+      "salience": 0.02,
+      "event": {
+        "t": 13.597,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 14.061,
+      "rise_db": 3.4,
+      "peak": 0.071,
+      "share": 0.02,
+      "flatness": 0.139,
+      "voicing": 0.64,
+      "salience": 0,
+      "event": {
+        "t": 14.049,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 17.753,
+      "rise_db": 7.1,
+      "peak": 0.137,
+      "share": 0.07,
+      "flatness": 0.104,
+      "voicing": 0.87,
+      "salience": 0.04,
+      "event": {
+        "t": 17.741,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 22.316,
+      "rise_db": 3.2,
+      "peak": 0.245,
+      "share": 0.19,
+      "flatness": 0.07,
+      "voicing": 0.95,
+      "salience": 0.05,
+      "borderline": true,
+      "event": {
+        "t": 22.292,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 23.001,
+      "rise_db": 17.6,
+      "peak": 0.102,
+      "share": 0.04,
+      "flatness": 0.056,
+      "voicing": 0.06,
+      "salience": 0.04,
+      "borderline": true,
+      "event": {
+        "t": 23.001,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 23.221,
+      "rise_db": 27.4,
+      "peak": 0.235,
+      "share": 0.13,
+      "flatness": 0.12,
+      "voicing": 0.03,
+      "salience": 0.13,
+      "event": null
+    },
+    {
+      "t": 26.89,
+      "rise_db": 9.8,
+      "peak": 0.239,
+      "share": 0.5,
+      "flatness": 0.05,
+      "voicing": 0.3,
+      "salience": 0.41,
+      "borderline": true,
+      "event": {
+        "t": 26.878,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 28.306,
+      "rise_db": 3.3,
+      "peak": 0.002,
+      "share": 0,
+      "flatness": 0.22,
+      "voicing": 0.01,
+      "salience": 0,
+      "event": {
+        "t": 28.295,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 29.537,
+      "rise_db": 4.1,
+      "peak": 0.001,
+      "share": 0,
+      "flatness": 0.376,
+      "voicing": 0.01,
+      "salience": 0,
+      "event": null
+    },
+    {
+      "t": 30.431,
+      "rise_db": 8.6,
+      "peak": 0.197,
+      "share": 0.58,
+      "flatness": 0.067,
+      "voicing": 0.53,
+      "salience": 0.41,
+      "borderline": true,
+      "event": {
+        "t": 30.431,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 30.582,
+      "rise_db": 9,
+      "peak": 0.241,
+      "share": 0.53,
+      "flatness": 0.069,
+      "voicing": 0.3,
+      "salience": 0.4,
+      "borderline": true,
+      "event": {
+        "t": 30.547,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 30.826,
+      "rise_db": 4.5,
+      "peak": 0.221,
+      "share": 0.16,
+      "flatness": 0.076,
+      "voicing": 0.01,
+      "salience": 0.06,
+      "borderline": true,
+      "event": {
+        "t": 30.779,
+        "stems": [
+          "bass",
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 32.66,
+      "rise_db": 18.9,
+      "peak": 0.247,
+      "share": 0.19,
+      "flatness": 0.051,
+      "voicing": 0.29,
+      "salience": 0.19,
+      "borderline": true,
+      "event": {
+        "t": 32.637,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 36.793,
+      "rise_db": 15.1,
+      "peak": 0.228,
+      "share": 0.1,
+      "flatness": 0.058,
+      "voicing": 0.3,
+      "salience": 0.1,
+      "borderline": true,
+      "event": {
+        "t": 36.782,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 39.905,
+      "rise_db": 9.2,
+      "peak": 0.118,
+      "share": 0.05,
+      "flatness": 0.11,
+      "voicing": 0.93,
+      "salience": 0.04,
+      "event": {
+        "t": 39.893,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 41.518,
+      "rise_db": 13.1,
+      "peak": 0.026,
+      "share": 0,
+      "flatness": 0.107,
+      "voicing": 0.49,
+      "salience": 0,
+      "event": {
+        "t": 41.519,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 41.751,
+      "rise_db": 14.6,
+      "peak": 0.013,
+      "share": 0,
+      "flatness": 0.06,
+      "voicing": 0.15,
+      "salience": 0,
+      "borderline": true,
+      "event": {
+        "t": 41.739,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 42.923,
+      "rise_db": 7.1,
+      "peak": 0.208,
+      "share": 0.13,
+      "flatness": 0.056,
+      "voicing": 0.89,
+      "salience": 0.08,
+      "borderline": true,
+      "event": {
+        "t": 42.877,
+        "stems": [
+          "bass",
+          "other"
+        ]
+      }
+    },
+    {
+      "t": 43.144,
+      "rise_db": 5.6,
+      "peak": 0.145,
+      "share": 0.07,
+      "flatness": 0.135,
+      "voicing": 0.71,
+      "salience": 0.03,
+      "event": {
+        "t": 43.132,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 43.399,
+      "rise_db": 4.8,
+      "peak": 0.007,
+      "share": 0,
+      "flatness": 0.074,
+      "voicing": 0.51,
+      "salience": 0,
+      "borderline": true,
+      "event": {
+        "t": 43.365,
+        "stems": [
+          "other",
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 43.597,
+      "rise_db": 17.8,
+      "peak": 0.041,
+      "share": 0.01,
+      "flatness": 0.215,
+      "voicing": 0.62,
+      "salience": 0.01,
+      "event": {
+        "t": 43.585,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 44.468,
+      "rise_db": 3.4,
+      "peak": 0.26,
+      "share": 0.2,
+      "flatness": 0.061,
+      "voicing": 0.51,
+      "salience": 0.06,
+      "borderline": true,
+      "event": {
+        "t": 44.491,
+        "stems": [
+          "bass"
+        ]
+      }
+    },
+    {
+      "t": 47.289,
+      "rise_db": 9.8,
+      "peak": 0.137,
+      "share": 0.06,
+      "flatness": 0.135,
+      "voicing": 0.93,
+      "salience": 0.05,
+      "event": {
+        "t": 47.277,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 48.902,
+      "rise_db": 21.2,
+      "peak": 0.051,
+      "share": 0.01,
+      "flatness": 0.169,
+      "voicing": 0.73,
+      "salience": 0.01,
+      "event": {
+        "t": 48.902,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 49.123,
+      "rise_db": 23,
+      "peak": 0.042,
+      "share": 0.01,
+      "flatness": 0.062,
+      "voicing": 0.8,
+      "salience": 0.01,
+      "borderline": true,
+      "event": {
+        "t": 49.111,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 50.528,
+      "rise_db": 3.1,
+      "peak": 0.134,
+      "share": 0.06,
+      "flatness": 0.145,
+      "voicing": 0.8,
+      "salience": 0.02,
+      "event": {
+        "t": 50.516,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 50.981,
+      "rise_db": 27.6,
+      "peak": 0.099,
+      "share": 0.03,
+      "flatness": 0.095,
+      "voicing": 0.96,
+      "salience": 0.03,
+      "borderline": true,
+      "event": {
+        "t": 50.969,
+        "stems": [
+          "vocals"
+        ]
+      }
+    },
+    {
+      "t": 52.769,
+      "rise_db": 5.7,
+      "peak": 0.001,
+      "share": 0,
+      "flatness": 0.204,
+      "voicing": 0.01,
+      "salience": 0,
+      "event": {
+        "t": 52.769,
+        "stems": [
+          "vocals"
+        ]
+      }
+    }
+  ]
+}

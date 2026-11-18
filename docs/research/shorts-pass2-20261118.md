@@ -439,3 +439,65 @@ The 46-second ride reached the end on seed 101. Its separate impact validation f
 **Montagem Tomada extended.** Nothing was tuned for delivery. The opening weights match the initial slight crescendo through the four phrases, with each long-note accent in place.
 
 All eleven changed readings reached `endOfSpec` in `generated/shorts6/`. The four protected passages match their reviewed times and requested strengths exactly. Type checking, reachability and the full test suite passed before the last commit.
+
+## Third review · Los Voltaje
+
+A few low drum accents now carry more of the beat under the replies. The smaller beats keep their different weights. 16.947 s — The first full bar comes back with a little more weight. 22.125 s — This is the strongest low accent in the answering phrase. 41.769 s — Listen for the footfall under the last bright replies.  Seed 101 reached the end.
+
+## Third review · Los Voltaje slowed
+
+I brought forward a few low strokes where the drum breaks through the words. The gathering calls and the quick voice keep their original phrasing. 17.964 s — The first long beat and the short kick pair have different accents. 32.187 s — The low beat comes through the hook here. 46.153 s — The short kick and the later full beat carry the last phrase.  Seed 101 reached the end.
+
+## Third review · Los Voltaje ultra slowed
+
+The broad beat has a little more weight where it answers the singer most clearly. The strongest entrance and the small vocal replies keep their places. 18.947 s — Hear the single low accent, then the pair. 25.577 s — The strongest answer in this group gets a little more weight. 46.8 s — Two later phrases lean on their low strokes.  Seed 101 reached the end.
+
+## Third review · Believer
+
+The kick under the marked syllable now leads into the next downbeat. The same pickup also sounds before the first “Pain!” entrance. 22.483 s — The short kick leads into the first shout. 24.387 s — The word starts just ahead of the kick. They share one landing. 26.338 s — The next statement already had both members of the pair.  Seed 101 reached the end.
+
+## Third review · Los Voltaje · drums
+
+I hear three smaller drum replies between the low beats. The middle reply often speaks loudest. Later the bright hook already lands the same three strokes. 0.234 s — Light drum strokes answer the opening calls. 15.275 s — The three replies start two seconds before the marked examples. 17.341 s — Follow the middle reply through the marked bars and into the hook. Construction stopped at frame 87. Seed 101 stopped during construction (no_arc).
+
+## Third review · Los Voltaje slowed · drums
+
+The short drum answers now follow the calls and run between the kicks through the hook. The second answer takes more weight when the bass and upper note strike with it. 1.269 s — The drums fill the space between the early calls. 18.382 s — A light pickup starts the three replies. 35.902 s — The second stroke has the clearest accent. 49.033 s — The last group leads back to the exposed words. Construction stopped at frame 505. Seed 101 stopped during construction (no_arc).
+
+## Third review · Los Voltaje ultra slowed · drums
+
+There is time to hear the short drum before the first word and the space between each of the three later answers. The middle stroke grows where the bass and drum speak together. 0.157 s — The little drum opens the dialogue. 19.447 s — Three strokes answer the broad low beat. 45.976 s — The middle stroke stands out and the third meets the sung reply. 56.587 s — The final group hands the phrase back to the singer. Construction stopped at the opening, frame 1. Seed 101 stopped during construction (no_arc).
+
+## Third review · Montagem Tomada super slowed
+
+The voice keeps speaking across the swell before the drums return. I gave its quick ending light catches, brought out the recurring high reply over the drums, and restored the little word just before the late kick. 18.258 s — Follow the stressed vowel into the much lighter tail. 20.557 s — The delayed high reply and the bright accent at the end answer the low drum. 36.422 s — The short word between the upper note and the kick has its own catch. Seed 101 exhausted its construction budget at frame 1310.
+
+## Third review · Passo Bem Solto
+
+The upper answer still leads the middle, with the singer now catching it on the beat and answering more quietly. The bare phrase before the drum return has much lighter touches between its stressed ends. 14.952 s — Listen for the singer just after the upper pickup and the little reply to the next strong beat. 23.357 s — The same exchange returns under the bright line. 27.699 s — The last bare word leans into the returning drum.  Seed 101 reached the end.
+
+## Third review · Passo Bem Solto slowed
+
+I picked up the marked opening vowel and the upper voice just before the two low beats. The short drum fills now interrupt both middle bursts, and the bare words leading back to the drums are lighter. 0.128 s — The low sung pickup starts the first sentence. 7.692 s — The bright syllable and the two low answers each get a landing. 16.121 s — The little drum lands inside the burst. It returns at 24.52. 27.063 s — The quiet renewals lead into a shared drum and word. Seed 101 stopped at the opening (no_arc).
+
+## Third review · Passo Bem Solto super slowed
+
+The repeated C has a softer vocal answer in the gaps. The bare call keeps its two interior renewals very light. The late drum phrase again carries its natural pace and accents. 13.602 s — The first three calls each have a small answer. 19.082 s — The change of pitch already supplied the reply here. 28.695 s — The little renewals lead to the returning drum. 44.867 s — Both drum strokes carry weight, with the accent on the second.  Seed 101 reached the end.
+
+## Third review · No Batidão
+
+The opening singer now has light catches on the sustained F and its little replies. The words that rise above them still lead into the drums. I also filled in the quiet upper answer in the first bass phrase. 0.356 s — Listen for the long F after the first accented syllable. 3.16 s — The lifted notes carry more weight as the drums join the voice. 18.862 s — The hook has one small inner note before it starts again.  Seed 101 reached the end.
+
+## Third review · No Batidão slowed
+
+The opening leans on the bare drums, with much smaller touches for the words between them. The last low vowel before the beat returns has its own landing again, as does the phrase ending before the four drum strokes. 0.343 s — The little words sit low between the dry beats. The reply at 3.69 speaks a little louder. 30.912 s — Two vocal catches lead across the returning beat. 39.759 s — The word finishes before the four strokes of the roll.  Seed 101 reached the end.
+
+### Readings retained in the third review
+
+Petrunko keeps the quiet opening ticks, their acceleration through all seven roll strokes, the rest, and the answering drums from the loved build. Tiki Tiki keeps all 77 landings of the preferred reading, including the quiet pulse under the closing voice. I found no stroke omitted for the compiler in either.
+
+On Valhalla the voice at 17.67 and its quicker answer at 30.59 are sung over a continuing groove. The main reading follows their diction and the march follows the kick pairs through the same words. In the march the wider gap before 33.808 contains hats, with no comparable new kick. I found no clear musical reason to fill it or to lighten the verse throughout either reading.
+
+## Third review · Trouble · cycle
+
+I kept the three unequal kick accents and filled in the little drum strokes that answer between them. The exposed five-note phrase has a light reply on either side of the stressed G. The last two words fall away after the drums. 18.518 s — Listen for the small strokes between each pair of kicks. 23.661 s — The little answers return with the three-beat figure. 27.725 s — The quick syllables frame the G before the drop. 41.57 s — The last three kicks keep their rising accents, then the two words answer quietly. Across the third review, nine of fourteen constructions finished. The report above records the five that stopped. Type checking passed, reach found zero unreachable files and all 727 tests passed. Seed 101 reached the end.

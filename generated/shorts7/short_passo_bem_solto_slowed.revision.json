@@ -1,0 +1,25 @@
+{
+  "summary": "I picked up the marked opening vowel and the upper voice just before the two low beats. The short drum fills now interrupt both middle bursts, and the bare words leading back to the drums are lighter.",
+  "points": [
+    {
+      "from": 0.128,
+      "to": 0.929,
+      "text": "The low sung pickup starts the first sentence."
+    },
+    {
+      "from": 7.692,
+      "to": 8.197,
+      "text": "The bright syllable and the two low answers each get a landing."
+    },
+    {
+      "from": 16.121,
+      "to": 16.487,
+      "text": "The little drum lands inside the burst. It returns at 24.52."
+    },
+    {
+      "from": 27.063,
+      "to": 29.182,
+      "text": "The quiet renewals lead into a shared drum and word."
+    }
+  ]
+}

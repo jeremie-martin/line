@@ -29,6 +29,7 @@ import passoBemSoltoSlowed from '../../productions/passo_bem_solto_slowed_select
 import passoBemSoltoSuperSlowed from '../../productions/passo_bem_solto_super_slowed_selection/zooms.ts';
 import petrunko from '../../productions/petrunko_selection/zooms.ts';
 import shortMontagemTomadaExtended from '../../productions/short_montagem_tomada_extended/zooms.ts';
+import shortMontagemTomadaSuperSlowed from '../../productions/short_montagem_tomada_super_slowed/zooms.ts';
 import shortMontagemTomadaSlowed from '../../productions/short_montagem_tomada_slowed/zooms.ts';
 import shortBeliever from '../../productions/short_believer/zooms.ts';
 import shortNoBatidao from '../../productions/short_no_batidao/zooms.ts';
@@ -68,6 +69,7 @@ export const ZOOMS: Record<string, ZoomLane[]> = {
   passo_bem_solto_super_slowed_selection: passoBemSoltoSuperSlowed,
   petrunko_selection: petrunko,
   short_montagem_tomada_extended: shortMontagemTomadaExtended,
+  short_montagem_tomada_super_slowed: shortMontagemTomadaSuperSlowed,
   short_montagem_tomada_slowed: shortMontagemTomadaSlowed,
   short_believer: shortBeliever,
   short_no_batidao: shortNoBatidao,

@@ -115,6 +115,11 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    to `generated/videos/dashboard/<song>--<variant>.mp4` (`spec` for `spec.ts`), one job at a time, in the look and
    zoom lane of the song's Astra video when it has one, else those the renderer chooses for the ride. The panel says
    whether the video was made from the spec file as it is now. His notes there start the next revision.
+   Beside the spec's title he gives each reading a verdict (Love, Good, Needs work; keys 1 2 3), kept in
+   `labels/spec-verdicts.jsonl` with the song's hash at the time: when the song's files change after it, the dashboard
+   says "changed since your verdict". Its menu lists the production set (`productions/short_*`, by title; a switch
+   shows the older library), each reading marked with his verdict and whether it has a video; N and P step through
+   it, U goes to the next reading to review.
    `python3 tools/music/marks.py --song=<song> DIR` compares a ride with marks he placed by hand: a rough hint,
    since his marks are not always what he wants once ridden; nothing is tuned to it.
 

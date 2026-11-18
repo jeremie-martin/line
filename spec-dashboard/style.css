@@ -167,6 +167,16 @@ select {
 .brand-block {
   gap: 14px;
   min-width: 260px;
+  flex: 1 1 auto;
+}
+
+.brand {
+  flex: none;
+}
+
+.brand-block > div:not(.verdict) {
+  min-width: 140px;
+  flex: 0 1 auto;
 }
 
 .brand {
@@ -191,6 +201,9 @@ h2 {
 h1 {
   font-size: 18px;
   line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 h2 {
@@ -204,12 +217,251 @@ h2 {
   margin-top: 2px;
   color: var(--muted);
   font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .header-controls {
   gap: 10px;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+}
+
+/* The owner's verdict on the reading shown: love, good, needs work; a verdict given
+ * before the spec last changed is drawn as an outline, with a word saying so. */
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.verdict button {
+  height: 30px;
+  padding: 0 10px;
+  --verdict: var(--ink);
+}
+
+.verdict [data-verdict="love"] { --verdict: var(--rust); }
+.verdict [data-verdict="good"] { --verdict: var(--green); }
+.verdict [data-verdict="needs-work"] { --verdict: var(--gold); }
+
+.verdict button.chosen {
+  background: var(--verdict);
+  border-color: var(--verdict);
+  color: var(--surface);
+  font-weight: 650;
+}
+
+.verdict button.chosen kbd {
+  background: transparent;
+  border-color: currentColor;
+  color: inherit;
+  opacity: 0.75;
+}
+
+.verdict button.was {
+  border: 2px solid var(--verdict);
+  color: var(--verdict);
+  font-weight: 650;
+}
+
+.verdict-changed {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 650;
+}
+
+/* A reading's state in the menu: a dot of its verdict, a ring of that colour when the
+ * spec changed since, a grey ring when not reviewed. */
+.mark {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  vertical-align: -1px;
+}
+
+.mark.love { background: var(--rust); border-color: var(--rust); }
+.mark.good { background: var(--green); border-color: var(--green); }
+.mark.needs-work { background: var(--gold); border-color: var(--gold); }
+.mark.changed { background: transparent; border-width: 2.5px; }
+
+.video-mark {
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.video-mark.old { opacity: 0.35; }
+.video-mark.none { visibility: hidden; }
+
+.review-summary {
+  color: var(--muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.picker {
+  position: relative;
+}
+
+#spec-picker {
+  width: min(400px, 27vw);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+
+#picker-reading {
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+#picker-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#spec-picker::after {
+  content: "\25BE";
+  color: var(--muted);
+}
+
+.picker-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: min(640px, calc(100vw - 36px));
+  max-height: calc(100vh - 96px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.picker-panel[hidden] {
+  display: none;
+}
+
+.picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.set-switch {
+  display: flex;
+  gap: 4px;
+}
+
+.set-switch button,
+.reading {
+  height: 26px;
+  padding: 0 9px;
+  font-size: 12px;
+}
+
+.picker-keys {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.picker-list {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.song-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 3px 12px;
+}
+
+.song-row.current {
+  background: var(--surface-strong);
+}
+
+.song-row {
+  flex-wrap: wrap;
+}
+
+.song-name {
+  flex: 1 0 200px;
+  min-width: 0;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song-name span,
+.notes-count {
+  color: var(--muted);
+}
+
+.song-name:hover b {
+  text-decoration: underline;
+}
+
+.notes-count {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.readings {
+  display: flex;
+  gap: 4px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.reading {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.reading.current {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.picker-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  margin: 0;
+  padding: 8px 12px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.picker-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .field-label {
@@ -676,9 +928,17 @@ textarea {
     align-items: flex-start;
   }
 
-  select {
+  select,
+  .picker,
+  #spec-picker {
     min-width: 0;
     width: 100%;
+  }
+
+  .brand-block,
+  .verdict,
+  .header-controls {
+    flex-wrap: wrap;
   }
 
   .workspace {

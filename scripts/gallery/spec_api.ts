@@ -49,6 +49,16 @@ export const listSpecs = (root: string): SpecEntry[] => readdirSync(join(root, '
         label: `${d.name} · ${f.slice(0, -3)}`, group: 'production'}))];
   });
 
+/** What a spec is made from: every .ts of its song's folder (the spec, the variant it may re-export, music.ts) and the
+ * measured files they load. A video or a verdict is current while none of them changed. `path` is the spec file's
+ * absolute path. */
+export const specSha256 = (path: string) => {
+  const song = path.slice(0, path.indexOf('/', path.indexOf('productions/') + 12)), hash = createHash('sha256');
+  const files = (readdirSync(song, {recursive: true}) as string[]).filter(f => /\.ts$|^(events|sung|lines|vocal-evidence|audio)\.json$/.test(f)).sort();
+  for (const f of files) hash.update(f).update(readFileSync(join(song, f)));
+  return hash.digest('hex');
+};
+
 /** The separated stems a song has (generated/stems/<song>/<stem>.wav), by stem name. */
 const STEMS = ['vocals', 'other', 'drums', 'bass'];
 

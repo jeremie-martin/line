@@ -13,7 +13,16 @@ const AXIS_META = {
 const NOTE_TAGS = ["mark", "strong", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "music", "flat", "too much"];
 
 const refs = {
-  specSelect: document.getElementById("spec-select"),
+  picker: document.getElementById("spec-picker"),
+  pickerMark: document.getElementById("picker-mark"),
+  pickerLabel: document.getElementById("picker-label"),
+  pickerReading: document.getElementById("picker-reading"),
+  pickerPanel: document.getElementById("picker-panel"),
+  pickerList: document.getElementById("picker-list"),
+  setSwitch: document.getElementById("set-switch"),
+  reviewSummary: document.getElementById("review-summary"),
+  verdict: document.getElementById("verdict"),
+  verdictChanged: document.getElementById("verdict-changed"),
   reload: document.getElementById("reload-spec"),
   subtitle: document.getElementById("spec-subtitle"),
   play: document.getElementById("play"),
@@ -64,7 +73,12 @@ const refs = {
 };
 
 const state = {
-  specs: [],
+  /** Every reading (a spec file) with where the owner stands on it, as /api/spec-review reports them. */
+  readings: [],
+  /** The group the menu shows: "production" (the songs short_*) or "library". */
+  set: "production",
+  /** The spec being loaded, until its view arrives. */
+  loadingPath: null,
   data: null,
   notes: [],
   notesPath: null,
@@ -132,6 +146,11 @@ function renderListening() {
   if (!listening.videoOpen) refs.video.pause();
   else syncVideo();
 }
+// The menu's group (production set or library) is remembered in this browser.
+const SET_KEY = "spec-dashboard.set";
+try {
+  if (localStorage.getItem(SET_KEY) === "library") state.set = "library";
+} catch { /* the production set */ }
 const RATE_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
 init().catch((error) => showFatal(error));
@@ -174,13 +193,40 @@ function wireEvents() {
   refs.toggleVideo.addEventListener("click", () => setListening({ videoOpen: !listening.videoOpen }));
   refs.makeVideo.addEventListener("click", () => makeVideo());
   for (const type of ["loadedmetadata", "seeked"]) refs.video.addEventListener(type, () => syncVideo());
-  refs.specSelect.addEventListener("change", () => loadSpec(refs.specSelect.value, true));
-  refs.reload.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
-    cursorT: specTime(),
-    viewStart: state.viewStart,
-    viewEnd: state.viewEnd,
-    selectedScope: state.selectedScope,
-  }));
+  refs.picker.addEventListener("click", () => openPicker(refs.pickerPanel.hidden));
+  refs.pickerList.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-path]");
+    if (!button) return;
+    openPicker(false);
+    if (button.dataset.path !== currentPath()) loadSpec(button.dataset.path, true);
+  });
+  refs.setSwitch.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-set]");
+    if (!button) return;
+    state.set = button.dataset.set;
+    try {
+      localStorage.setItem(SET_KEY, state.set);
+    } catch { /* not remembered */ }
+    renderReview();
+  });
+  document.addEventListener("pointerdown", (event) => {
+    if (!refs.pickerPanel.hidden && !event.target.closest(".picker")) openPicker(false);
+  });
+  refs.verdict.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-verdict]");
+    if (button) setVerdict(button.dataset.verdict);
+  });
+  // A spec edited in another window shows as changed when the dashboard is back in front.
+  window.addEventListener("focus", () => loadReadings());
+  refs.reload.addEventListener("click", () => {
+    loadReadings();
+    loadSpec(currentPath(), false, {
+      cursorT: specTime(),
+      viewStart: state.viewStart,
+      viewEnd: state.viewEnd,
+      selectedScope: state.selectedScope,
+    });
+  });
   refs.play.addEventListener("click", togglePlayback);
   refs.back.addEventListener("click", () => seekTo(specTime() - 5));
   refs.forward.addEventListener("click", () => seekTo(specTime() + 5));
@@ -285,6 +331,23 @@ function wireEvents() {
       if (!event.repeat) quickMark(mark);
       return;
     }
+    // 1 2 3 give a verdict, by the key's character or its place on the top row (layouts that shift digits)
+    const verdict = VERDICT_KEYS[event.key] ?? VERDICT_KEYS[event.code];
+    if (verdict) {
+      event.preventDefault();
+      if (!event.repeat) setVerdict(verdict);
+      return;
+    }
+    if (key === "n" || key === "p" || key === "u") {
+      event.preventDefault();
+      if (!event.repeat) goToReading(key === "u" ? "review" : key === "n" ? 1 : -1);
+      return;
+    }
+    if (event.key === "Escape" && !refs.pickerPanel.hidden) {
+      openPicker(false);
+      refs.picker.focus();
+      return;
+    }
     // Keys a focused control handles itself (a button's Space, a slider's arrows) are
     // taken over, so the shortcuts work wherever the focus was left.
     const seek = { ArrowLeft: -1, ArrowRight: 1, ",": -0.1, ".": 0.1 }[event.key];
@@ -308,37 +371,132 @@ function wireEvents() {
 }
 
 async function loadSpecList() {
-  const res = await fetch("/api/specs", { cache: "no-cache" });
-  if (!res.ok) throw new Error(`spec list HTTP ${res.status}`);
-  const body = await res.json();
-  const params = new URLSearchParams(location.search);
-  const collection = params.get("collection");
-  const allSpecs = body.specs || [];
-  state.specs = collection === "v2"
-    ? allSpecs.filter((spec) => spec.group.startsWith("v2/"))
-    : allSpecs;
-  refs.specSelect.innerHTML = "";
-  for (const spec of state.specs) {
-    const opt = document.createElement("option");
-    opt.value = spec.path;
-    opt.textContent = spec.label;
-    refs.specSelect.appendChild(opt);
-  }
-  const requested = params.get("spec");
-  const preferred = collection === "v2"
-    ? state.specs.find((spec) => spec.group === "v2/representative")
-    : state.specs.find((spec) => spec.group === "production")
-    || state.specs.find((spec) => spec.path === "scripts/v0/specs/drums_0_56s_creative.ts");
-  const first = state.specs.find((spec) => spec.path === requested) || preferred || state.specs[0];
+  await loadReadings({ strict: true });
+  // A reading opened by its address opens whichever group the menu shows.
+  const requested = state.readings.find((reading) => reading.path === new URLSearchParams(location.search).get("spec"));
+  const first = requested || shownReadings()[0] || state.readings[0];
   if (!first) throw new Error("no specs found");
-  refs.specSelect.value = first.path;
   await loadSpec(first.path, !requested);
+}
+
+// The menu: the readings of the production set (or the library), and where the owner stands on each:
+// his verdict (scripts/gallery/spec_review_api.ts), whether its song has notes of his, whether it has a video.
+const VERDICTS = { love: "Love", good: "Good", "needs-work": "Needs work" };
+const VERDICT_KEYS = { 1: "love", 2: "good", 3: "needs-work", Digit1: "love", Digit2: "good", Digit3: "needs-work" };
+
+async function loadReadings({ strict = false } = {}) {
+  try {
+    const body = await fetch("/api/spec-review", { cache: "no-cache" }).then(readJsonOk);
+    state.readings = body.readings || [];
+    renderReview();
+  } catch (error) {
+    if (strict) throw error;
+  }
+}
+
+const shownReadings = () => state.readings.filter((reading) => reading.set === state.set);
+const currentPath = () => state.data?.spec.path ?? state.loadingPath ?? new URLSearchParams(location.search).get("spec");
+const currentReading = () => state.readings.find((reading) => reading.path === currentPath());
+/** "none", "changed" (a verdict given before the spec last changed), or the verdict. */
+const reviewOf = (reading) => !reading?.verdict ? "none" : reading.changed ? "changed" : reading.verdict;
+const markClass = (reading) => ["mark", reading?.verdict, reading?.changed && "changed"].filter(Boolean).join(" ");
+const REVIEW_WORDS = { none: "not reviewed", changed: "changed since your verdict", love: "love", good: "good", "needs-work": "needs work" };
+const multiple = (reading) => state.readings.some((other) => other.song === reading.song && other.path !== reading.path);
+const songLabel = (reading) => [reading.title, reading.artist].filter(Boolean).join(" · ");
+/** "Believer · Imagine Dragons", then the reading's name when the song has more than one. */
+const readingLabel = (reading) => multiple(reading) ? `${songLabel(reading)} — ${reading.reading}` : songLabel(reading);
+
+function openPicker(open) {
+  refs.pickerPanel.hidden = !open;
+  refs.picker.setAttribute("aria-expanded", String(open));
+  if (open) {
+    refs.pickerList.querySelector(".reading.current")?.scrollIntoView({ block: "nearest" });
+    loadReadings();
+  }
+}
+
+function renderReview() {
+  const shown = shownReadings(), current = currentReading();
+  const reviewed = shown.filter((reading) => reading.verdict && !reading.changed).length;
+  const changed = shown.filter((reading) => reading.changed).length;
+  refs.reviewSummary.textContent = `${reviewed} of ${shown.length} readings reviewed${changed ? ` · ${changed} changed` : ""}`;
+  refs.reviewSummary.title = `In the ${state.set === "production" ? "production set" : "library"}. U goes to the next one to review.`;
+  refs.pickerLabel.textContent = current ? songLabel(current) : currentPath() ?? "";
+  refs.pickerReading.textContent = current && multiple(current) ? current.reading : "";
+  refs.pickerMark.className = markClass(current);
+  for (const button of refs.setSwitch.querySelectorAll("button[data-set]")) {
+    button.classList.toggle("active", button.dataset.set === state.set);
+  }
+  const songs = new Map();
+  for (const reading of shown) songs.set(reading.song, [...(songs.get(reading.song) ?? []), reading]);
+  refs.pickerList.innerHTML = [...songs.values()].map((readings) => {
+    const [main] = readings, here = readings.some((reading) => reading.path === current?.path);
+    const chips = readings.map((reading) => {
+      const video = reading.video === "current" ? "a video of this version" : reading.video === "old" ? "a video of an earlier version" : "no video";
+      const title = `${reading.reading}: ${REVIEW_WORDS[reviewOf(reading)]}, ${video}`;
+      return `<button type="button" class="reading${reading.path === current?.path ? " current" : ""}" data-path="${escapeHtml(reading.path)}" title="${escapeHtml(title)}">`
+        + `<span class="${markClass(reading)}"></span>${escapeHtml(reading.reading)}`
+        + `<span class="video-mark ${reading.video ?? "none"}">&#9654;</span></button>`;
+    }).join("");
+    const notes = main.notes ? `<span class="notes-count" title="Your notes on this song">${main.notes} note${main.notes === 1 ? "" : "s"}</span>` : "";
+    return `<li class="song-row${here ? " current" : ""}"><button type="button" class="song-name" data-path="${escapeHtml(main.path)}">`
+      + `<b>${escapeHtml(main.title)}</b>${main.artist ? ` <span>${escapeHtml(main.artist)}</span>` : ""}</button>`
+      + `${notes}<span class="readings">${chips}</span></li>`;
+  }).join("");
+  renderVerdict();
+}
+
+function renderVerdict() {
+  const reading = currentReading();
+  for (const button of refs.verdict.querySelectorAll("button[data-verdict]")) {
+    const chosen = reading?.verdict === button.dataset.verdict;
+    button.disabled = !reading;
+    button.classList.toggle("chosen", chosen && !reading.changed);
+    button.classList.toggle("was", chosen && reading.changed);
+    button.setAttribute("aria-pressed", String(chosen && !reading.changed));
+  }
+  refs.verdictChanged.hidden = !reading?.changed;
+}
+
+/** Gives the current reading `verdict`; the same verdict again clears it, unless the spec changed since (then it confirms it). */
+async function setVerdict(verdict) {
+  const reading = currentReading();
+  if (!reading) return;
+  const next = reading.verdict === verdict && !reading.changed ? null : verdict;
+  try {
+    const body = await fetch("/api/spec-review", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: reading.path, verdict: next }),
+    }).then(readJsonOk);
+    state.readings = state.readings.map((other) => other.path === body.reading.path ? body.reading : other);
+    renderReview();
+    toast(next ? `${VERDICTS[next]}: ${readingLabel(reading)}` : "Verdict cleared");
+  } catch (error) {
+    toast(`Verdict not saved: ${error.message ?? error}`);
+  }
+}
+
+/** The next (`step` 1) or previous (-1) reading of the menu, or with "review" the next one without a current verdict. */
+function goToReading(step) {
+  const shown = shownReadings(), at = shown.findIndex((reading) => reading.path === currentPath());
+  if (!shown.length) return;
+  let target;
+  if (step === "review") {
+    target = [...shown.slice(at + 1), ...shown.slice(0, at + 1)].find((reading) => ["none", "changed"].includes(reviewOf(reading)));
+    if (!target) return toast("Every reading has your verdict");
+  } else {
+    target = shown[at < 0 ? 0 : (at + step + shown.length) % shown.length];
+  }
+  if (target.path !== currentPath()) loadSpec(target.path, true);
 }
 
 async function loadSpec(specPath, pushUrl, restore = null) {
   await flushPendingNoteSave();
   pausePlayback();
-  refs.subtitle.textContent = "Loading " + specPath;
+  state.loadingPath = specPath;
+  const reading = state.readings.find((item) => item.path === specPath);
+  refs.subtitle.textContent = "Loading " + (reading ? readingLabel(reading) : specPath);
   refs.saveState.textContent = "";
   refs.timeline.innerHTML = "";
   state.data = null;
@@ -357,6 +515,7 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   refs.video.hidden = true;
   refs.video.removeAttribute("src");
   if (restore?.selectedScope) state.selectedScope = restore.selectedScope;
+  renderReview();
 
   const [view, notes] = await Promise.all([
     fetch(`/api/spec-view?spec=${encodeURIComponent(specPath)}&samples=1400`, { cache: "no-cache" }).then(readJsonOk),
@@ -790,7 +949,8 @@ function renderAll() {
 function renderHeader() {
   const { data } = state;
   if (!data) return;
-  refs.subtitle.textContent = `${data.spec.label} - ${formatTime(data.spec.duration)} - ${data.summary.contacts} contacts`;
+  const reading = currentReading();
+  refs.subtitle.textContent = `${reading ? readingLabel(reading) : data.spec.label} - ${formatTime(data.spec.duration)} - ${data.summary.contacts} contacts`;
   refs.timeTotal.textContent = "/ " + formatTime(data.spec.duration);
   refs.musicMeta.textContent = data.music
     ? [data.music.title, data.music.artist, data.music.tempo].filter(Boolean).join(" - ") || data.music.audio
@@ -1675,6 +1835,7 @@ async function loadVideoStatus() {
     state.videoJob = status.job;
     renderVideo();
     if (finished && status.job.spec === spec) toast(status.job.phase === "done" ? "Video made" : "Video failed");
+    if (finished) loadReadings();
   } catch (error) {
     refs.videoState.textContent = `Video status unavailable: ${error.message}`;
   }

@@ -8,10 +8,9 @@
  * ride, as `npm run videos` does. A video replaces the previous one only once it is complete. */
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {spawn, type ChildProcess} from 'node:child_process';
-import {closeSync, existsSync, mkdirSync, openSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync} from 'node:fs';
+import {closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
 import {join, relative} from 'node:path';
-import {createHash} from 'node:crypto';
-import {listSpecs} from './spec_api.ts';
+import {listSpecs, specSha256 as sha256} from './spec_api.ts';
 
 type Job = {spec: string; name: string; phase: 'compiling' | 'rendering' | 'done' | 'error'; startedAt: string; finishedAt?: string;
   look: string; line?: string; error?: string};
@@ -19,14 +18,18 @@ type Job = {spec: string; name: string; phase: 'compiling' | 'rendering' | 'done
 const reply = (res: ServerResponse, data: unknown, status = 200) => {
   res.writeHead(status, {'Content-Type': 'application/json', 'Cache-Control': 'no-store'}); res.end(JSON.stringify(data));
 };
-/** What a spec is made from: every .ts of its song's folder (the spec, the variant it may re-export, music.ts) and the
- * measured files they load. A video is current while none of them changed. */
-const sha256 = (path: string) => {
-  const song = path.slice(0, path.indexOf('/', path.indexOf('productions/') + 12)), hash = createHash('sha256');
-  const files = (readdirSync(song, {recursive: true}) as string[]).filter(f => /\.ts$|^(events|sung|lines|vocal-evidence|audio)\.json$/.test(f)).sort();
-  for (const f of files) hash.update(f).update(readFileSync(join(song, f)));
-  return hash.digest('hex');
-};
+/** `<song>--<variant>` for a listed spec path, `spec` naming spec.ts. */
+const nameOf = (path: string) => {const [, song, ...rest] = path.split('/'); return `${song}--${rest.length === 1 ? 'spec' : rest[1].slice(0, -3)}`;};
+
+/** A listed spec's video in generated/videos/dashboard, or null; current while the spec's sha256 (`sha`, computed when
+ * not given) is the one it was made from. */
+export function savedVideo(root: string, spec: string, sha?: string) {
+  const name = nameOf(spec), videos = join(root, 'generated/videos/dashboard'), file = join(videos, name + '.json');
+  if (!existsSync(file) || !existsSync(join(videos, name + '.mp4'))) return null;
+  const side = JSON.parse(readFileSync(file, 'utf8'));
+  return {url: `/generated/videos/dashboard/${name}.mp4`, from: side.from ?? 0, madeAt: side.madeAt, specSha256: side.specSha256,
+    current: side.specSha256 === (sha ?? sha256(join(root, spec))), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null};
+}
 const lastLines = (path: string, n: number) => existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n').filter(Boolean).slice(-n).join('\n') : '';
 /** What a failed step said: the log's first error line (a thrown error, or the renderer's own report), else its last lines. */
 const failure = (path: string) => (existsSync(path) && /^(\w*Error\b.*|Video failed:.*)$/m.exec(readFileSync(path, 'utf8'))?.[0]) || lastLines(path, 3);
@@ -34,17 +37,8 @@ const failure = (path: string) => (existsSync(path) && /^(\w*Error\b.*|Video fai
 export function createSpecVideoApi(root = process.cwd()) {
   const videos = join(root, 'generated/videos/dashboard'), rides = join(root, 'generated/dashboard-rides');
   let job: Job | null = null, child: ChildProcess | null = null;
-  /** `<song>--<variant>` for a listed spec path, `spec` naming spec.ts. */
-  const nameOf = (path: string) => {const [, song, ...rest] = path.split('/'); return `${song}--${rest.length === 1 ? 'spec' : rest[1].slice(0, -3)}`;};
   const resolveSpec = (raw: unknown) => typeof raw === 'string' ? listSpecs(root).find(s => s.path === raw)?.path : undefined;
-
-  function video(spec: string) {
-    const name = nameOf(spec), file = join(videos, name + '.json');
-    if (!existsSync(file) || !existsSync(join(videos, name + '.mp4'))) return null;
-    const side = JSON.parse(readFileSync(file, 'utf8'));
-    return {url: `/generated/videos/dashboard/${name}.mp4`, from: side.from ?? 0, madeAt: side.madeAt, specSha256: side.specSha256,
-      current: side.specSha256 === sha256(join(root, spec)), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null};
-  }
+  const video = (spec: string) => savedVideo(root, spec);
   const status = () => job && {...job, line: job.phase === 'compiling' || job.phase === 'rendering' ? lastLines(join(rides, job.name + '.log'), 1) : undefined};
 
   /** One step of a job, a node script with its output appended to the job's log; rejects with what it said. */

@@ -80,3 +80,70 @@ it('lists the production set by title, then the library, with verdicts that say 
     rmSync(root, {recursive: true, force: true});
   }
 });
+
+it('keeps his words on a reading with the version they were written on, and serves the notes on what changed', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'spec-review-'));
+  mkdirSync(join(root, 'productions/short_song/variants'), {recursive: true});
+  mkdirSync(join(root, 'labels'), {recursive: true});
+  writeFileSync(join(root, 'productions/short_song/spec.ts'), 'export default {};\n');
+  writeFileSync(join(root, 'productions/short_song/variants/upper.ts'), 'export default {};\n');
+  const main = 'productions/short_song/spec.ts', upper = 'productions/short_song/variants/upper.ts';
+  const first = specSha256(join(root, main));
+  // rows written before words had a version of their own: their version is the verdict's
+  writeFileSync(join(root, 'labels/spec-verdicts.jsonl'), [
+    {spec: main, verdict: null, specSha256: first, note: 'faster', at: '2026-11-18T10:00:00.000Z'},
+    {spec: main, verdict: 'good', specSha256: first, note: 'faster', at: '2026-11-18T10:01:00.000Z'},
+    {spec: upper, verdict: 'needs-work', specSha256: first, note: 'more fun', at: '2026-11-18T10:02:00.000Z'},
+  ].map(r => JSON.stringify(r)).join('\n') + '\n');
+  const api = createSpecReviewApi(root);
+  const server = createServer(async (req, res) => {
+    if (!await api(req, res, new URL(req.url!, 'http://local'))) res.writeHead(404).end();
+  }).listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const base = `http://127.0.0.1:${(server.address() as any).port}/api/spec-review`;
+  const reading = async (path: string) => (await (await fetch(base)).json()).readings.find((r: any) => r.path === path);
+  const post = async (body: unknown) => (await (await fetch(base, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})).json()).reading;
+  const rows = () => readFileSync(join(root, 'labels/spec-verdicts.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l));
+  try {
+    // each reading its own words, on the version as it stands
+    expect(await reading(main)).toMatchObject({note: 'faster', earlierNotes: [], revisions: []});
+    expect(await reading(upper)).toMatchObject({note: 'more fun', earlierNotes: []});
+
+    // the song changes: the words are of an earlier version, quoted apart; the field starts empty
+    writeFileSync(join(root, 'productions/short_song/spec.ts'), 'export default {changed: true};\n');
+    const second = specSha256(join(root, main));
+    expect(await reading(main)).toMatchObject({note: '', earlierNotes: [{note: 'faster', at: '2026-11-18T10:00:00.000Z', sha256: first}]});
+    // a verdict on the new version carries the words with their own version: still earlier
+    await post({spec: main, verdict: 'love'});
+    expect(rows().at(-1)).toMatchObject({verdict: 'love', specSha256: second, note: 'faster', noteSha256: first});
+    expect(await reading(main)).toMatchObject({note: '', earlierNotes: [{note: 'faster'}]});
+    // new words are written on this version; the verdict stays, and a later verdict keeps them
+    expect(await post({spec: main, note: 'now slower'})).toMatchObject({verdict: 'love', note: 'now slower', earlierNotes: [{note: 'faster'}]});
+    expect(rows().at(-1)).toMatchObject({note: 'now slower', noteSha256: second, specSha256: second});
+    expect(await post({spec: main, verdict: 'good'})).toMatchObject({verdict: 'good', note: 'now slower'});
+    expect(rows().at(-1)).toMatchObject({note: 'now slower', noteSha256: second});
+    // a third version: both earlier words, newest first; the same words twice are quoted once
+    writeFileSync(join(root, 'productions/short_song/music.ts'), 'export {};\n');
+    expect((await reading(main)).earlierNotes.map((w: any) => w.note)).toEqual(['now slower', 'faster']);
+    await post({spec: main, note: 'faster'});
+    expect(await reading(main)).toMatchObject({note: 'faster'});
+    expect((await reading(main)).earlierNotes.map((w: any) => w.note)).toEqual(['now slower']);
+    // the other reading's words were never touched
+    expect((await reading(upper)).earlierNotes.map((w: any) => w.note)).toEqual(['more fun']);
+
+    // the author's notes on what changed: the reading's own, each current while its version stands
+    const now = specSha256(join(root, main));
+    writeFileSync(join(root, 'productions/short_song/revisions.json'), JSON.stringify({revisions: [
+      {spec: main, sha256: first, at: '2026-11-18T09:00:00.000Z', by: 'Codex', summary: 'first'},
+      {spec: upper, sha256: now, at: '2026-11-18T11:00:00.000Z', by: 'Claude', summary: 'upper'},
+      {spec: main, sha256: now, at: '2026-11-18T12:00:00.000Z', by: 'Claude', summary: 'second', points: [{from: 1, to: null, text: 'here'}]},
+    ]}));
+    expect((await reading(main)).revisions.map((r: any) => [r.summary, r.current])).toEqual([['first', false], ['second', true]]);
+    expect((await reading(upper)).revisions.map((r: any) => [r.summary, r.current])).toEqual([['upper', true]]);
+    // they are not part of what a version is
+    expect(specSha256(join(root, main))).toBe(now);
+  } finally {
+    server.close();
+    rmSync(root, {recursive: true, force: true});
+  }
+});

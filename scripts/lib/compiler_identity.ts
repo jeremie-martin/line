@@ -7,9 +7,9 @@ import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 
 const PATHS = ['scripts', 'engine-rs/src', 'productions', 'package.json', 'package-lock.json', 'tsconfig.json'];
-/** The owner's notes on a song (the spec dashboard writes them while he reviews) are no input of a compile: a note saved
- * while a video is being made must not reject its ride. */
-const NOT_INPUTS = [':(exclude,glob)productions/*/notes.json'];
+/** The owner's notes on a song (the spec dashboard writes them while he reviews) and the author's notes on what changed
+ * (tools/music/revision.ts) are no input of a compile: a note saved while a video is being made must not reject its ride. */
+const NOT_INPUTS = [':(exclude,glob)productions/*/notes.json', ':(exclude,glob)productions/*/revisions.json'];
 export const ENGINE_PATH = 'engine-rs/target/wasm32-unknown-unknown/release/lr_engine.wasm';
 const sha = (data: string | Buffer) => createHash('sha256').update(data).digest('hex');
 

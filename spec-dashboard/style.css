@@ -1310,3 +1310,85 @@ textarea {
 /* the song's drop, under the times */
 .svg-drop { fill: var(--rust); fill-opacity: 0.14; stroke: var(--rust); stroke-opacity: 0.45; stroke-width: 1; }
 .svg-drop-label { fill: var(--rust); font-size: 10px; font-weight: 600; letter-spacing: 0; pointer-events: none; }
+
+/* what changed in this version: the author's note, beside his verdict; gold like "changed since your verdict" */
+.changes { position: relative; flex: none; }
+.changes[hidden] { display: none; }
+#changes-toggle { color: var(--muted); }
+#changes-toggle.fresh { border: 2px solid var(--gold); color: var(--gold); font-weight: 650; }
+#changes-toggle.on { background: var(--gold); border-color: var(--gold); color: var(--surface); }
+#changes-toggle:not(.fresh).on { background: var(--ink); border-color: var(--ink); }
+.changes-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100vh - 96px);
+  overflow: auto;
+  padding: 10px 14px 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.changes-panel[hidden] { display: none; }
+.change + .change { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
+.change-head, .change-none { margin: 0; color: var(--muted); font-size: 12px; }
+.change-head b { color: var(--ink); font-weight: 650; }
+.change-summary { margin: 4px 0 0; white-space: pre-wrap; }
+.change-points { margin: 6px 0 0; padding: 0; list-style: none; }
+.change-points button {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  height: auto;
+  padding: 3px 6px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  white-space: normal;
+  line-height: 1.4;
+}
+.change-points button:hover { background: var(--surface-strong); }
+.change-time { flex: none; min-width: 112px; color: var(--gold); font-variant-numeric: tabular-nums; font-weight: 600; }
+.change-earlier { margin-top: 10px; padding-top: 6px; border-top: 1px solid var(--line); }
+.change-earlier summary { cursor: pointer; color: var(--muted); font-size: 12px; }
+.change-earlier .change { margin-top: 8px; padding-top: 0; border-top: 0; opacity: 0.8; }
+.svg-change { fill: var(--gold); fill-opacity: 0.85; cursor: pointer; }
+.svg-change:hover { fill-opacity: 1; }
+
+/* his words on an earlier version of the reading: quoted above the field, two lines each (one on a short screen), all of
+ * it on a click; the field gives them some of its room */
+.earlier-words {
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  line-height: 1.4;
+  max-height: calc(5.6em + 6px);
+  overflow: auto;
+}
+.earlier-words[hidden] { display: none; }
+.earlier-words li {
+  padding-left: 8px;
+  border-left: 3px solid var(--line-strong);
+  color: var(--muted);
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+}
+.earlier-words li + li { margin-top: 2px; }
+.earlier-words li.open { display: block; }
+.earlier-words-when { color: var(--ink); font-weight: 600; }
+.reading-note .earlier-words:not([hidden]) + textarea { height: clamp(40px, 6vh, 96px); }
+
+@media (max-height: 1000px) {
+  .earlier-words { max-height: calc(2.8em + 2px); }
+  .earlier-words li { -webkit-line-clamp: 1; }
+}

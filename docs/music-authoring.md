@@ -6,7 +6,8 @@ How a song becomes a spec: which moments the rider lands on, how hard, and what 
 
 What is mass-produced is `productions/short_*`: one folder per piece of music, cut by the owner to the start and
 end he wants, registered in `scripts/gallery/repertoire_catalog.ts` with the title a video may show (`source.json`
-also holds the artist and what a recogniser said). Each is independent: its own specification, zoom lanes
+also holds the artist and what a recogniser said; `notes.json` his notes from the spec dashboard, `revisions.json` an
+author's notes to him on what changed in each revision). Each is independent: its own specification, zoom lanes
 (`zooms.ts`, registered in `scripts/video/zooms.ts`) and drop (`scripts/video/drops.ts`), even when another entry is
 the same song at another speed. A specification covers the whole audio, to its end; the zoom-out, the fade and the
 loop of a video (`docs/visual-system.md`, "The loop") are applied afterwards and are not its concern. The other
@@ -93,14 +94,15 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    mix rises there), `loud` and `share`; and prints a fold of each four bars onto one bar, where a figure that returns
    shows as a row. The bar is a hypothesis (check `repeats`); slot 0 is a beat, not necessarily the first.
    `sung.json` misses most syllables of a fast or chopped voice; use it for pitch, not for where the syllables are.
-5. **Read what the owner said.** `node tools/music/notes.ts --song=<song> [--variant=<name>]` prints his verdict and
-   words on the reading, then his notes (`productions/<song>/notes.json`, from the spec dashboard) in two groups.
-   Notes **on this version** were written on the reading as it stands: act on them. Notes **on earlier versions**
-   were written before the reading last changed: they are kept, may already be answered, and a landing number in
-   them belongs to a ride that no longer exists; their times still say where he heard something. A note is a
+5. **Read what the owner said.** `node tools/music/notes.ts --song=<song> [--variant=<name>]` prints his verdict, his
+   words on the reading and his notes (`productions/<song>/notes.json`, from the spec dashboard), each in two groups.
+   Words and notes **on this version** were written on the reading as it stands: act on them. Those **on earlier
+   versions** were written before the reading last changed: they are kept, may already be answered, and a landing
+   number in them belongs to a ride that no longer exists; their times still say where he heard something. A note is a
    direction with a few examples: carry it through the piece wherever the same music returns, and adapt what
    surrounds it (a stroke made strong makes its neighbours lighter). Never delete or rewrite his notes.
-   For a song he has said nothing about, write a first reading and show its video.
+   For a song he has said nothing about, write a first reading and show its video. A revision made from his review
+   ends with a note to him on what changed (step 7).
    On the dashboard he slows a passage and loops it (a drag across the timeline selects a range, L loops it),
    hears the mix or one stem alone (Hear: mix, voice, other, drums, bass), and places notes that snap to measured events: M a mark, S the strong one (a mark one level up, relative
    to the passage; a moment holds one of the two), V a voice, I an impact. Notes on earlier versions stay readable:
@@ -119,6 +121,12 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - asked against delivered strengths in the manifest: the spread asked, and whether the ride delivers it;
    - `node tools/music/coverage.ts --song=<song> [--variant=<name>]` lists strong events not landed. It is a list to
      read, not a form to fill: a written reason does not make a miss right.
+   - After the last edit of a revision made from his review, before committing, record what changed:
+     `node tools/music/revision.ts --song=<song> [--variant=<name>] --by=<name> --file=<json {summary, points?}>`. The
+     summary says in plain words what was understood and done: what of his feedback was applied, what was extended
+     beyond the places he named, what was left and why. A few points (`{from, to, text}`, `to` null for a moment) mark
+     the places worth looking at; not every change. It is stamped with the reading's version and kept in
+     `productions/<song>/revisions.json`; run again on the same version, it replaces the note.
 8. **He watches.** The video, beside the spec on the dashboard: muted, it follows the dashboard's clock (position,
    speed, seeks). "Make the video" compiles that spec file at seed 101 into `generated/dashboard-rides/` and renders it
    to `generated/videos/dashboard/<song>--<variant>.mp4` (`spec` for `spec.ts`), one job at a time, in the look and
@@ -128,7 +136,9 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    the spec" slaves it again). His notes there start the next revision.
    Beside the spec's title he gives each reading a verdict (Love, Good, Needs work; keys 1 2 3), kept in
    `labels/spec-verdicts.jsonl` with the song's hash at the time: when the song's files change after it, the dashboard
-   says "changed since your verdict". Its menu lists the production set (`productions/short_*`, by title; a switch
+   says "changed since your verdict", and "What changed" beside it opens the author's note on this version (its
+   points are drawn on the timeline's changes lane). His words on a reading ("On this reading") belong to the version
+   they were written on, like his notes: earlier ones are quoted above the field. Its menu lists the production set (`productions/short_*`, by title; a switch
    shows the older library), each reading marked with his verdict and whether it has a video; N and P step through
    it, U goes to the next reading to review.
    `python3 tools/music/marks.py --song=<song> DIR` compares a ride with marks he placed by hand: a rough hint,

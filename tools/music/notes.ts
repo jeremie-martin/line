@@ -1,12 +1,14 @@
 /** The owner's review of a production reading, as an author should read it:
  *   node tools/music/notes.ts --song=<song> [--variant=<name>]
- * Prints his verdict and words on the reading, then his timeline notes in two groups: those written on the reading as it
- * stands (to act on), and those written on earlier versions or other readings (kept as context: they may already be
+ * Prints his verdict, his words on the reading and his timeline notes, each in two groups: those written on the reading as
+ * it stands (to act on), and those written on earlier versions or other readings (kept as context: they may already be
  * answered, and a landing number in them belongs to a ride that no longer exists; their times still say where he heard
- * something). The grouping is the spec dashboard's (scripts/gallery/spec_api.ts: a note's `on`). */
+ * something). The grouping is the spec dashboard's (scripts/gallery/spec_api.ts: a note's `on`;
+ * scripts/gallery/spec_review_api.ts: his words' `noteSha256`). */
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
 import {specSha256} from '../../scripts/gallery/spec_api.ts';
+import {readingWords, verdictRows} from '../../scripts/gallery/spec_review_api.ts';
 
 const arg = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
 const song = arg('song'), variant = arg('variant');
@@ -14,12 +16,15 @@ if (!song) {console.error('usage: node tools/music/notes.ts --song=<song> [--var
 const root = process.cwd(), spec = variant ? `productions/${song}/variants/${variant}.ts` : `productions/${song}/spec.ts`;
 const sha = specSha256(join(root, spec));
 
-const verdicts = join(root, 'labels/spec-verdicts.jsonl');
-let row: any = null;
-if (existsSync(verdicts)) for (const line of readFileSync(verdicts, 'utf8').split('\n')) if (line.trim()) {const r = JSON.parse(line); if (r.spec === spec) row = r;}
+const rows = verdictRows(root).filter(r => r.spec === spec), row = rows.at(-1), words = readingWords(rows, sha);
+const flat = (text: string) => text.trim().replace(/\s+/g, ' ');
 console.log(`# ${spec}`);
 console.log(`verdict: ${row?.verdict ?? 'none'}${row?.verdict ? (row.specSha256 === sha ? ' (on this version)' : ' (given on an earlier version)') : ''}`);
-if (row?.note) console.log(`his words on the reading: ${row.note}`);
+if (words.current.trim()) console.log(`his words on the reading, on this version (to act on): ${flat(words.current)}`);
+if (words.earlier.length) {
+  console.log(`his words on the reading, on earlier versions (context: may already be answered):`);
+  for (const w of words.earlier) console.log(`  (${w.at.slice(0, 10)}) ${flat(w.note)}`);
+}
 
 const file = join(root, 'productions', song, 'notes.json');
 const notes: any[] = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).notes ?? [] : [];

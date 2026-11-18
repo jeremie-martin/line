@@ -443,3 +443,7 @@ All eleven changed readings reached `endOfSpec` in `generated/shorts6/`. The fou
 ## Third review · Los Voltaje
 
 A few low drum accents now carry more of the beat under the replies. The smaller beats keep their different weights. 16.947 s — The first full bar comes back with a little more weight. 22.125 s — This is the strongest low accent in the answering phrase. 41.769 s — Listen for the footfall under the last bright replies.  Seed 101 reached the end.
+
+## Third review · Los Voltaje slowed
+
+I brought forward a few low strokes where the drum breaks through the words. The gathering calls and the quick voice keep their original phrasing. 17.964 s — The first long beat and the short kick pair have different accents. 32.187 s — The low beat comes through the hook here. 46.153 s — The short kick and the later full beat carry the last phrase.  Seed 101 reached the end.

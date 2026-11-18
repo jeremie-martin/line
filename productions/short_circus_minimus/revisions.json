@@ -37,6 +37,13 @@
           "text": "The hook's inner beats, which 'accents' leaves out."
         }
       ]
+    },
+    {
+      "spec": "productions/short_circus_minimus/variants/accents.ts",
+      "sha256": "54aac745f0fdd2422aefe4314c7e04418da186dc0113f2a794aa2673c352f4e1",
+      "at": "2026-11-18T20:14:55.322Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading itself: this was the song's main reading until the one you preferred took its place."
     }
   ]
 }

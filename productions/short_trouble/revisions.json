@@ -35,6 +35,13 @@
       "at": "2026-11-18T20:13:33.263Z",
       "by": "Claude",
       "summary": "Nothing changed in the reading itself: this is the one you found significantly better (it was 'cycle'), now the song's spec. The former main reading is kept beside it as 'first'."
+    },
+    {
+      "spec": "productions/short_trouble/variants/first.ts",
+      "sha256": "eed546e4767a40ba3ab051bc238451f7e0b8fc83e74c6183647703da30799ca1",
+      "at": "2026-11-18T20:14:55.392Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading itself: this was the song's main reading until the one you preferred took its place."
     }
   ]
 }

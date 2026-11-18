@@ -39,6 +39,13 @@
       "at": "2026-11-18T20:13:33.201Z",
       "by": "Claude",
       "summary": "Nothing changed in the reading itself: this is the one you called god tier (it was 'upper'), now the song's spec. The former main reading is kept beside it as 'calm'."
+    },
+    {
+      "spec": "productions/short_lua_na_praca/variants/calm.ts",
+      "sha256": "95780bbd988a78d754a906efebcec54f12d548eee4f303c6ad3b0053192cca76",
+      "at": "2026-11-18T20:14:55.266Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading itself: this was the song's main reading until the one you preferred took its place. Its speed was raised earlier, as you asked."
     }
   ]
 }

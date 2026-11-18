@@ -59,3 +59,4 @@
 {"spec":"productions/short_believer/spec.ts","verdict":"love","specSha256":"9584ec0444aef3a1e835cf8fdb43d1da5650809d9daefbe37bdd084b667311b2","at":"2026-11-18T19:19:38.021Z"}
 {"spec":"productions/short_bones/spec.ts","verdict":null,"specSha256":"18a7ec1f5b5e5b687c9921998419c09d78d08db465bb4983388bfeb7655109f1","at":"2026-11-18T19:20:11.993Z"}
 {"spec":"productions/short_circus_minimus/spec.ts","verdict":"love","specSha256":"4dae32c4cc702be78c94e15512f65c5d07c92c00f61cf8aafcffa9bd0754e6a9","at":"2026-11-18T19:20:47.019Z"}
+{"spec":"productions/short_trouble/spec.ts","verdict":"good","specSha256":"9e6dc3ada609b713f2e76aae8364cdc98fb6bb02559fcdffa786537625349a37","at":"2026-11-18T16:17:28.366Z","migrated":"the reading has a version of its own since 2026-11-18; his verdict stands"}

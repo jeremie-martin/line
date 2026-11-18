@@ -11,7 +11,7 @@ import type {IncomingMessage, ServerResponse} from 'node:http';
 import {spawn, type ChildProcess} from 'node:child_process';
 import {closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
 import {join, relative} from 'node:path';
-import {listSpecs, specSha256 as sha256} from './spec_api.ts';
+import {isVersion, listSpecs, specSha256 as sha256} from './spec_api.ts';
 import {FPS} from '../v0/types.ts';
 
 type Job = {spec: string; name: string; phase: 'compiling' | 'rendering' | 'done' | 'error'; startedAt: string; finishedAt?: string;
@@ -30,7 +30,7 @@ export function savedVideo(root: string, spec: string, sha?: string) {
   if (!existsSync(file) || !existsSync(join(videos, name + '.mp4'))) return null;
   const side = JSON.parse(readFileSync(file, 'utf8'));
   return {url: `/generated/videos/dashboard/${name}.mp4`, from: side.from ?? 0, madeAt: side.madeAt, specSha256: side.specSha256,
-    current: side.specSha256 === (sha ?? sha256(join(root, spec))), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null,
+    current: isVersion(join(root, spec), side.specSha256), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null,
     ride: side.ride ? {...side.ride, missing: Array.isArray(side.ride.missing) ? side.ride.missing.length : side.ride.missing} : null};
 }
 /** How the ride of a listed spec's video stands against the spec, for the owner to look at (information, not a goal for

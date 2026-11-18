@@ -14,7 +14,7 @@
  * Specs are edited in their source files; the dashboard does not write them. */
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {existsSync, readdirSync, readFileSync, writeFileSync, appendFileSync, mkdirSync} from 'node:fs';
-import {join, relative, resolve, sep} from 'node:path';
+import {join, relative, resolve, sep, dirname} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
 import {createHash} from 'node:crypto';
@@ -70,12 +70,39 @@ export const revisionTimes = (root: string, specPath: string): string[] => {
   } catch {return [];}
 };
 
+const songOf = (path: string) => path.slice(0, path.indexOf('/', path.indexOf('productions/') + 12));
+const MEASURED = /^(events|sung|lines|vocal-evidence|audio)\.json$/;
+/** The files one reading is made from, relative to its song's folder, sorted: the spec file, the files of the folder it
+ * imports (and they import: a variant's `../spec.ts`, the song's music.ts), and the song's measured files. Another
+ * reading of the same song is not among them unless this one imports it. `path` is the spec file's absolute path. */
+export const specFiles = (path: string): string[] => {
+  const song = songOf(path), seen = new Set<string>();
+  const visit = (file: string) => {
+    const name = relative(song, file);
+    if (name.startsWith('..') || seen.has(name) || !existsSync(file)) return;
+    seen.add(name);
+    for (const m of readFileSync(file, 'utf8').matchAll(/(?:from|import)\s*\(?\s*['"](\.{1,2}\/[^'"]+)['"]/g)) visit(join(dirname(file), m[1]));
+  };
+  visit(path);
+  return [...seen, ...readdirSync(song).filter(f => MEASURED.test(f))].sort();
+};
+/** The version of a reading: a video, a verdict or a note on what changed is of this version while none of the reading's
+ * own files (specFiles) changed. */
 export const specSha256 = (path: string) => {
-  const song = path.slice(0, path.indexOf('/', path.indexOf('productions/') + 12)), hash = createHash('sha256');
-  const files = (readdirSync(song, {recursive: true}) as string[]).filter(f => /\.ts$|^(events|sung|lines|vocal-evidence|audio)\.json$/.test(f)).sort();
+  const song = songOf(path), hash = createHash('sha256');
+  for (const f of specFiles(path)) hash.update(f).update(readFileSync(join(song, f)));
+  return hash.digest('hex');
+};
+/** The version as it was recorded before a reading had one of its own: every .ts of the song's folder and its measured
+ * files. Records made then stay valid while the whole folder is unchanged. */
+const songSha256 = (path: string) => {
+  const song = songOf(path), hash = createHash('sha256');
+  const files = (readdirSync(song, {recursive: true}) as string[]).filter(f => /\.ts$/.test(f) || MEASURED.test(f)).sort();
   for (const f of files) hash.update(f).update(readFileSync(join(song, f)));
   return hash.digest('hex');
 };
+/** Whether a recorded version (of a video, a verdict, a note) is the reading's present one. */
+export const isVersion = (path: string, recorded: string | undefined) => !!recorded && (recorded === specSha256(path) || recorded === songSha256(path));
 
 /** The separated stems a song has (generated/stems/<song>/<stem>.wav), by stem name. */
 const STEMS = ['vocals', 'other', 'drums', 'bass'];

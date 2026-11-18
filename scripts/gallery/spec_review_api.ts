@@ -16,7 +16,7 @@
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {appendFileSync, existsSync, mkdirSync, readFileSync} from 'node:fs';
 import {dirname, join} from 'node:path';
-import {listSpecs, revisionTimes, specSha256} from './spec_api.ts';
+import {isVersion, listSpecs, revisionTimes, specSha256} from './spec_api.ts';
 import {savedVideo} from './spec_video_api.ts';
 
 export const VERDICTS = ['love', 'good', 'needs-work'] as const;
@@ -81,13 +81,13 @@ export function createSpecReviewApi(root = process.cwd()) {
       const name = entry.path.split('/')[1], s = song(name), variant = entry.path.split('/')[2] === 'variants';
       const set = name.startsWith('short_') ? 'production' : 'library', own = rows.get(entry.path) ?? [];
       const row = own.at(-1)?.verdict ? own.at(-1)! : null, words = readingWords(own, revisionTimes(root, entry.path));
-      const video = savedVideo(root, entry.path, s.sha);
+      const video = savedVideo(root, entry.path), file = join(root, entry.path);
       return {path: entry.path, song: name, set, reading: variant ? entry.path.split('/')[3].slice(0, -3) : 'main',
         title: set === 'production' && s.title ? s.title : name, artist: set === 'production' ? s.artist : null, notes: s.notes,
         video: video ? (video.current ? 'current' : 'old') : null, note: words.current, noteAt: words.currentAt, earlierNotes: words.earlier,
         // the latest note on what changed is the reading's present one; `stale` when its files changed after it was recorded
-        revisions: s.revisions.filter(r => r.spec === entry.path).map((r, i, own) => ({...r, current: i === own.length - 1, stale: r.sha256 !== s.sha})),
-        verdict: row?.verdict ?? null, verdictAt: row?.at ?? null, changed: !!row && row.specSha256 !== s.sha};
+        revisions: s.revisions.filter(r => r.spec === entry.path).map((r, i, own) => ({...r, current: i === own.length - 1, stale: !isVersion(file, r.sha256)})),
+        verdict: row?.verdict ?? null, verdictAt: row?.at ?? null, changed: !!row && !isVersion(file, row.specSha256)};
     });
     // two cuts of one piece (same title and artist) are told apart by their length
     const named = new Map<string, Set<string>>();

@@ -8,7 +8,7 @@
  * (scripts/gallery/spec_api.ts revisionTimes). Add --json for the same as data. */
 import {existsSync, readFileSync} from 'node:fs';
 import {join} from 'node:path';
-import {listSpecs, revisionTimes, specSha256} from '../../scripts/gallery/spec_api.ts';
+import {isVersion, listSpecs, revisionTimes} from '../../scripts/gallery/spec_api.ts';
 import {readingWords, verdictRows} from '../../scripts/gallery/spec_review_api.ts';
 
 const arg = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.split('=')[1];
@@ -19,12 +19,12 @@ const flat = (text: string) => text.trim().replace(/\s+/g, ' ');
 const allRows = verdictRows(root);
 
 function review(spec: string) {
-  const name = spec.split('/')[1], sha = specSha256(join(root, spec)), revised = revisionTimes(root, spec);
+  const name = spec.split('/')[1], revised = revisionTimes(root, spec);
   const rows = allRows.filter(r => r.spec === spec), row = rows.at(-1), words = readingWords(rows, revised);
   const file = join(root, 'productions', name, 'notes.json');
   const notes: any[] = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).notes ?? [] : [];
   const open = notes.filter(n => n.on?.spec === spec && !(n.createdAt <= (revised.at(-1) ?? '')));
-  return {spec, verdict: row?.verdict ?? null, verdictOnThisVersion: !!row?.verdict && row.specSha256 === sha, verdictAt: row?.verdict ? row.at : null,
+  return {spec, verdict: row?.verdict ?? null, verdictOnThisVersion: !!row?.verdict && isVersion(join(root, spec), row.specSha256), verdictAt: row?.verdict ? row.at : null,
     words: words.current, wordsAt: words.currentAt, earlierWords: words.earlier, lastRevision: revised.at(-1) ?? null,
     open, earlier: notes.filter(n => !open.includes(n))};
 }

@@ -234,3 +234,99 @@ Seed 101 matched 104/104. Asked .153–.996, SD .253, r .978. First pass 93/93, 
 Watch 18.29–19.87 for the little steps against the kicks, 27.72–29.03 for the sung answer and drop, and 34.18–35.30 beside 41.34–42.47 for whether the triples feel equally heavy. The figures describe the compiled ride. The owner's video verdict on these three cuts is pending. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_trouble-101/manifest.json)
 
 The final production plans for all three cuts match their spec, audio and analysis hashes. Typecheck passed, reach found zero unreachable files, and all 721 tests passed before the Trouble commit.
+
+## Dashboard review · Circus Minimus
+
+The low figure has three strokes in a 3.2 s phrase. The gaps cycle through about 1.2, 1.2 and 0.8 s. The bass attacks often coincide with a drum, but the drum alone can be just as sharp. At 9.092 the event has drums and bass; at 9.487 the bright drum rises more in the mix but has no new bass note. I made the former a full accent and the latter a small tap. The same reading begins in the opening verse.
+
+| Reviewed landing (s) | Owner’s note | Previous delivered | Revised delivered |
+|---:|---|---:|---:|
+| 7.089 | for reference: strong | 0.58 | 0.85 |
+| 7.890 | for reference: strong | 0.48 | 0.91 |
+| 9.092 | should be way stronger | 0.31 | 0.93 |
+| 9.487 | should be way smaller | 0.78 | 0.14 |
+| 10.288 | for reference: strong | 0.64 | 0.85 |
+| 11.089 | for reference: strong | 0.59 | 0.87 |
+| 12.291 | for reference: strong | 0.48 | 0.89 |
+| 13.492 | for reference: strong | 0.78 | 0.87 |
+| 14.287 | for reference: strong | 0.65 | 0.91 |
+| 15.489 | for reference: strong | 0.56 | 0.84 |
+| 16.691 | for reference: strong   | 0.64 | 0.84 |
+| 17.492 | for reference: strong | 0.57 | 0.95 |
+| 18.693 | for reference: strong | 0.74 | 0.89 |
+| 19.889 | for reference: strong | 0.48 | 0.82 |
+| 20.679 | for reference: strong | 0.75 | 0.79 |
+| 21.886 | for reference: strong | 0.66 | 0.95 |
+| 23.094 | for reference: strong | 0.62 | 0.73 |
+| 23.883 | for reference: strong | 0.57 | 0.89 |
+| 25.091 | for reference: strong | 0.74 | 0.91 |
+| 26.298 | for reference: strong | 0.56 | 0.83 |
+
+Between the marked accents the matched replies deliver 0.14–0.41. The older 18.658–27.498 marks give the hook its quick answers. I kept the early reply and the answering word of each group and carried several interior syllables across a single arc. This gives the low line room even where the older marks suggest a landing on every subdivision. Beyond the review the same strokes at 27.087, 28.283 and 29.491 deliver 0.82, 0.94 and 0.85. The old voice marks from 28.258 lead into the break, where the low figure falls away. Following the loved voice-full reading, the four upper notes from 30.687 land at 0.44, 0.36, 0.41 and 0.30, leading to the fifth stroke shared with the returning bass at 31.499 (0.82). The old 31.858–34.678 marks distinguish voice between those strokes. I carried the low reading through the full groove, left space over the held voice after 50.702, and kept the low accents through 57.099 (0.94).
+
+Seed 101 matched 151/151, versus 182/182 previously. Off-beat contacts fell from 11 to 5 and weighted axis RMS from 0.074 to 0.047. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_circus_minimus-101/manifest.json)
+
+## Dashboard review · Bones
+
+The four ear marks fall between existing catches. I hear two sorts of answer in the repeated 8.42 s drum sentence. The first is a light pickup under the word, the others have a distinct low attack.
+
+| Ear mark | Measured sound and placement | Seed 101 impact |
+|---:|---|---:|
+| 21.98 | Small drum at 21.986, voice and upper attack at 22.004. Catch the drum before leaning into the backbeat. | 0.23 |
+| 24.10 | Drum at 24.088 and bass at 24.105, with the voice at 24.099. One shared catch at 24.099. | 0.55 |
+| 31.24 | Drum and bass both attack at 31.193, with the voice at 31.228. Catch the leading low stroke. | 0.59 |
+| 32.52 | The 24.10 reply again, drum at 32.511 and bass at 32.522. | 0.42 |
+
+At 22.230 the drum and rising bass now deliver 0.81 (previously 0.39), ahead of the 22.520 answer at 0.48 (was 0.73). At 23.263 the stronger bass-backed catch delivers 0.80 (was 0.41). At 25.411 the word shares the bright drum/upper attack around 25.37. Its smaller lift delivers 0.58 (was 0.38). I followed all seven notes.
+
+The pickup also lands at 13.569, 30.409 and 38.832 (0.24, 0.31, 0.32). The 24.10 answer was already present at 15.705 and comes back at 40.939 (0.47 and 0.52). The sibling of 31.193 is audible at 14.364, 22.770 and 39.622 (0.49, 0.46, 0.52). There are no older timestamped notes in this entry. The earlier “take” on Astra and the owner's request for the beat inside the chorus entrance informed the balance between the low replies and the two preceding drum hits. The spoken bridge and the release still have their own pace.
+
+Seed 101 matched 137/137 against the previous 128/128. Off-beat contacts fell from 16 to 4. Weighted axis RMS rose from 0.058 to 0.068. The later fill at 36.452/36.719/37.253 also has less weight (0.82/0.54/0.70, previously 0.88/0.62/0.87). [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_bones-101/manifest.json)
+
+## Dashboard review · Amor Na Praia, 46 s
+
+In the 2.265–4.236 range I used all nine older voice marks. These are very small syllable edges over the decay of the opening boom. The strongest vocal attack is still 3.355, but it belongs inside the light phrase. The earlier 0.34–2.00 marks locate the first exchange. I kept the shared boom and three replies there, because the owner found the earlier syllable-by-syllable opening excessive.
+
+| Earlier ear mark | Vocal attack used | Delivered impact |
+|---:|---:|---:|
+| 2.54 | 2.548 | 0.07 |
+| 2.70 | 2.641 | 0.12 |
+| 2.95 | 2.932 | 0.08 |
+| 3.18 | 3.233 | 0.07 |
+| 3.36 | 3.355 | 0.13 |
+| 3.60 | 3.611 | 0.08 |
+| 3.75 | 3.767 | 0.06 |
+| 3.93 | 3.895 | 0.10 |
+| 4.17 | 4.174 | 0.11 |
+
+The first trial delivered up to 0.17 in that run and only 0.59 on the first dry drum. Lower air inside the fast words and earlier acceleration into the drum brought the nine to 0.06–0.13. The eight dry lows at 4.458, 4.731, 5.277, 5.828, 6.380, 6.931, 7.343 and 7.755 now deliver 0.80, 0.46, 0.72, 0.66, 0.74, 0.47, 0.72 and 0.67. The full-band entrance at 9.131 delivers 0.80. The 42.38 mark catches a vocal attack at 42.394 (attack 2.22, heard 1.77). It delivers 0.26 between kicks of 0.72 and 0.54.
+
+All six removed catches were between the main drums. Four were bare words in the dry burst or its subsequent breath. The 26.285 “hey” was also voice alone. At 25.908 there is a real bass/upper reply but no fresh drum; its placement is what it shares with the other five. I removed the quieter second replies at 12.713, 17.113, 21.513, 28.108, 30.319, 34.714, 36.914 and 39.114. I kept the bright answers such as 14.907 and 23.708. The four-kick bars of the owner's 9.5/10 reading still run underneath. For each removal the table checks the nearest physical strike onset, including unasked ones.
+
+| Removed (s) | Previous impact | Nearest revised strike (s) | Its impact |
+|---:|---:|---:|---:|
+| 5.555 | 0.18 | 5.825 | 0.66 |
+| 6.658 | 0.23 | 6.925 | 0.47 |
+| 8.040 | 0.33 | 7.750 | 0.67 |
+| 8.684 | 0.26 | 9.125 | 0.80 |
+| 25.908 | 0.25 | 25.800 | 0.01 |
+| 26.285 | 0.30 | 26.175 | 0.50 |
+
+I deleted the calls variant. Its defining choice was to fly over kicks during the upper calls. The revised main already carries the distinct answering notes over the full drum figure. The zoom lanes follow the audible dry stroke, vocal break and full-band returns, which still occur at the same times.
+
+Seed 101 matched 112/112 against 120/120. Off-beat contacts changed from 19 to 20, weighted axis RMS from 0.048 to 0.061. The formerly dominant 5.277 drum is softer than the previous 0.91. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_amor_na_praia_46s-101/manifest.json)
+
+## Dashboard review · Amor Na Praia, 52.351 s selection
+
+The owner asked to learn from the revised shorter reading. This recording has a roughly 0.61 s kick interval against the shorter recording’s 0.55 s. It opens inside the upper pickup, reaches the isolated drum at 2.231, and has a staggered drum line under the singer. I placed each catch on this cut’s measured attacks. There are no older timestamped notes in the entry. The earlier Astra review liked this selection and singled out the singer; I kept the exposed vocal turns and the closing pair.
+
+| Passage | What the ride delivers on seed 101 |
+|---|---|
+| Upper pickup and dry drums | The four opening notes deliver 0.12–0.20 and the isolated 2.231 drum reaches 0.91. Dry strokes at 2.643, 3.108, 4.675, 5.546, 6.492 and 7.978 deliver 0.51, 0.75, 0.79, 0.70, 0.78 and 0.69. Previously several were missing or carried by a nearby sung note. The separate words at 2.823, 3.723, 5.285 and 7.728 deliver 0.05, 0.11, 0.09 and 0.09. I dropped the run of little words after 8 s, keeping 8.646 and 9.255 at 0.11 and 0.12. |
+| Run-up and full kick figure | The three drum pickups at 9.557, 10.016 and 10.468 deliver 0.67, 0.52 and 0.75. The full-band entrance at 11.995 reaches 0.85. I restored intervening kicks previously displaced by words, including 16.268 (0.66), 21.144 (0.68), 23.588 (0.65), 27.860 (0.62) and 30.908 (0.74). In the first bar the bass/upper answers at 12.918 and 13.528 land at 0.36 and 0.41. The quieter second replies in alternating bars can be carried. |
+| Broader bass phrase | The old reading caught small tails just after the kicks. The bass stem has distinct earlier attacks at 32.440, 34.878, 37.322 and 39.760, half a beat from the pulse. They deliver 0.36, 0.52, 0.40 and 0.50. A first trial made the entrance at 32.127 only 0.45. Carrying speed and air through 31.517 raised the two successive catches to 0.97 and 0.89. This broad phrase and its upper reprise at 41.885 are specific to this cut. |
+| Last voice | The reprise still has its drum underneath. At 48.578 the shared stroke delivers 0.86, then the separate word at 48.892 delivers 0.21. The drum at 50.430 takes 0.77, followed by exposed syllables at 50.546 and 51.045 (0.16 and 0.36). The vowel sustains to the 52.351 s cut. The shorter recording’s two trailing echoes have no equivalent here. |
+
+Seed 101 matched 119/119 against 135/135 previously. Off-beat contacts rose from 12 to 21 and weighted axis RMS from 0.056 to 0.060. The revised hierarchies in all four entries are measured on the compiled rides; video preference awaits the owner. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_amor_na_praia-101/manifest.json)
+
+All four final manifests match their spec, audio and analysis digests. Type checking passed, reach found zero unreachable files, and the full test suite passed (721 tests in 126 files).

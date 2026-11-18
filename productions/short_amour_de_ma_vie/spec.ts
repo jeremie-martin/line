@@ -1,57 +1,65 @@
 /**
- * Follow the A to A-sharp and the repeated D syllables before letting the drums lead. The singer still
- * answers in the long gaps in the syncopated beat. Let the snare flam land as one stroke. Lean on the
- * bass pickup before the one-bar breath; the single returning backbeat is the deepest catch. After 36.58
- * keep the syncopations gentle right up to the cut. The weight of the quieter snare against the
- * answering words is uncertain.
+ * Start with the pickup, A3 opening to A-sharp, the lift to E and the small
+ * repeated D syllables. The bass already moves under the C-sharp and A answer;
+ * let the singer finish that line. From 4.586 follow the kick and answering
+ * snare. Keep the words in the rests at 4.795, 10.286 and 15.604. The flam
+ * at 17.868 takes one catch. The G4 crossing the groove at 19.424 is the
+ * close call here: the drums continue their sentence under that held pitch.
+ * Bass steps into the last pair before the breath. Give the held voice one
+ * flight from 24.242 to 25.252. The returning pulse has weight for four bars,
+ * then plays more lightly right up to the cut, just before the snare fill.
  */
 import type {Spec} from '../../scripts/v0/types.ts';
 import {curve} from '../../scripts/v0/core/measured.ts';
 
-const music = {"title": "L’AMOUR DE MA VIE", "audio": "productions/short_amour_de_ma_vie/audio.mp3", "beats": "productions/short_amour_de_ma_vie/audio.json", "spectrogram": {"image": "productions/short_amour_de_ma_vie/spectrogram.png", "metadata": "productions/short_amour_de_ma_vie/spectrogram.json"}};
-export const overlayMeta = {title: music.title, artist: "Billie Eilish", phases: [
-  {"name": "The opening singer", "t0": 0, "t1": 4.59, "color": "#426582"},
-  {"name": "Syncopated kick and sung answers", "t0": 4.59, "t1": 23.59, "color": "#a45643"},
-  {"name": "Bass pickup and breath", "t0": 23.59, "t1": 25.25, "color": "#448078"},
-  {"name": "Backbeat return", "t0": 25.25, "t1": 36.58, "color": "#826488"},
-  {"name": "Groove eases", "t0": 36.58, "t1": 44.187, "color": "#426582"},
+const directory = 'productions/short_amour_de_ma_vie';
+const music = {
+  title: 'L’AMOUR DE MA VIE', audio: directory + '/audio.mp3', beats: directory + '/audio.json',
+  spectrogram: {image: directory + '/spectrogram.png', metadata: directory + '/spectrogram.json'},
+};
+export const overlayMeta = {title: music.title, artist: 'Billie Eilish', phases: [
+  {name: 'The opening singer', t0: 0, t1: 4.586, color: '#426582'},
+  {name: 'Drums and exposed words', t0: 4.586, t1: 23.591, color: '#a45643'},
+  {name: 'Bass pickup and breath', t0: 23.591, t1: 25.252, color: '#448078'},
+  {name: 'Backbeat return', t0: 25.252, t1: 36.583, color: '#826488'},
+  {name: 'Groove eases', t0: 36.583, t1: 44.187, color: '#426582'},
 ]};
 
 const strikes: [number, number][] = [
-  // The opening singer
-  [0.232, 0.22], [0.615, 0.32], [0.894, 0.42], [1.625, 0.42], [1.974, 0.32], [2.276, 0.51],
-  [2.868, 0.32], [3.077, 0.42], [3.378, 0.22], [3.75, 0.42], [4.017, 0.32],
-  // Syncopated kick and sung answers
-  [4.586, 0.69], [5.236, 0.42], [5.584, 0.6], [5.909, 0.32], [6.24, 0.51], [6.583, 0.42],
-  [6.995, 0.6], [7.25, 0.32], [7.581, 0.42], [7.912, 0.51], [8.26, 0.6], [8.58, 0.42],
-  [8.911, 0.6], [9.247, 0.32], [9.572, 0.51], [9.915, 0.69], [10.513, 0.42], [10.919, 0.6],
-  [11.256, 0.51], [11.581, 0.32], [11.877, 0.42], [12.591, 0.69], [12.922, 0.42], [13.247, 0.6],
-  [13.572, 0.51], [13.915, 0.32], [14.251, 0.42], [14.588, 0.69], [15.209, 0.32], [15.598, 0.42],
-  [15.923, 0.51], [16.248, 0.69], [16.591, 0.6], [16.904, 0.42], [17.589, 0.32], [17.92, 0.6],
-  [18.251, 0.51], [18.884, 0.42], [19.249, 0.69], [19.58, 0.42], [19.923, 0.6], [20.59, 0.32],
-  [20.915, 0.51], [21.252, 0.6], [21.583, 0.51], [21.92, 0.32], [22.251, 0.42], [22.75, 0.69],
-  [23.255, 0.42],
-  // Bass pickup and breath
-  [23.591, 0.42], [24.242, 0.6], [24.694, 0.32],
-  // Backbeat return
-  [25.252, 0.88], [25.931, 0.6], [26.256, 0.42], [26.587, 0.69], [26.924, 0.32], [27.249, 0.51],
-  [27.591, 0.6], [28.253, 0.42], [28.578, 0.32], [28.926, 0.69], [29.257, 0.42], [29.588, 0.6],
-  [29.919, 0.51], [30.592, 0.69], [31.254, 0.42], [31.922, 0.6], [32.253, 0.32], [32.589, 0.51],
-  [32.92, 0.6], [33.553, 0.42], [33.907, 0.51], [34.261, 0.69], [34.9, 0.32], [35.248, 0.42],
-  [35.579, 0.51], [35.921, 0.6], [36.426, 0.42],
-  // Groove eases
-  [36.577, 0.6], [37.256, 0.32], [37.581, 0.42], [37.912, 0.51], [38.243, 0.6], [39.259, 0.32],
-  [39.584, 0.51], [39.909, 0.42], [40.252, 0.6], [40.583, 0.32], [40.908, 0.51], [41.244, 0.42],
-  [41.918, 0.6], [42.295, 0.32], [42.591, 0.51], [43.241, 0.42], [43.578, 0.6], [43.915, 0.32],
-  [44.077, 0.22],
+  [0.232,.196], [0.604,.318], [0.894,.298], [1.625,.304], [1.962,.232],
+  [2.264,.342], [2.868,.167], [3.065,.192], [3.378,.225], [3.750,.281],
+
+  [4.586,.381], [4.795,.235], [5.236,.602], [5.584,.373], [5.909,.524], [6.246,.653],
+  [7.245,.458], [7.581,.561], [7.918,.607], [8.255,.504], [8.580,.598], [8.916,.546],
+  [9.253,.529], [9.915,.478], [10.286,.281], [10.588,.448], [10.925,.517],
+  [11.250,.402], [11.587,.552], [12.574,.476], [12.922,.547], [13.247,.558],
+  [13.572,.514], [13.920,.463], [14.257,.508], [14.594,.541], [15.267,.374],
+  [15.604,.314], [15.917,.573], [16.254,.528], [16.591,.608], [16.904,.484],
+  [17.868,.335], [18.251,.551], [18.576,.378], [18.913,.452], [19.249,.483],
+  [19.586,.471], [19.923,.448], [20.596,.429], [21.258,.394], [21.595,.488],
+  [21.920,.456], [22.256,.506], [23.255,.438],
+
+  [23.591,.321], [23.905,.614], [24.242,.563],
+  [25.252,.761], [25.925,.382], [26.587,.527], [26.924,.502], [27.249,.459],
+  [27.597,.584], [28.584,.479], [28.920,.508], [29.257,.523], [29.594,.549],
+  [29.919,.517], [30.256,.487], [30.592,.536], [31.254,.474], [31.916,.519],
+  [32.253,.552], [32.589,.507], [32.914,.561], [33.913,.531], [34.261,.582],
+  [34.598,.426], [34.911,.565], [35.248,.417], [35.585,.629], [35.921,.556],
+
+  [36.583,.413], [37.245,.483], [37.581,.513], [37.918,.457], [38.243,.501],
+  [39.253,.472], [39.590,.446], [39.915,.427], [40.252,.482], [40.588,.389],
+  [40.914,.471], [41.250,.453], [41.924,.442], [42.585,.452], [42.910,.419],
+  [43.236,.454], [43.584,.495],
 ];
 
 const spec: Spec = {
   duration: 44.187, preroll: 2, music,
   contacts: strikes.map(([t, impact]) => ({t, impact})),
   axes: {
-    air: curve([[0, 0.64], [4.59, 0.51], [23.59, 0.73], [25.25, 0.56], [36.58, 0.49]]),
-    speed: curve([[0, 0.47], [4.59, 0.68], [23.59, 0.66], [25.25, 0.79], [36.58, 0.65]]),
+    air: curve([[0,.58],[3.065,.46],[3.750,.52],[16.591,.52],[23.591,.54],[24.242,.78],
+      [25.252,.56],[36.583,.56],[43.584,.64],[44.187,.61]]),
+    speed: curve([[0,.42],[1.962,.50],[2.264,.68],[2.868,.82],[3.750,.90],[16.591,.90],
+      [23.591,.80],[24.242,.74],[25.252,.94],[36.583,.88],[43.584,.84],[44.187,.89]]),
   },
 };
 export default spec;

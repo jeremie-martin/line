@@ -446,7 +446,33 @@ function renderReview() {
   renderVerdict();
 }
 
+// His free words on the reading as a whole: shown for the current reading, saved a moment after he stops writing and when he
+// leaves the field (scripts/gallery/spec_review_api.ts keeps them with his verdict).
+const readingNote = { field: document.getElementById("reading-note"), state: document.getElementById("reading-note-state"), timer: 0, path: null };
+function renderReadingNote() {
+  const reading = currentReading();
+  readingNote.field.disabled = !reading;
+  if (reading && (readingNote.path !== reading.path || document.activeElement !== readingNote.field)) {
+    readingNote.path = reading.path; readingNote.field.value = reading.note ?? ""; readingNote.state.textContent = "";
+  }
+}
+async function saveReadingNote() {
+  clearTimeout(readingNote.timer);
+  const path = readingNote.path, note = readingNote.field.value, reading = state.readings.find((r) => r.path === path);
+  if (!reading || (reading.note ?? "") === note) return;
+  try {
+    const body = await fetch("/api/spec-review", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ spec: path, note }) }).then(readJsonOk);
+    state.readings = state.readings.map((other) => other.path === body.reading.path ? body.reading : other);
+    readingNote.state.textContent = `Saved ${new Date().toLocaleTimeString()}`;
+  } catch (error) {
+    readingNote.state.textContent = `Not saved: ${error.message ?? error}`;
+  }
+}
+readingNote.field.addEventListener("input", () => { readingNote.state.textContent = "…"; clearTimeout(readingNote.timer); readingNote.timer = setTimeout(saveReadingNote, 800); });
+readingNote.field.addEventListener("blur", saveReadingNote);
+
 function renderVerdict() {
+  renderReadingNote();
   const reading = currentReading();
   for (const button of refs.verdict.querySelectorAll("button[data-verdict]")) {
     const chosen = reading?.verdict === button.dataset.verdict;

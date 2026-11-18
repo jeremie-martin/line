@@ -980,3 +980,7 @@ textarea {
 .video-state.stale { color:#8a5a12; }
 .video-state.error { color:#a8442f; }
 .hear[hidden], .ride-video video[hidden] { display:none; }
+
+/* his free words on a reading as a whole */
+.reading-note textarea { width: 100%; font: inherit; padding: 8px 10px; border: 1px solid var(--line, #d8cfbd); border-radius: 8px; background: #fff; resize: vertical; min-height: 84px; }
+.reading-note-state { font-size: 12px; opacity: 0.65; min-height: 16px; margin-top: 4px; }

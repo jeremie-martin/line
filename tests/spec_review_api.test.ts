@@ -56,11 +56,14 @@ it('lists the production set by title, then the library, with verdicts that say 
       expect((await post(bad)).status, JSON.stringify(bad)).toBe(400);
 
     const given = await (await post({spec: 'productions/short_beta/spec.ts', verdict: 'love'})).json();
+    // his words on the reading keep the verdict, and a later verdict keeps the words
+    expect((await (await post({spec: 'productions/short_beta/spec.ts', note: 'softer at the start'})).json()).reading).toMatchObject({verdict: 'love', note: 'softer at the start'});
+    expect((await (await post({spec: 'productions/short_beta/spec.ts', verdict: 'love'})).json()).reading).toMatchObject({verdict: 'love', note: 'softer at the start'});
     expect(given.reading).toMatchObject({path: 'productions/short_beta/spec.ts', verdict: 'love', changed: false});
     await post({spec: 'productions/short_zeta/variants/calls.ts', verdict: 'needs-work'});
     await post({spec: 'productions/short_zeta/variants/calls.ts', verdict: 'good'});
     const rows = readFileSync(join(root, 'labels/spec-verdicts.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l));
-    expect(rows.map(r => [r.spec, r.verdict])).toEqual([['productions/short_beta/spec.ts', 'love'],
+    expect(rows.map(r => [r.spec, r.verdict])).toEqual([['productions/short_beta/spec.ts', 'love'], ['productions/short_beta/spec.ts', 'love'], ['productions/short_beta/spec.ts', 'love'],
       ['productions/short_zeta/variants/calls.ts', 'needs-work'], ['productions/short_zeta/variants/calls.ts', 'good']]);
     expect(rows[0]).toMatchObject({specSha256: sha});
     expect(Number.isFinite(Date.parse(rows[0].at))).toBe(true);

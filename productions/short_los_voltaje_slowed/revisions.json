@@ -1,0 +1,62 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_los_voltaje_slowed/spec.ts",
+      "sha256": "774f70c3baeeaf656449989350e9230909b7065f3bd8e0d0c542264a09b31978",
+      "at": "2026-11-18T18:44:46.560Z",
+      "by": "Codex",
+      "summary": "From your last words: I brought forward a few low strokes where the drum breaks through the words. The gathering calls and the quick voice keep their original phrasing. Before that, from your earlier note: the opening as a rise, shaped around this cut's rests: the first sung groups start low and the drum answers rise toward the return. The voice passage after it is as you reviewed it.",
+      "points": [
+        {
+          "from": 0.29,
+          "to": 13.41,
+          "text": "The opening as a rise."
+        },
+        {
+          "from": 17.964,
+          "to": 20.159,
+          "text": "The first long beat and the short kick pair have different accents."
+        },
+        {
+          "from": 32.187,
+          "to": null,
+          "text": "The low beat comes through the hook here."
+        },
+        {
+          "from": 46.153,
+          "to": 49.706,
+          "text": "The short kick and the later full beat carry the last phrase."
+        }
+      ]
+    },
+    {
+      "spec": "productions/short_los_voltaje_slowed/variants/drums.ts",
+      "sha256": "774f70c3baeeaf656449989350e9230909b7065f3bd8e0d0c542264a09b31978",
+      "at": "2026-11-18T18:44:25.670Z",
+      "by": "Codex",
+      "summary": "The short drum answers now follow the calls and run between the kicks through the hook. The second answer takes more weight when the bass and upper note strike with it. (Where an answer falls within a tenth of a second of a landing of the main reading, that landing stands for it.)",
+      "points": [
+        {
+          "from": 1.269,
+          "to": 4.288,
+          "text": "The drums fill the space between the early calls."
+        },
+        {
+          "from": 18.382,
+          "to": 19.334,
+          "text": "A light pickup starts the three replies."
+        },
+        {
+          "from": 35.902,
+          "to": 36.854,
+          "text": "The second stroke has the clearest accent."
+        },
+        {
+          "from": 49.033,
+          "to": 49.985,
+          "text": "The last group leads back to the exposed words."
+        }
+      ]
+    }
+  ]
+}

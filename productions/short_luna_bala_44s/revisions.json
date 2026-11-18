@@ -1,0 +1,23 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_luna_bala_44s/spec.ts",
+      "sha256": "046e46d387d6124b8ba9b1fdfb0880911d0702a5f149ae91786d3a62af371233",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "Rewritten after the slowed entry's reading, timed on this cut's own audio. The opening voice is now a line of very light catches, and the lighter replies continue through the rest of the piece under strong downstrokes. This changed more than a touch-up.",
+      "points": [
+        {
+          "from": 0.08,
+          "to": 8.43,
+          "text": "The exposed voice in very light catches, the biggest lift on the vowel at 5.9 s."
+        },
+        {
+          "from": 8.6,
+          "to": null,
+          "text": "From here the upper figure crosses the kicks in five positions, as in the slowed entry."
+        }
+      ]
+    }
+  ]
+}

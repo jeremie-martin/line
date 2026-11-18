@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_believer/spec.ts",
+      "sha256": "9584ec0444aef3a1e835cf8fdb43d1da5650809d9daefbe37bdd084b667311b2",
+      "at": "2026-11-18T18:44:25.477Z",
+      "by": "Codex",
+      "summary": "The kick under the marked syllable now leads into the next downbeat. The same pickup also sounds before the first “Pain!” entrance.",
+      "points": [
+        {
+          "from": 22.483,
+          "to": 22.646,
+          "text": "The short kick leads into the first shout."
+        },
+        {
+          "from": 24.387,
+          "to": 24.561,
+          "text": "The word starts just ahead of the kick. They share one landing."
+        },
+        {
+          "from": 26.338,
+          "to": 26.489,
+          "text": "The next statement already had both members of the pair."
+        }
+      ]
+    }
+  ]
+}

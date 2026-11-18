@@ -1,0 +1,33 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_montagem_tomada_slowed/spec.ts",
+      "sha256": "0e9b32d3b450c88b28a20a4aaab0e0373f93f40d689d443cbc6511af3abd0c4d",
+      "at": "2026-11-18T13:50:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your first notes. The voice at 15.6–17.9 s is followed on ten syllables, kept light, into the strong drum at 17.86 s. The three landings you named are high (18.28 s), low (18.69 s) and high (20.47 s). Your question about 17.9–28.9 s: yes, the opening's rhythm returns (six close strokes and a delayed seventh); it is followed for three repetitions, a gap is left where the figure breaks after 25.5 s, and it resumes at 26.6 s.",
+      "points": [
+        {
+          "from": 15.61,
+          "to": 17.91,
+          "text": "The voice on ten light syllables, then the drum."
+        },
+        {
+          "from": 18.28,
+          "to": 20.47,
+          "text": "High, low, high as you asked."
+        },
+        {
+          "from": 18.69,
+          "to": 25.54,
+          "text": "The opening's seven-stroke figure, three times."
+        },
+        {
+          "from": 25.54,
+          "to": 26.64,
+          "text": "The figure breaks: left open until the drum returns."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_bones/spec.ts",
+      "sha256": "18a7ec1f5b5e5b687c9921998419c09d78d08db465bb4983388bfeb7655109f1",
+      "at": "2026-11-18T15:00:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your notes. The three landings you named are raised: 22.23 s now above the one after it, 23.27 s, and 25.40 s a bit. Your four marks have landings: 21.98 s as a light pickup, the other three on drum-and-bass replies that also return elsewhere in the chorus.",
+      "points": [
+        {
+          "from": 21.98,
+          "to": 22.23,
+          "text": "Light pickup, then the strong backbeat."
+        },
+        {
+          "from": 23.27,
+          "to": null,
+          "text": "Raised."
+        },
+        {
+          "from": 24.1,
+          "to": null,
+          "text": "Your mark."
+        },
+        {
+          "from": 25.4,
+          "to": null,
+          "text": "A bit stronger."
+        },
+        {
+          "from": 31.2,
+          "to": 32.52,
+          "text": "Your two marks."
+        }
+      ]
+    }
+  ]
+}

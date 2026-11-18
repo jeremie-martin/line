@@ -1,0 +1,67 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_los_voltaje_ultra_slowed/spec.ts",
+      "sha256": "06f643ce63cb0a8d3c34184244f5746e6516bdcd0a8b8e241c581b75dc2c0336",
+      "at": "2026-11-18T18:44:46.625Z",
+      "by": "Codex",
+      "summary": "From your last words: The broad beat has a little more weight where it answers the singer most clearly. The strongest entrance and the small vocal replies keep their places. Before that, from your earlier note: the opening as a rise, on this cut's longer calls: the first two calls start low, the five drum strokes from 9.7 s rise under the approach, and the quick voice from 11.3 s is as you reviewed it.",
+      "points": [
+        {
+          "from": 0.06,
+          "to": 13.33,
+          "text": "The opening as a rise."
+        },
+        {
+          "from": 11.33,
+          "to": 15.93,
+          "text": "The quick voice, untouched."
+        },
+        {
+          "from": 18.947,
+          "to": 21.595,
+          "text": "Hear the single low accent, then the pair."
+        },
+        {
+          "from": 25.577,
+          "to": null,
+          "text": "The strongest answer in this group gets a little more weight."
+        },
+        {
+          "from": 46.8,
+          "to": 57.411,
+          "text": "Two later phrases lean on their low strokes."
+        }
+      ]
+    },
+    {
+      "spec": "productions/short_los_voltaje_ultra_slowed/variants/drums.ts",
+      "sha256": "06f643ce63cb0a8d3c34184244f5746e6516bdcd0a8b8e241c581b75dc2c0336",
+      "at": "2026-11-18T18:44:25.798Z",
+      "by": "Codex",
+      "summary": "There is time to hear the short drum before the first word and the space between each of the three later answers. The middle stroke grows where the bass and drum speak together. (Where an answer falls within a tenth of a second of a landing of the main reading, that landing stands for it.)",
+      "points": [
+        {
+          "from": 0.824,
+          "to": 3.477,
+          "text": "The little drum answers the first words (the stroke before the first word, at 0.16 s, is too early for a ride to land)."
+        },
+        {
+          "from": 19.447,
+          "to": 20.608,
+          "text": "Three strokes answer the broad low beat."
+        },
+        {
+          "from": 45.976,
+          "to": 47.137,
+          "text": "The middle stroke stands out and the third meets the sung reply."
+        },
+        {
+          "from": 56.587,
+          "to": 58.073,
+          "text": "The final group hands the phrase back to the singer."
+        }
+      ]
+    }
+  ]
+}

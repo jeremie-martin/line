@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_amor_na_praia_46s/spec.ts",
+      "sha256": "5b29aaf2217cea43324baeb82574f6b87618d63a34c04cb9fa9e12de2dbed302",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "Two rounds of your notes. First: the voice in the opening very light, the six landings you marked 'remove' taken out (and eight quieter ones of the same kind elsewhere), the big low hits landed, the 'calls' reading deleted. Second: more voice notes in the opening, sixteen now, all very small. The drums after it are as before.",
+      "points": [
+        {
+          "from": 0.34,
+          "to": 4.18,
+          "text": "Sixteen voice landings, all very small; the boom at 0.34 keeps its weight."
+        },
+        {
+          "from": 4.45,
+          "to": 7.75,
+          "text": "The eight dry drums."
+        },
+        {
+          "from": 42.4,
+          "to": null,
+          "text": "Your mark: the voice caught lightly between two kicks."
+        }
+      ]
+    }
+  ]
+}

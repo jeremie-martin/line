@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_passo_bem_solto/spec.ts",
+      "sha256": "ec8fc3f7ee8dc18113f1182bc78d55aeb6a8b497125dc33ae3a403aa208984ad",
+      "at": "2026-11-18T18:44:26.124Z",
+      "by": "Codex",
+      "summary": "The upper answer still leads the middle, with the singer now catching it on the beat and answering more quietly. The bare phrase before the drum return has much lighter touches between its stressed ends.",
+      "points": [
+        {
+          "from": 14.952,
+          "to": 16.2,
+          "text": "Listen for the singer just after the upper pickup and the little reply to the next strong beat."
+        },
+        {
+          "from": 23.357,
+          "to": 24.512,
+          "text": "The same exchange returns under the bright line."
+        },
+        {
+          "from": 27.699,
+          "to": 29.348,
+          "text": "The last bare word leans into the returning drum."
+        }
+      ]
+    }
+  ]
+}

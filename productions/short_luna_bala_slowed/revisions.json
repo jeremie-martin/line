@@ -1,0 +1,38 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_luna_bala_slowed/spec.ts",
+      "sha256": "a9595b9d4105ac6580eaf527646694476858aef72bbe5c716b009224cf946c76",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your notes. The opening now starts low and rises, with its stresses kept. 6.7–15.4 s is exactly as you reviewed it. The stroke you found too low is the short fifth answer of each bar: it is raised in every bar, not only the three you pointed at, and stays below the downstroke. The same low replies were added later in the piece where they were missing.",
+      "points": [
+        {
+          "from": 0,
+          "to": 6.71,
+          "text": "The opening as a rise: starts low, does not end high."
+        },
+        {
+          "from": 6.74,
+          "to": 15.44,
+          "text": "Untouched."
+        },
+        {
+          "from": 17.08,
+          "to": null,
+          "text": "The fifth answer of the bar, raised here and in every following bar."
+        },
+        {
+          "from": 23.35,
+          "to": 23.62,
+          "text": "The landing at 23.49 is removed; two beats, at 23.35 and 23.62."
+        },
+        {
+          "from": 33.98,
+          "to": 34.52,
+          "text": "The two missing ones (a somewhat strong one, then a strong one). The same replies added at 36.2/36.7 and 38.3/38.9 s."
+        }
+      ]
+    }
+  ]
+}

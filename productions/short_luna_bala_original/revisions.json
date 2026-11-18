@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_luna_bala_original/spec.ts",
+      "sha256": "d99b69f5f1cd9a06626166cae56c59b7f365826b10c4520798c828e4e8d2786a",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "Rewritten after the slowed entry's reading, timed on this cut's own audio: every opening syllable gets a very light landing, the upper answers after the first drum are articulated, and the lighter treatment continues to the end, where the closing calls have small replies.",
+      "points": [
+        {
+          "from": 0.2,
+          "to": 3.49,
+          "text": "Opening syllables, each landed very lightly."
+        },
+        {
+          "from": 3.69,
+          "to": 5.1,
+          "text": "Four upper answers to the drum, then the downstroke."
+        },
+        {
+          "from": 25.8,
+          "to": null,
+          "text": "From here the upper answers are lighter, their fifth strokes medium."
+        }
+      ]
+    }
+  ]
+}

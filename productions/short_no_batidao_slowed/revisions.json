@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_no_batidao_slowed/spec.ts",
+      "sha256": "a65070a2bb9b3a06562065baa556da3a9a4b6d38456c6b4f8d37503a81790f01",
+      "at": "2026-11-18T18:44:26.051Z",
+      "by": "Codex",
+      "summary": "The opening leans on the bare drums, with much smaller touches for the words between them. The last low vowel before the beat returns has its own landing again, as does the phrase ending before the four drum strokes.",
+      "points": [
+        {
+          "from": 0.343,
+          "to": 4.268,
+          "text": "The little words sit low between the dry beats. The reply at 3.69 speaks a little louder."
+        },
+        {
+          "from": 30.912,
+          "to": 31.69,
+          "text": "Two vocal catches lead across the returning beat."
+        },
+        {
+          "from": 39.759,
+          "to": 40.589,
+          "text": "The word finishes before the four strokes of the roll."
+        }
+      ]
+    }
+  ]
+}

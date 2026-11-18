@@ -1,0 +1,33 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_trouble/variants/cycle.ts",
+      "sha256": "0d2a80a47b44d71c8cea15b0701a9cdb8e9ef63977a57b337c32766be27caa52",
+      "at": "2026-11-18T18:44:26.311Z",
+      "by": "Codex",
+      "summary": "I kept the three unequal kick accents and filled in the little drum strokes that answer between them. The exposed five-note phrase has a light reply on either side of the stressed G. The last two words fall away after the drums.",
+      "points": [
+        {
+          "from": 18.518,
+          "to": 19.853,
+          "text": "Listen for the small strokes between each pair of kicks."
+        },
+        {
+          "from": 23.661,
+          "to": 27.243,
+          "text": "The little answers return with the three-beat figure."
+        },
+        {
+          "from": 27.725,
+          "to": 29.031,
+          "text": "The quick syllables frame the G before the drop."
+        },
+        {
+          "from": 41.57,
+          "to": 44.234,
+          "text": "The last three kicks keep their rising accents, then the two words answer quietly."
+        }
+      ]
+    }
+  ]
+}

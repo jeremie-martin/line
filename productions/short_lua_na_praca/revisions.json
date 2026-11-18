@@ -1,0 +1,37 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_lua_na_praca/spec.ts",
+      "sha256": "178dc02d6b768a09af91c01deb9d054586cae4d77a8a5f040cdd271cfaf6e0a0",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your words: the ride is asked markedly faster throughout, most of all in the suspension. The landings and their strengths are as before.",
+      "points": [
+        {
+          "from": 20.96,
+          "to": 26.57,
+          "text": "The suspension: the largest gain in speed."
+        }
+      ]
+    },
+    {
+      "spec": "productions/short_lua_na_praca/variants/upper.ts",
+      "sha256": "178dc02d6b768a09af91c01deb9d054586cae4d77a8a5f040cdd271cfaf6e0a0",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your notes. All seven of your earlier marks in the pickup at 4.6–5.5 s now have a landing (two were missing). The suspension at 21–26.6 s is asked much lower, as very light touches. Speed is raised here too.",
+      "points": [
+        {
+          "from": 4.55,
+          "to": 5.53,
+          "text": "Seven landings on your earlier marks, then the drum."
+        },
+        {
+          "from": 20.96,
+          "to": 26.57,
+          "text": "Very light touches."
+        }
+      ]
+    }
+  ]
+}

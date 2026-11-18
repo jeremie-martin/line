@@ -1,0 +1,18 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_montagem_tomada_extended/spec.ts",
+      "sha256": "90bc995970ebd891021d57f43319da10130adf302617333d735f7d442bc52b22",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your note, a slight rise only: the first group of the opening is eased and the following groups step up a little, each keeping its own accent. Nothing changes after the drum at 8.6 s.",
+      "points": [
+        {
+          "from": 0.08,
+          "to": 8.33,
+          "text": "A slight rise, group by group; same figure, same accents."
+        }
+      ]
+    }
+  ]
+}

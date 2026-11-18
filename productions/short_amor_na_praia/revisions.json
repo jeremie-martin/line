@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_amor_na_praia/spec.ts",
+      "sha256": "eab6ada83ec186d4a43d57bf819db7bf6670336ca310a167126300dad4224f31",
+      "at": "2026-11-18T17:10:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "Rewritten from the revised 46 s reading (drums lead, exposed words very light), on this cut's own timing. From your last note: the two discreet beats before the first drum are in, at 1.79 and 1.98 s, very light.",
+      "points": [
+        {
+          "from": 1.79,
+          "to": 1.98,
+          "text": "The two discreet beats."
+        },
+        {
+          "from": 2.23,
+          "to": null,
+          "text": "The isolated drum, strong."
+        },
+        {
+          "from": 32.1,
+          "to": null,
+          "text": "This cut's own broad bass entrance, with four lighter replies."
+        }
+      ]
+    }
+  ]
+}

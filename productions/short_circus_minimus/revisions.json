@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_circus_minimus/spec.ts",
+      "sha256": "4dae32c4cc702be78c94e15512f65c5d07c92c00f61cf8aafcffa9bd0754e6a9",
+      "at": "2026-11-18T15:00:00.000Z",
+      "by": "Codex (note by Claude)",
+      "summary": "From your notes. The strokes you marked 'for reference: strong' are one recurring low stroke (bass, often with the drum). It is strong in every bar of the piece, before and after the stretch you marked, and everything between came down with it. The two you corrected are way stronger (9.09 s) and way smaller (9.49 s). A second reading, 'hook', adds the hook's inner beats at 18.9–29.5 s that you marked on 1 November; this one, which you love, is left without them.",
+      "points": [
+        {
+          "from": 9.09,
+          "to": 9.49,
+          "text": "The pair you corrected."
+        },
+        {
+          "from": 18.9,
+          "to": 29.5,
+          "text": "The stretch where the 'hook' reading adds inner beats."
+        },
+        {
+          "from": 29.9,
+          "to": 31.3,
+          "text": "The low stroke stops; the exposed upper notes carry a run of medium-light landings until it returns at 31.5 s."
+        }
+      ]
+    }
+  ]
+}

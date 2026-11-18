@@ -1,0 +1,28 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+      "sha256": "d71c21cc4c1e4375978faa13f1bfbbf452bfc4ade331e46dcee59470e5aeb99d",
+      "at": "2026-11-18T18:44:25.918Z",
+      "by": "Codex",
+      "summary": "The voice keeps speaking across the swell before the drums return. I gave its quick ending light catches, brought out the recurring high reply over the drums, and restored the little word just before the late kick. (At 32.8 s the tail's last syllable falls 80 ms before the drum's return: the drum stands for both.)",
+      "points": [
+        {
+          "from": 18.258,
+          "to": 20.093,
+          "text": "Follow the stressed vowel into the much lighter tail."
+        },
+        {
+          "from": 20.557,
+          "to": 24.713,
+          "text": "The delayed high reply and the bright accent at the end answer the low drum."
+        },
+        {
+          "from": 36.422,
+          "to": 37.037,
+          "text": "The short word between the upper note and the kick has its own catch."
+        }
+      ]
+    }
+  ]
+}

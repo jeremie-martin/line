@@ -22,6 +22,8 @@ await context.route('**/api/spec-notes**', async route => {
 });
 await context.route('**/api/spec-review', async route => {
   const listing = await (await context.request.get(base + '/api/spec-review')).json();
+  // the check starts from readings without a verdict or words: the owner's own are neither shown nor changed
+  listing.readings = listing.readings.map(r => ({...r, verdict: null, changed: false, note: '', earlierNotes: []}));
   if (route.request().method() !== 'POST') return route.fulfill({json: listing});
   const body = route.request().postDataJSON(); posts.push(body);
   const reading = listing.readings.find(r => r.path === body.spec);

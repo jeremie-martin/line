@@ -33,6 +33,30 @@
           "text": "The two missing ones (a somewhat strong one, then a strong one). The same replies added at 36.2/36.7 and 38.3/38.9 s."
         }
       ]
+    },
+    {
+      "spec": "productions/short_luna_bala_slowed/spec.ts",
+      "sha256": "f7f8aceb42b3283b821a34609750c157d900202cddc49d29e5c4418ba568faa6",
+      "at": "2026-11-18T20:13:33.329Z",
+      "by": "Claude",
+      "summary": "From your note: the stroke at 15.44 s is way stronger. It is the first downstroke of the full band, and the downstroke of every bar is strong in this reading except three: this one and those at 24.16 and 30.71 s, which have the same strong drum. I raised all three; say if the two others should have stayed as they were.",
+      "points": [
+        {
+          "from": 15.444,
+          "to": null,
+          "text": "Way stronger: the full band's first downstroke."
+        },
+        {
+          "from": 24.163,
+          "to": null,
+          "text": "The same downstroke, raised too."
+        },
+        {
+          "from": 30.705,
+          "to": null,
+          "text": "The same downstroke, raised too."
+        }
+      ]
     }
   ]
 }

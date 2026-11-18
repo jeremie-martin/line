@@ -23,6 +23,13 @@
           "text": "The quiet renewals lead into a shared drum and word."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_slowed/spec.ts",
+      "sha256": "a37924e4c9242fcd99c9e3effa1632651abae81ecb1a218514637608d421f0b7",
+      "at": "2026-11-18T20:13:33.583Z",
+      "by": "Claude",
+      "summary": "Nothing changed here. Its opening, which you mapped by hand, is now carried into the original and the super slowed entries."
     }
   ]
 }

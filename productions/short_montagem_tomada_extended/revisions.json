@@ -13,6 +13,25 @@
           "text": "A slight rise, group by group; same figure, same accents."
         }
       ]
+    },
+    {
+      "spec": "productions/short_montagem_tomada_extended/spec.ts",
+      "sha256": "e4b27c6f38c814a9463b04fab636f3181bccdedb72d0e172afee45e20581fc52",
+      "at": "2026-11-18T20:13:33.398Z",
+      "by": "Claude",
+      "summary": "From your two notes: the quick voice before each drum return is now followed syllable by syllable and very light, as in the slowed entry (its 16.5–17.9 s): seven syllables on this cut's own voice notes, then the drum. These two places are the only ones where the voice runs alone into a drum return.",
+      "points": [
+        {
+          "from": 7.5,
+          "to": 8.62,
+          "text": "Seven light syllables into the drum."
+        },
+        {
+          "from": 37.04,
+          "to": 38.15,
+          "text": "The same before the second return."
+        }
+      ]
     }
   ]
 }

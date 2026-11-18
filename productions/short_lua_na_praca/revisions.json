@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_lua_na_praca/spec.ts",
+      "spec": "productions/short_lua_na_praca/variants/calm.ts",
       "sha256": "178dc02d6b768a09af91c01deb9d054586cae4d77a8a5f040cdd271cfaf6e0a0",
       "at": "2026-11-18T17:10:00.000Z",
       "by": "Codex (note by Claude)",
@@ -15,7 +15,7 @@
       ]
     },
     {
-      "spec": "productions/short_lua_na_praca/variants/upper.ts",
+      "spec": "productions/short_lua_na_praca/spec.ts",
       "sha256": "178dc02d6b768a09af91c01deb9d054586cae4d77a8a5f040cdd271cfaf6e0a0",
       "at": "2026-11-18T17:10:00.000Z",
       "by": "Codex (note by Claude)",
@@ -32,6 +32,13 @@
           "text": "Very light touches."
         }
       ]
+    },
+    {
+      "spec": "productions/short_lua_na_praca/spec.ts",
+      "sha256": "c52ef70a8357f07d8acf98ea28c298a606a8046c77dc8d3c4a44dfafdba21443",
+      "at": "2026-11-18T20:13:33.201Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading itself: this is the one you called god tier (it was 'upper'), now the song's spec. The former main reading is kept beside it as 'calm'."
     }
   ]
 }

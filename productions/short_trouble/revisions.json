@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_trouble/variants/cycle.ts",
+      "spec": "productions/short_trouble/spec.ts",
       "sha256": "0d2a80a47b44d71c8cea15b0701a9cdb8e9ef63977a57b337c32766be27caa52",
       "at": "2026-11-18T18:44:26.311Z",
       "by": "Codex",
@@ -28,6 +28,13 @@
           "text": "The last three kicks keep their rising accents, then the two words answer quietly."
         }
       ]
+    },
+    {
+      "spec": "productions/short_trouble/spec.ts",
+      "sha256": "2a0f105ac36a9c99982dea39260590e3d062406065e46560e8cd05247078d74c",
+      "at": "2026-11-18T20:13:33.263Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading itself: this is the one you found significantly better (it was 'cycle'), now the song's spec. The former main reading is kept beside it as 'first'."
     }
   ]
 }

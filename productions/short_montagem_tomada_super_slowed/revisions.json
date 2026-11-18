@@ -23,6 +23,35 @@
           "text": "The short word between the upper note and the kick has its own catch."
         }
       ]
+    },
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+      "sha256": "3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b",
+      "at": "2026-11-18T20:13:33.648Z",
+      "by": "Claude",
+      "summary": "From your marks and words. The upper figure you marked (two wide strokes, then six close ones, every bar) is now complete from the first bar to 17.3 s: every mark has a landing except the very first (0.08 s, too early for a ride to land). To keep it from being the only thing for 17 seconds: at first it is the line itself, with the call's stressed syllables giving some strokes their weight; from 6.2 s, where the voice stops, it rises alone; from 9 s, when the voice returns over the low entries, it goes on underneath, strokes shared with a word or a low entry keeping that weight and the others dropping to a whisper; its last bar rises into the swell.",
+      "points": [
+        {
+          "from": 0.38,
+          "to": 6.2,
+          "text": "The figure as the line, under the call."
+        },
+        {
+          "from": 6.23,
+          "to": 8.7,
+          "text": "The figure alone, rising."
+        },
+        {
+          "from": 9,
+          "to": 16.2,
+          "text": "The figure whispering under the voice and the low entries."
+        },
+        {
+          "from": 16.2,
+          "to": 17.6,
+          "text": "Its last bar rises into the swell."
+        }
+      ]
     }
   ]
 }

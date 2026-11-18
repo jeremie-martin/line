@@ -1,6 +1,6 @@
 /**
- * Begin on the exposed call. Leave the interior of its held vowels open for the two upper replies. At 6.23 the
- * voice leaves enough space for the high notes to form a line of their own. Answer the next sung call
+ * Begin on the upper figure, complete from the first bar, with the exposed call on top of it. At 6.23 the voice
+ * stops and the figure rises alone; when the voice returns the figure whispers under it. Answer the next sung call
  * with the low entries, carry the swell, then put the foot down on the drummer. Let the offbeat low
  * rebounds and the returning words cut across those quarters. The gap at 28.9 belongs to the voice.
  * After the last kick the high tail keeps ticking. The balance of bass and voice at 32–35 s is my
@@ -21,19 +21,17 @@ export const overlayMeta = {title: music.title, artist: "MXZI", phases: [
 
 // Time and impact in the short.
 const strikes: [number, number][] = [
-  // Upper attack and opening call sound together. Carry the C and D-sharp.
-  [.425,.618], [1.308,.334], [1.656,.427], [2.26,.493],
-  [4.059,.341], [4.384,.381], [4.547,.312], [4.849,.269], [5.034,.452], [5.371,.327],
-  // Eight exposed upper attacks, successively wider spacing into the pickup.
-  [6.23,.522], [6.555,.553], [6.857,.638], [7.171,.558], [7.473,.576],
-  [7.774,.666], [8.239,.747], [8.703,.692],
-  // Quick words against the low entries. Let shared bass and voice attacks
-  // land together. The low swell continues under the quick tail of the sentence.
-  [8.97,.382], [9.295,.413], [9.47,.325], [9.76,.263], [9.969,.562],
-  [10.271,.644], [10.59,.387], [10.863,.296], [11.165,.516], [11.49,.584],
-  [11.78,.398], [12.001,.338], [12.72,.603], [13.336,.354], [13.626,.437],
-  [13.963,.619], [14.253,.398], [15.205,.637], [15.797,.349], [16.087,.534],
-  [16.412,.568], [16.714,.406], [17.643,.38], [17.980,.26], [18.258,.54], [18.595,.29], [18.757,.17],
+  // The upper figure he marked (two wide strokes, then six close ones, every bar) is the line of the opening, complete
+  // from the first bar. The call's stressed syllables fall on its strokes and give them their weight.
+  [0.379,.618], [0.843,.46], [1.302,.46], [1.615,.427], [1.923,.291], [2.231,.493], [2.538,.285], [2.84,.298],
+  [3.305,.46], [3.763,.46], [4.077,.341], [4.384,.381], [4.547,.312], [4.692,.282], [4.849,.269], [5,.452], [5.307,.367], [5.766,.46],
+  // The voice stops: the figure alone, rising into the pickup.
+  [6.23,.522], [6.538,.553], [6.846,.638], [7.159,.558], [7.467,.576], [7.769,.666], [8.233,.747], [8.697,.692],
+  // The voice returns over the low entries. The figure goes on under them without a gap: a stroke that a word or a low
+  // entry shares carries that weight, the others drop to a whisper, and the last bar rises into the swell.
+  [9.005,.382], [9.313,.413], [9.47,.325], [9.62,.13], [9.76,.263], [9.928,.562], [10.236,.644], [10.59,.387], [10.7,.22], [10.863,.296], [11.165,.516], [11.466,.584],
+  [11.78,.398], [12.088,.338], [12.395,.22], [12.703,.603], [13.161,.22], [13.336,.354], [13.626,.437], [13.934,.619], [14.241,.398],
+  [14.549,.13], [14.857,.13], [15.164,.637], [15.629,.22], [15.797,.349], [16.087,.534], [16.395,.568], [16.708,.406], [17.016,.239], [17.324,.28], [17.643,.38], [17.98,.26], [18.258,.54], [18.595,.29], [18.757,.17],
   [18.914,.18], [19.129,.10], [19.303,.13], [19.483,.19], [19.663,.22], [19.826,.28], [19.936,.10],
   // The drum downstroke and the words which answer it. Four low rebounds
   // between the quarters, interrupted once by the long syllable at 28.893.

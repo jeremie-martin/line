@@ -63,7 +63,7 @@
       "createdAt": "2026-11-18T16:26:01.956Z",
       "updatedAt": "2026-11-18T16:26:10.582Z",
       "on": {
-        "spec": "productions/short_lua_na_praca/variants/upper.ts",
+        "spec": "productions/short_lua_na_praca/spec.ts",
         "sha256": "22c25daa6111a0b3db91f21c4acd7344ca0cdc04f4e52fa28aa0a269497ed8a8"
       }
     },
@@ -369,7 +369,7 @@
       "createdAt": "2026-11-18T16:26:39.891Z",
       "updatedAt": "2026-11-18T16:27:12.818Z",
       "on": {
-        "spec": "productions/short_lua_na_praca/variants/upper.ts",
+        "spec": "productions/short_lua_na_praca/spec.ts",
         "sha256": "22c25daa6111a0b3db91f21c4acd7344ca0cdc04f4e52fa28aa0a269497ed8a8"
       }
     },

@@ -23,6 +23,40 @@
           "text": "The last bare word leans into the returning drum."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto/spec.ts",
+      "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8",
+      "at": "2026-11-18T20:13:33.458Z",
+      "by": "Claude",
+      "summary": "From your marks and words. From 2 s to 14.4 s the opening is now the one you mapped by hand on the slowed entry, carried over in time and placed on this cut's own notes: it lands 17 of your 18 new marks here (7 before). The three strokes you marked strong (7.20, 9.05, 10.89 s) are drum and bass together and are asked strong. The first two seconds have no counterpart in the slowed cut: they are as before, plus your mark at 1.67 s.",
+      "points": [
+        {
+          "from": 1.67,
+          "to": null,
+          "text": "Your first voice mark."
+        },
+        {
+          "from": 2,
+          "to": 14.4,
+          "text": "The slowed entry's opening, on this cut's notes."
+        },
+        {
+          "from": 7.202,
+          "to": null,
+          "text": "Strong."
+        },
+        {
+          "from": 9.048,
+          "to": null,
+          "text": "Strong; the stroke just before it (8.85 s) is light here."
+        },
+        {
+          "from": 10.894,
+          "to": null,
+          "text": "Strong."
+        }
+      ]
     }
   ]
 }

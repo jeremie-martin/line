@@ -28,6 +28,25 @@
           "text": "Both drum strokes carry weight, with the accent on the second."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95",
+      "at": "2026-11-18T20:13:33.524Z",
+      "by": "Claude",
+      "summary": "From your words: the opening to 12.8 s is now the one you mapped by hand on the slowed entry, carried over in time and placed on this cut's own notes (the voice syllable by syllable, the low strokes under it). The rest is unchanged.",
+      "points": [
+        {
+          "from": 0.27,
+          "to": 12.75,
+          "text": "The slowed entry's opening, on this cut's notes."
+        },
+        {
+          "from": 8.371,
+          "to": 8.644,
+          "text": "The strong pair, as in the slowed entry."
+        }
+      ]
     }
   ]
 }

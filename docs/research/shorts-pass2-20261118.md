@@ -265,3 +265,20 @@ The low figure has three strokes in a 3.2 s phrase. The gaps cycle through about
 Between the marked accents the matched replies deliver 0.14–0.41. The older 18.658–27.498 marks give the hook its quick answers. I kept the early reply and the answering word of each group and carried several interior syllables across a single arc. This gives the low line room even where the older marks suggest a landing on every subdivision. Beyond the review the same strokes at 27.087, 28.283 and 29.491 deliver 0.82, 0.94 and 0.85. The old voice marks from 28.258 lead into the break, where the low figure falls away. Following the loved voice-full reading, the four upper notes from 30.687 land at 0.44, 0.36, 0.41 and 0.30, leading to the fifth stroke shared with the returning bass at 31.499 (0.82). The old 31.858–34.678 marks distinguish voice between those strokes. I carried the low reading through the full groove, left space over the held voice after 50.702, and kept the low accents through 57.099 (0.94).
 
 Seed 101 matched 151/151, versus 182/182 previously. Off-beat contacts fell from 11 to 5 and weighted axis RMS from 0.074 to 0.047. [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_circus_minimus-101/manifest.json)
+
+## Dashboard review · Bones
+
+The four ear marks fall between existing catches. I hear two sorts of answer in the repeated 8.42 s drum sentence. The first is a light pickup under the word, the others have a distinct low attack.
+
+| Ear mark | Measured sound and placement | Seed 101 impact |
+|---:|---|---:|
+| 21.98 | Small drum at 21.986, voice and upper attack at 22.004. Catch the drum before leaning into the backbeat. | 0.23 |
+| 24.10 | Drum at 24.088 and bass at 24.105, with the voice at 24.099. One shared catch at 24.099. | 0.55 |
+| 31.24 | Drum and bass both attack at 31.193, with the voice at 31.228. Catch the leading low stroke. | 0.59 |
+| 32.52 | The 24.10 reply again, drum at 32.511 and bass at 32.522. | 0.42 |
+
+At 22.230 the drum and rising bass now deliver 0.81 (previously 0.39), ahead of the 22.520 answer at 0.48 (was 0.73). At 23.263 the stronger bass-backed catch delivers 0.80 (was 0.41). At 25.411 the word shares the bright drum/upper attack around 25.37. Its smaller lift delivers 0.58 (was 0.38). I followed all seven notes.
+
+The pickup also lands at 13.569, 30.409 and 38.832 (0.24, 0.31, 0.32). The 24.10 answer was already present at 15.705 and comes back at 40.939 (0.47 and 0.52). The sibling of 31.193 is audible at 14.364, 22.770 and 39.622 (0.49, 0.46, 0.52). There are no older timestamped notes in this entry. The earlier “take” on Astra and the owner's request for the beat inside the chorus entrance informed the balance between the low replies and the two preceding drum hits. The spoken bridge and the release still have their own pace.
+
+Seed 101 matched 137/137 against the previous 128/128. Off-beat contacts fell from 16 to 4. Weighted axis RMS rose from 0.058 to 0.068. The later fill at 36.452/36.719/37.253 also has less weight (0.82/0.54/0.70, previously 0.88/0.62/0.87). [Revised ride](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts4/short_bones-101/manifest.json)

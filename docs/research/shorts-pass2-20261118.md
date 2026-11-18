@@ -451,3 +451,7 @@ I brought forward a few low strokes where the drum breaks through the words. The
 ## Third review · Los Voltaje ultra slowed
 
 The broad beat has a little more weight where it answers the singer most clearly. The strongest entrance and the small vocal replies keep their places. 18.947 s — Hear the single low accent, then the pair. 25.577 s — The strongest answer in this group gets a little more weight. 46.8 s — Two later phrases lean on their low strokes.  Seed 101 reached the end.
+
+## Third review · Believer
+
+The kick under the marked syllable now leads into the next downbeat. The same pickup also sounds before the first “Pain!” entrance. 22.483 s — The short kick leads into the first shout. 24.387 s — The word starts just ahead of the kick. They share one landing. 26.338 s — The next statement already had both members of the pair.  Seed 101 reached the end.

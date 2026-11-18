@@ -2,7 +2,7 @@
  * then let the three guitar answers speak in the stop. The triplets at 10.15–12.99 belong to
  * one breath of voice. Repeated little catches there should feel like diction, with only a few stresses.
  * The last snare leaves a whole beat empty. Cross it to two isolated bass hits and land “Pain!”
- * on the next downbeat. Leave the pickup before that word in the air so it gets a full arrival.
+ * on the next downbeat. Catch the short kick that leads into that word.
  * Across the chorus the quarter beats carry the chant. Its upbeat syllables and the second drummer's
  * fills enter the spaces between them. The late snares at 35.13 and 44.74 cut across the chant.
  * How much of the late fill can be felt beneath the voice is the open question.

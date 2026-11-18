@@ -29,14 +29,23 @@ it('keeps a note with the version of the reading it was written on, and never wr
     let notes = await list();
     expect(notes.map(n => [n.text, n.current]).sort()).toEqual([['', true], ['legacy', false], ['stronger', true]]);
     expect(new Set(notes.map(n => n.id)).size).toBe(3);
-    // the reading is revised: his notes become notes on an earlier version, and are kept
+    // the files change, no revision recorded: his notes stay open
     writeFileSync(join(dir, 'spec.ts'), 'export default {revised: true};\n');
+    expect((await list()).filter(n => n.current).length).toBe(2);
+    // the author records the revision: they become notes on an earlier version, and are kept
+    await new Promise(r => setTimeout(r, 5));
+    writeFileSync(join(dir, 'revisions.json'), JSON.stringify({revisions: [{spec, sha256: 'x', at: new Date().toISOString(), by: 'test', summary: 'done'}]}));
+    await new Promise(r => setTimeout(r, 5));
     expect((await list()).every(n => !n.current)).toBe(true);
     await post({note: {id: 'moment:5000', t: 5, scope: 'moment', text: 'new'}});
     // clearing removes the notes on this version only
     expect((await post({clear: true})).count).toBe(3);
     notes = JSON.parse(readFileSync(join(dir, 'notes.json'), 'utf8')).notes;
     expect(notes.map((n: any) => n.text).sort()).toEqual(['', 'legacy', 'stronger']);
+    // every write and the clear are in the journal, the cleared note in full
+    const events = readFileSync(join(root, 'labels/spec-notes.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l));
+    expect(events.map((e: any) => e.event)).toEqual(['write', 'write', 'write', 'clear']);
+    expect(events.at(-1).notes.map((n: any) => n.text)).toEqual(['new']);
   } finally {
     server.close(); rmSync(root, {recursive: true, force: true});
   }

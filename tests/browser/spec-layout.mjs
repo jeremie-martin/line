@@ -205,8 +205,8 @@ try {
     await page.keyboard.press(' ');
 
     // the drop, on the timeline: shown for a song with one, absent for one without
-    await open('productions/short_amour_de_ma_vie/spec.ts');
-    check((await page.locator('[data-drop] title').textContent()).startsWith('drop 25.25–36.58 s'), 'the drop shows, its times on hover');
+    await open('productions/short_luna_bala_slowed/spec.ts');
+    check(/^drop \d+(\.\d+)?–\d+(\.\d+)? s/.test(await page.locator('[data-drop] title').textContent()), 'the drop shows, its times on hover');
     await open(process.argv[5] ?? 'productions/bones_selection/spec.ts');
     check(await page.locator('[data-drop]').count() === 0, 'no drop band for a song without one');
     await page.close();

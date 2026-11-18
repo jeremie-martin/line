@@ -23,6 +23,9 @@ const refs = {
   reviewSummary: document.getElementById("review-summary"),
   verdict: document.getElementById("verdict"),
   verdictChanged: document.getElementById("verdict-changed"),
+  changes: document.getElementById("changes"),
+  changesToggle: document.getElementById("changes-toggle"),
+  changesPanel: document.getElementById("changes-panel"),
   reload: document.getElementById("reload-spec"),
   subtitle: document.getElementById("spec-subtitle"),
   play: document.getElementById("play"),
@@ -247,6 +250,14 @@ function wireEvents() {
   document.addEventListener("pointerdown", (event) => {
     if (!refs.pickerPanel.hidden && !event.target.closest(".picker")) openPicker(false);
     if (!refs.helpPanel.hidden && !event.target.closest(".help")) openHelp(false);
+    if (!refs.changesPanel.hidden && !event.target.closest(".changes")) openChanges(false);
+  });
+  refs.changesToggle.addEventListener("click", () => openChanges(refs.changesPanel.hidden));
+  refs.changesPanel.addEventListener("click", (event) => {
+    const point = event.target.closest("button[data-from]");
+    if (!point) return;
+    openChanges(false);
+    selectChange({ from: Number(point.dataset.from), to: point.dataset.to === "" ? null : Number(point.dataset.to) });
   });
   refs.verdict.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-verdict]");
@@ -380,6 +391,10 @@ function wireEvents() {
       openHelp(false);
       return;
     }
+    if (event.key === "Escape" && !refs.changesPanel.hidden) {
+      openChanges(false);
+      return;
+    }
     if (event.key === "Escape" && state.pointerDrag) {
       event.preventDefault();
       cancelTimelineDrag(state.pointerDrag);
@@ -501,15 +516,25 @@ function renderReview() {
 }
 
 // His free words on the reading as a whole: shown for the current reading, saved a moment after he stops writing and when he
-// leaves the field (scripts/gallery/spec_review_api.ts keeps them with his verdict).
-const readingNote = { field: document.getElementById("reading-note"), state: document.getElementById("reading-note-state"), timer: 0, path: null };
+// leaves the field (scripts/gallery/spec_review_api.ts keeps them with his verdict, and the version they were written on).
+// Words written on an earlier version are quoted above the field, read only, one line each (a click shows all of it); the
+// field holds only his words on the version as it stands.
+const readingNote = { field: document.getElementById("reading-note"), state: document.getElementById("reading-note-state"),
+  earlier: document.getElementById("earlier-words"), timer: 0, path: null };
 function renderReadingNote() {
-  const reading = currentReading();
+  const reading = currentReading(), earlier = reading?.earlierNotes ?? [];
   readingNote.field.disabled = !reading;
   if (reading && (readingNote.path !== reading.path || document.activeElement !== readingNote.field)) {
     readingNote.path = reading.path; readingNote.field.value = reading.note ?? ""; readingNote.state.textContent = "";
   }
+  readingNote.earlier.hidden = !earlier.length;
+  readingNote.earlier.innerHTML = earlier.map((words) => `<li title="${escapeHtml(words.note.trim())}">`
+    + `<span class="earlier-words-when">Earlier, ${escapeHtml(noteDate({ updatedAt: words.at }))}:</span> ${escapeHtml(words.note.trim())}</li>`).join("");
+  readingNote.field.placeholder = earlier.length
+    ? "Your words on this version. Saved as you write."
+    : "Anything about this specification as a whole. Saved as you write.";
 }
+readingNote.earlier.addEventListener("click", (event) => event.target.closest("li")?.classList.toggle("open"));
 async function saveReadingNote() {
   clearTimeout(readingNote.timer);
   const path = readingNote.path, note = readingNote.field.value, reading = state.readings.find((r) => r.path === path);
@@ -536,6 +561,60 @@ function renderVerdict() {
     button.setAttribute("aria-pressed", String(chosen && !reading.changed));
   }
   refs.verdictChanged.hidden = !reading?.changed;
+  renderChanges();
+}
+
+// The author's notes on what changed in a reading (productions/<song>/revisions.json, from tools/music/revision.ts): the
+// one on the version as it stands opens from beside his verdict, earlier ones under it, collapsed; its points are drawn
+// on the timeline's changes lane. They are read, never edited here.
+const currentRevision = () => currentReading()?.revisions?.filter((revision) => revision.current).at(-1) ?? null;
+const pointTime = (point) => point.to == null ? formatTime(point.from) : `${formatTime(point.from)}–${formatTime(point.to)}`;
+
+function renderChanges() {
+  const revisions = currentReading()?.revisions ?? [], now = currentRevision();
+  refs.changes.hidden = !revisions.length;
+  refs.changesToggle.classList.toggle("fresh", Boolean(now));
+  refs.changesToggle.title = now ? `What ${now.by} changed in this version, and why` : "No note on this version; the earlier ones";
+  if (!revisions.length) {
+    openChanges(false);
+    return;
+  }
+  const earlier = revisions.filter((revision) => revision !== now).reverse();
+  refs.changesPanel.innerHTML = (now ? revisionHtml(now) : `<p class="change-none">No note on this version yet.</p>`)
+    + (earlier.length ? `<details class="change-earlier"${now ? "" : " open"}><summary>Earlier ${earlier.length === 1 ? "note" : `notes (${earlier.length})`}</summary>`
+      + `${earlier.map(revisionHtml).join("")}</details>` : "");
+}
+
+function revisionHtml(revision) {
+  const points = (revision.points ?? []).map((point) => `<li><button type="button" data-from="${point.from}" data-to="${point.to ?? ""}"`
+    + ` title="${point.to == null ? "Go to this moment" : "Select this range"}"><span class="change-time">${escapeHtml(pointTime(point))}</span>`
+    + `${escapeHtml(point.text)}</button></li>`).join("");
+  return `<section class="change"><p class="change-head"><b>${escapeHtml(revision.by)}</b> · ${escapeHtml(noteDate({ updatedAt: revision.at }, true))}`
+    + `${revision.current ? (revision.stale ? " · the latest note; the files changed again since" : " · this version") : ""}</p><p class="change-summary">${escapeHtml(revision.summary)}</p>`
+    + `${points ? `<ol class="change-points">${points}</ol>` : ""}</section>`;
+}
+
+function openChanges(open) {
+  refs.changesPanel.hidden = !open;
+  refs.changesToggle.setAttribute("aria-expanded", String(open));
+  refs.changesToggle.classList.toggle("on", open);
+}
+
+/** A point of a note on what changed: a range is selected (and shown), a moment gets the cursor. */
+function selectChange(point) {
+  if (!state.data || !Number.isFinite(point.from)) return;
+  if (point.to == null || !(point.to > point.from)) {
+    clearTransientSelection();
+    seekTo(point.from);
+    return;
+  }
+  const range = { t0: point.from, t1: point.to };
+  if (range.t0 < state.viewStart || range.t1 > state.viewEnd) {
+    const pad = (range.t1 - range.t0) / 2;
+    setView(range.t0 - pad, range.t1 + pad);
+  }
+  applySelection(range);
+  drawSelection();
 }
 
 /** Gives the current reading `verdict`; the same verdict again clears it, unless the spec changed since (then it confirms it). */
@@ -877,7 +956,7 @@ function onTimelinePointerDown(event) {
 function onTimelinePointerMove(event) {
   if (!state.timeline) return;
   setHover(state.timeline.xAtClient(event.clientX));
-  showNoteCard(state.pointerDrag ? null : event.target.closest?.("[data-note-index]"), event);
+  showNoteCard(state.pointerDrag ? null : event.target.closest?.("[data-note-index], [data-change-index]"), event);
   const drag = state.pointerDrag;
   if (!drag || drag.pointerId !== event.pointerId) return;
   event.preventDefault();
@@ -929,6 +1008,7 @@ function clickTimeline(rawT, free) {
  * note: the Notes panel quotes it. */
 function pickMark(mark) {
   if (mark.dataset.markKind === "earlierNote") return selectEarlierNote(state.notes[Number(mark.dataset.noteIndex)]);
+  if (mark.dataset.markKind === "change") return selectChange(currentRevision()?.points?.[Number(mark.dataset.changeIndex)] ?? {});
   const anchor = anchorForMarkElement(mark);
   if (!anchor) return drawSelection();
   state.selectedScope = anchor.scope;
@@ -1136,12 +1216,14 @@ function renderTimeline() {
   const bottom = 40; // the range's bar sits here
   const hasEvents = Boolean(state.analysis?.onsets.length), hasVocal = Boolean(state.analysis?.vocal);
   const notesH = refs.toggleNotes.checked ? 34 : 0;
+  // the places the author's note on this version points to, under the notes
+  const changesH = currentRevision()?.points?.length ? 18 : 0;
   const axisGap = 8;
   const lanes = { spectro: [56, 108], impact: [48, 66] };
   if (hasEvents) lanes.events = [60, 104];
   if (hasVocal) lanes.vocal = [120, 164];
   for (const axis of axisNames) lanes[axis] = [30, 48];
-  const fixed = spectroY + 10 + (hasEvents ? 10 : 0) + 18 + 18 + axisNames.length * axisGap + notesH + bottom;
+  const fixed = spectroY + 10 + (hasEvents ? 10 : 0) + 18 + 18 + axisNames.length * axisGap + notesH + changesH + bottom;
   const h = laneHeights(lanes, boxH - fixed);
   const spectroH = h.spectro;
   const eventsH = h.events ?? 0;
@@ -1151,7 +1233,7 @@ function renderTimeline() {
   const impactH = h.impact;
   const impactY = vocalY + vocalH + 18;
   const axesY = impactY + impactH + 18;
-  const H = Math.max(boxH, axesY + axisNames.reduce((sum, axis) => sum + h[axis] + axisGap, 0) + notesH + bottom);
+  const H = Math.max(boxH, axesY + axisNames.reduce((sum, axis) => sum + h[axis] + axisGap, 0) + notesH + changesH + bottom);
   const viewStart = clamp(state.viewStart, 0, data.spec.duration);
   const viewEnd = clamp(state.viewEnd || data.spec.duration, viewStart + 1e-6, data.spec.duration);
   const visibleSpan = Math.max(1e-6, viewEnd - viewStart);
@@ -1198,6 +1280,7 @@ function renderTimeline() {
     y += h[axis] + axisGap;
   }
   if (refs.toggleNotes.checked) drawNoteLane(svg, L, plotW, y, notesH);
+  if (changesH) drawChangeLane(svg, L, plotW, y + notesH, changesH);
   state.timeline.selectionLayer = add(svg, "g", { id: "selection-layer" });
 
   const playX = state.timeline.xFor(specTime());
@@ -1476,6 +1559,23 @@ function drawNoteLane(svg, L, plotW, y, h) {
       ...marked,
     });
   }
+}
+
+// The changes lane: the points of the author's note on this version (What changed), a range as a bar, a moment as a
+// tick. Not notes: hovered they show their words, clicked they select their place.
+function drawChangeLane(svg, L, plotW, y, h) {
+  add(svg, "text", { x: 12, y: y + 12, class: "svg-label" }, "changes");
+  currentRevision().points.forEach((point, index) => {
+    const marked = { "data-change-index": index, "data-mark-kind": "change", class: "svg-change", rx: 1.5 };
+    if (point.to != null && point.to > point.from) {
+      if (!timeIntersects(point.from, point.to)) return;
+      const x0 = state.timeline.xFor(Math.max(point.from, state.timeline.viewStart));
+      const x1 = state.timeline.xFor(Math.min(point.to, state.timeline.viewEnd));
+      add(svg, "rect", { x: x0, y: y + 5, width: Math.max(3, x1 - x0), height: h - 10, ...marked });
+    } else if (timeVisible(point.from)) {
+      add(svg, "rect", { x: state.timeline.xFor(point.from) - 1.5, y: y + 2, width: 3, height: h - 4, ...marked });
+    }
+  });
 }
 
 /** Redraws only the selected range (its band, its two edges with their handles) and places its bar. */
@@ -1914,7 +2014,7 @@ function renderNotesList() {
   const words = (note) => (note.text || "").trim();
   const now = state.notes.filter((note) => note.current), earlier = state.notes.length - now.length;
   const marks = now.filter((note) => !words(note)).length;
-  refs.notesMarks.textContent = `${now.length} on this version` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : "");
+  refs.notesMarks.textContent = `${now.length} open` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : "");
   refs.earlierToggle.hidden = !earlier;
   refs.earlierLabel.textContent = `Earlier notes (${earlier})`;
   refs.notesList.parentElement.classList.toggle("earlier-on", listening.earlierNotes && earlier > 0);
@@ -1996,11 +2096,20 @@ async function reloadNotes() {
   } catch { /* the local notes stay */ }
 }
 
-/** The words of the note under the pointer on the timeline, in a card above it (`mark` null hides it). */
+/** The words of the note (or the point of what changed) under the pointer on the timeline, in a card above it (`mark` null
+ * hides it). */
 function showNoteCard(mark, event) {
   const card = document.getElementById("note-card"), note = mark && state.notes[Number(mark.dataset.noteIndex)];
-  if (!note) {
+  const revision = mark?.dataset.changeIndex !== undefined ? currentRevision() : null, point = revision?.points?.[Number(mark.dataset.changeIndex)];
+  if (!note && !point) {
     card.hidden = true;
+    return;
+  }
+  if (point) {
+    card.innerHTML = `<div class="note-card-head">${escapeHtml(pointTime(point))} · <b>what ${escapeHtml(revision.by)} changed</b></div>`
+      + `<div class="note-card-text">${escapeHtml(point.text)}</div>`
+      + `<div class="note-card-hint">${point.to == null ? "click to go there" : "click to select it"}</div>`;
+    placeNoteCard(card, event);
     return;
   }
   const where = noteWhere(note);
@@ -2009,6 +2118,10 @@ function showNoteCard(mark, event) {
     + (note.tags.length ? `<div class="note-card-tags">${escapeHtml(note.tags.join(", "))}</div>` : "")
     + `<div class="note-card-text">${escapeHtml((note.text || "").trim() || "(no words)")}</div>`
     + (note.current ? "" : `<div class="note-card-hint">click to quote it in the Notes panel</div>`);
+  placeNoteCard(card, event);
+}
+
+function placeNoteCard(card, event) {
   card.hidden = false;
   const wrap = refs.timelineWrap.getBoundingClientRect();
   const x = event.clientX - wrap.left, y = event.clientY - wrap.top + refs.timelineWrap.scrollTop;

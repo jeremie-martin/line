@@ -42,6 +42,10 @@
     <span class="verdict-changed" id="verdict-changed" hidden
       title="The spec changed after your verdict: give it again to confirm it">changed since your verdict</span>
   </div>
+  <div class="changes" id="changes" hidden>
+    <button id="changes-toggle" type="button" aria-expanded="false" aria-controls="changes-panel">What changed</button>
+    <div class="changes-panel" id="changes-panel" hidden></div>
+  </div>
   <span class="review-summary" id="review-summary"></span>
   <button id="reload-spec" type="button" class="icon" title="Reload this spec from its file (keeps the position and zoom)" aria-label="Reload the spec">&#8635;</button>
 </header>
@@ -131,6 +135,7 @@
           <p class="help-line"><span class="label">View</span> <span id="view-window">0:00.00-0:00.00</span></p>
           <p class="help-line"><span class="label">Drop</span> the band under the times: the song's drop, placed by hand (its times on hover)</p>
           <p class="help-line"><span class="label">Notes</span> filled: on this version; pale, or outlined when Earlier notes is on: on an earlier one (hover to read, click to quote)</p>
+          <p class="help-line"><span class="label">Changes</span> the lane under the notes: the places the author's note on this version points to (What changed, beside your verdict); hover to read, click to select</p>
           <p id="vocal-evidence-note" class="evidence-note"></p>
         </div>
       </div>
@@ -170,6 +175,7 @@
 
     <section class="reading-note">
       <label for="reading-note"><h2>On this reading</h2></label>
+      <ol class="earlier-words" id="earlier-words" hidden></ol>
       <textarea id="reading-note" rows="2" placeholder="Anything about this specification as a whole. Saved as you write."></textarea>
       <div class="reading-note-state" id="reading-note-state"></div>
     </section>

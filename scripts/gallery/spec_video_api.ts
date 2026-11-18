@@ -28,7 +28,7 @@ export function savedVideo(root: string, spec: string, sha?: string) {
   if (!existsSync(file) || !existsSync(join(videos, name + '.mp4'))) return null;
   const side = JSON.parse(readFileSync(file, 'utf8'));
   return {url: `/generated/videos/dashboard/${name}.mp4`, from: side.from ?? 0, madeAt: side.madeAt, specSha256: side.specSha256,
-    current: side.specSha256 === (sha ?? sha256(join(root, spec))), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null};
+    current: side.specSha256 === (sha ?? sha256(join(root, spec))), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null, ride: side.ride ?? null};
 }
 const lastLines = (path: string, n: number) => existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n').filter(Boolean).slice(-n).join('\n') : '';
 /** What a failed step said: the log's first error line (a thrown error, or the renderer's own report), else its last lines. */
@@ -64,10 +64,13 @@ export function createSpecVideoApi(root = process.cwd()) {
       mkdirSync(rides, {recursive: true}); mkdirSync(videos, {recursive: true});
       await step(['scripts/produce/automatic.ts', `--song=${song}`, ...(variant ? [`--variant=${variant}`] : []), '--seed=101', `--out=${ride}`], log);
       job.phase = 'rendering';
-      await step(['scripts/video.ts', `--study=${ride}`, ...look, `--out=${next}.mp4`], log);
+      await step(['scripts/video.ts', `--study=${ride}`, ...look, '--review', `--out=${next}.mp4`], log);
       const side = JSON.parse(readFileSync(next + '.json', 'utf8'));
+      // how the ride stands against the spec, for the owner to see (information, not a goal): its landings, those without an impact
+      const cell = JSON.parse(readFileSync(join(ride, 'manifest.json'), 'utf8')).cells[0], account = cell.impactEvaluation?.account;
+      const rideFacts = {valid: !!cell.valid, landings: cell.impactEvaluation?.targets?.length ?? null, missing: account?.missingTargets ?? null};
       renameSync(next + '.mp4', join(videos, name + '.mp4'));
-      writeFileSync(join(videos, name + '.json'), JSON.stringify({...side, spec, specSha256, madeAt: new Date().toISOString()}, null, 2) + '\n');
+      writeFileSync(join(videos, name + '.json'), JSON.stringify({...side, spec, specSha256, ride: rideFacts, madeAt: new Date().toISOString()}, null, 2) + '\n');
       rmSync(next + '.json');
       job.phase = 'done';
     } catch (error) {

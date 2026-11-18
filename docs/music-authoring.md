@@ -31,10 +31,13 @@ entry's spec. `npm run videos -- --songs=production …` makes a batch of the se
   note in two stems. Say "the notes of `other`", not "the pads".
 - **What is heard is the mix.** Among the notes of the line being followed, the ones a listener gets are those where
   the mix rises (`heard`) and the stem's attack is sharp. A sound's level or its share of the mix does not tell.
-- **A spec describes the music, not the compiler.** Strength is a hierarchy: a few big hits, a body, light notes,
-  written as the music has them. What a ride delivers of it is the compiler's business and improves with the
-  compiler: never thin, re-weight, re-time or re-shape a spec (strength, air, speed) to make today's ride deliver
-  it. How well a spec is delivered is information for the owner, shown on the dashboard; it is not a goal.
+- **A spec describes the music, not the compiler, within reason.** Strength is a hierarchy: a few big hits, a
+  body, light notes, written as the music has them. Do not tune a spec (strength, air, speed, which notes) to make
+  today's ride deliver it a little better: that is the compiler's business, and the compiler improves. How well a
+  spec is delivered is information for the owner, shown on the dashboard; it is not a goal. But a reading has to
+  be watchable: when a ride stops before the end, or goes plainly wrong somewhere, look at that place, judge what
+  the spec asks there, and make the smallest change that keeps the music's sense. This is judgement, case by
+  case, not a rule applied either way.
 - **No rules from one song or one remark.** What read well on a song is in `docs/research/`, as observations.
 
 ## Setup (once per machine)
@@ -121,8 +124,8 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    - Size hits from `heard` and the attack, as the music has them, however fast the landings come.
 7. **Compile and check.** `npm run produce -- --song=<song> [--variant=<name>] --seed=<n> --out=DIR` (add the song to
    `scripts/gallery/repertoire_catalog.ts`; do not edit tracked files while it runs). Then:
-   - the ride reaches the end (a spec that does not compile cannot be watched); what it delivers of the asked
-     strengths is not a reason to change the spec;
+   - the ride reaches the end (a spec that does not ride cannot be watched: find where it stops and what is asked
+     there); small differences between asked and delivered strengths are not a reason to change the spec;
    - `node tools/music/coverage.ts --song=<song> [--variant=<name>]` lists strong events not landed. It is a list to
      read, not a form to fill: a written reason does not make a miss right.
    - After the last edit of a revision made from his review, before committing, record what changed:

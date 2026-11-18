@@ -21,6 +21,7 @@ if (process.argv.includes('--help')) {
   npm run video -- --track=track.json --music=petrunko_selection
 
 Input:  --song=ID [--seed=N --budget=N] (compiles first), --study=DIR [--id=CELL], or --track=FILE --music=SONG.
+        --review with --study also renders a ride that reached the end but is not valid (to look at; not a production video)
 Look:   chosen for the ride (scripts/video/choose.js); --look=${Object.keys(THEMES).join('|')}|plain names one (plain for tracks)
         --set=key:value,… changes single options of the look (scripts/video/look.js)
 Zoom:   one of the song's lanes (productions/<song>/zooms.ts), chosen for the ride; --zoom=ID names one, --zoom=steady none
@@ -29,7 +30,7 @@ Caption: --caption=WORD draws a word near the lower edge in the theme's ink, for
 Master: --master=yes writes the frames without loss, for a video that is composed with others and encoded once there
 Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it: what the video is of.`);
 } else {
-  const began = performance.now(), request = videoRequest(process.argv.slice(2));
+  const began = performance.now(), review = process.argv.includes('--review'), request = videoRequest(process.argv.slice(2).filter(a => a !== '--review'));
   // what can be refused without the ride is refused before a compile spends minutes on it
   frameSize(request.width);
   if (request.from !== undefined && request.to !== undefined) frameCount(request.from, request.to);
@@ -64,7 +65,7 @@ Output: --out=FILE.mp4 (generated/videos/ by default), with FILE.json beside it:
     const manifest = readVerifiedJson(join(study, 'manifest.json'));
     const id = request.id ?? (manifest.cells.length === 1 ? manifest.cells[0].id : undefined);
     if (!id) throw new Error('This study has multiple rides; choose --id=CELL.');
-    const {c, cell, record} = verifiedVideoCell(study, manifest, id);
+    const {c, cell, record} = verifiedVideoCell(study, manifest, id, review);
     scene = buildScene(c.id, record); of = {study, id, cellSha256: cell.sha256, ...(request.song ? {seed} : {})};
   } else {
     const text = readFileSync(request.track!, 'utf8');

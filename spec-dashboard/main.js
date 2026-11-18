@@ -2227,6 +2227,8 @@ function renderVideo() {
   if (video) {
     const made = new Date(video.madeAt).toLocaleString();
     lines.push(video.current ? `Made from this version, ${made}.` : `The spec changed since this video was made (${made}).`);
+    // how the ride stands against the spec: for him to know, not a goal
+    if (video.ride?.missing) lines.push(`This ride misses ${video.ride.missing} of ${video.ride.landings} landings.`);
     lines.push(`${video.theme}, zoom ${video.zoom ?? "steady"}`);
   } else {
     lines.push("No video of this spec yet.");

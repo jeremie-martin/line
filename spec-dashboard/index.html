@@ -16,10 +16,39 @@
       <h1>Specification Dashboard</h1>
       <div class="subtitle" id="spec-subtitle">Loading specs</div>
     </div>
+    <div class="verdict" id="verdict" role="group" aria-label="Your verdict on this reading">
+      <button type="button" data-verdict="love" title="Love (1); click again to clear">Love <kbd>1</kbd></button>
+      <button type="button" data-verdict="good" title="Good (2); click again to clear">Good <kbd>2</kbd></button>
+      <button type="button" data-verdict="needs-work" title="Needs work (3); click again to clear">Needs work <kbd>3</kbd></button>
+      <span class="verdict-changed" id="verdict-changed" hidden
+        title="The spec changed after your verdict: give it again to confirm it">changed since your verdict</span>
+    </div>
   </div>
   <div class="header-controls">
-    <label class="field-label" for="spec-select">Spec</label>
-    <select id="spec-select"></select>
+    <span class="review-summary" id="review-summary"></span>
+    <div class="picker">
+      <button id="spec-picker" type="button" aria-haspopup="true" aria-expanded="false"
+        title="Choose a reading: N next, P previous, U next to review"><span class="mark" id="picker-mark"></span><span id="picker-label">Loading</span><span id="picker-reading"></span></button>
+      <div class="picker-panel" id="picker-panel" hidden>
+        <div class="picker-head">
+          <div class="set-switch" id="set-switch">
+            <button type="button" data-set="production">Production set</button>
+            <button type="button" data-set="library">Library</button>
+          </div>
+          <span class="picker-keys"><kbd>N</kbd> next <kbd>P</kbd> previous <kbd>U</kbd> next to review</span>
+        </div>
+        <ol class="picker-list" id="picker-list"></ol>
+        <p class="picker-legend">
+          <span><span class="mark love"></span>love</span>
+          <span><span class="mark good"></span>good</span>
+          <span><span class="mark needs-work"></span>needs work</span>
+          <span><span class="mark changed good"></span>changed since your verdict</span>
+          <span><span class="mark"></span>not reviewed</span>
+          <span><span class="video-mark current">&#9654;</span>video of this version</span>
+          <span><span class="video-mark old">&#9654;</span>of an earlier one</span>
+        </p>
+      </div>
+    </div>
     <button id="reload-spec" type="button">Reload</button>
   </div>
 </header>

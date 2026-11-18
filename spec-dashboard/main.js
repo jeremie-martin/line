@@ -1,5 +1,6 @@
 import { createMusic, displayTime } from "../shared/playback.js";
 import { sourceEvents, vocalFrame } from "./music-evidence.js";
+import { createLoopPlayer } from "./loop-player.js";
 
 const NS = "http://www.w3.org/2000/svg";
 
@@ -142,6 +143,8 @@ const state = {
 // still waiting on the audio context counts as playing for the controls (toggle,
 // seek, rate): both are tracked by the shared music (music.load, music.requested).
 const music = createMusic(), onScreen = displayTime();
+/** "Watch the loop": the film looped gaplessly, its sound on Web Audio (loop-player.js). */
+const filmLoop = createLoopPlayer({ primary: refs.video, twin: document.getElementById("video-twin"), context: () => music.context ?? new AudioContext() });
 /** Landing clicks: scheduled oscillators, how far ahead they are scheduled, and their gain. */
 const clicks = { until: -Infinity, pending: new Set(), out: null };
 
@@ -171,11 +174,12 @@ function renderListening() {
   refs.musicVolume.value = listening.musicVolume;
   music.volume = listening.musicMuted ? 0 : listening.musicVolume;
   refs.video.volume = music.volume;
+  filmLoop.volume = music.volume;
   refs.toggleEarlier.checked = listening.earlierNotes;
   refs.toggleRide.checked = listening.ride;
   if (clicks.out) clicks.out.gain.value = listening.clicks ? listening.clickVolume : 0;
   if (!listening.clicks) clearClicks();
-  refs.video.hidden = !state.video || !listening.videoOpen;
+  if (!state.loopMode) refs.video.hidden = !state.video || !listening.videoOpen;
   refs.toggleVideo.textContent = listening.videoOpen ? "Hide" : "Show";
   refs.toggleVideo.setAttribute("aria-expanded", String(listening.videoOpen));
   if (!listening.videoOpen) {
@@ -1713,7 +1717,7 @@ function updatePlaybackUi(t = specTime()) {
   state.cursorT = t;
   refs.timeNow.textContent = formatTime(t);
   refs.scrub.value = String(clamp(t / state.data.spec.duration, 0, 1));
-  const playing = state.loopMode ? !refs.video.paused : isPlaying();
+  const playing = state.loopMode ? !filmLoop.paused : isPlaying();
   refs.play.textContent = playing ? "Pause" : "Play";
   refs.play.classList.toggle("playing", playing);
   const x = state.timeline?.xFor(t);
@@ -2205,8 +2209,7 @@ function placeNoteCard(card, event) {
 function togglePlayback() {
   if (!state.data) return;
   if (state.loopMode) {
-    if (refs.video.paused) refs.video.play().catch(() => {});
-    else refs.video.pause();
+    filmLoop.toggle();
     return updatePlaybackUi();
   }
   if (music.requested) pausePlayback();
@@ -2250,7 +2253,7 @@ function seekTo(t, opts = { select: true }) {
   if (!state.data) return;
   const next = clamp(t, 0, state.data.spec.duration);
   state.cursorT = next;
-  if (state.loopMode && refs.video.readyState >= 1) refs.video.currentTime = clamp(next - state.video.from, 0, refs.video.duration);
+  if (state.loopMode) filmLoop.seek(next - state.video.from);
   if (music.requested) startPlayback(next);
   if (opts.resumeFollow !== false) resumeFollow();
   if (opts.reveal !== false) revealTime(next, { manual: false });
@@ -2328,7 +2331,7 @@ function rideWords(landing) {
 function renderVideo() {
   const { video, videoJob: job } = state, spec = state.data?.spec.path;
   const mine = job?.spec === spec ? job : null;
-  refs.video.hidden = !video || !listening.videoOpen;
+  if (!state.loopMode) refs.video.hidden = !video || !listening.videoOpen;
   refs.toggleVideo.hidden = !video;
   refs.makeVideo.disabled = isMaking(job);
   refs.makeVideo.hidden = state.loopMode;
@@ -2389,35 +2392,40 @@ async function makeVideo() {
 }
 
 // "Watch the loop": the finished film plays by itself, at its own speed, with its own sound (the looping recording, the
-// camera's end, the blend into its start), looping. It starts LOOP_LEAD seconds before its end, so the join comes at once
-// (`fromStart`: the whole film). The dashboard's own playback and clicks stop; its cursor follows the film. "Back to the
-// spec" mutes it and slaves it to the dashboard's clock again.
+// camera's end, the blend into its start), looping without a gap, as a platform that loops cleanly plays it (loop-player.js:
+// a <video loop> drops the sound and holds the picture at the join). It starts LOOP_LEAD seconds before its end, so the join
+// comes at once (`fromStart`: the whole film). The dashboard's own playback and clicks stop; its cursor follows the film.
+// "Back to the spec" mutes it and slaves it to the dashboard's clock again.
 const LOOP_LEAD = 5;
-function watchLoop(fromStart = false) {
+async function watchLoop(fromStart = false) {
   const v = refs.video;
   if (!state.video || v.readyState < 1) return toast("The video is not loaded yet");
   pausePlayback();
   state.looping = false;
   drawSelection();
   if (!listening.videoOpen) setListening({ videoOpen: true });
+  const first = !state.loopMode;
   state.loopMode = true;
-  v.loop = true;
-  v.muted = false;
-  v.volume = listening.musicMuted ? 0 : listening.musicVolume;
-  v.playbackRate = 1;
-  v.currentTime = fromStart ? 0 : Math.max(0, v.duration - LOOP_LEAD);
-  v.play().catch((error) => toast(String(error.message ?? error)));
+  filmLoop.volume = listening.musicMuted ? 0 : listening.musicVolume;
   renderVideo();
+  if (first) refs.videoState.textContent = "Loading the film's sound…";
+  try {
+    await filmLoop.start(v.currentSrc || v.src, fromStart ? 0 : Math.max(0, v.duration - LOOP_LEAD));
+  } catch (error) {
+    if (!state.loopMode) return;
+    toast(`The film's sound could not be played: ${error.message ?? error}`);
+    return leaveLoop();
+  }
+  if (state.loopMode) renderVideo();
   updatePlaybackUi();
 }
 
 function leaveLoop() {
-  const v = refs.video;
+  const at = filmLoop.stop();
   state.loopMode = false;
-  v.loop = false;
-  v.muted = true;
-  v.pause();
-  if (state.data && state.video) state.cursorT = clamp(state.video.from + v.currentTime, 0, state.data.spec.duration);
+  refs.video.muted = true;
+  refs.video.hidden = !state.video || !listening.videoOpen;
+  if (state.data && state.video) state.cursorT = clamp(state.video.from + at, 0, state.data.spec.duration);
   renderVideo();
   updatePlaybackUi(state.cursorT);
 }
@@ -2442,8 +2450,10 @@ function tick(ts) {
   const loop = state.data && isPlaying() && state.looping && normalizedRange(state.selection);
   // Watching the loop: the cursor follows the film where it is inside the spec's time
   if (state.loopMode && state.data) {
-    const t = clamp(state.video.from + refs.video.currentTime, 0, state.data.spec.duration);
-    if (!refs.video.paused) followTime(t);
+    const shown = onScreen(ts);
+    filmLoop.frame(shown);
+    const t = clamp(state.video.from + filmLoop.position(shown), 0, state.data.spec.duration);
+    if (!filmLoop.paused) followTime(t);
     updatePlaybackUi(t);
   // Looping: back to the range's start as soon as its end is rendered (or when playback is well before it).
   } else if (loop && (music.rendered() >= loop.t1 || music.rendered() < loop.t0 - 0.5)) {

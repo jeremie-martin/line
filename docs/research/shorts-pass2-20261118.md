@@ -154,3 +154,9 @@ Each column compares the first pass with the final ride on its own authored requ
 | No Batidão slowed | .035 → .048 | .041 → .050 | .058 → .095 | 834 → 762 |
 
 Before the No Batidão commit, typecheck passed, reach found zero unreachable files, and all 721 tests passed.
+
+### Los Voltaje · original speed
+
+The owner's last Astra note says “very good spec” with no preference box ticked. Subtract 9.048 s. The cut starts inside the quiet calls. The first pass recognized all the foreground changes, including the three final words, but broke the opening answers apart, took 11 of the 19 attacks in the quick voice, and mixed offbeats into the straight drum return. I restored the three-note calls, their answering drums and the gathering percussion before 11 s. At 14.869 the full drum takes over. From 23.553 the upper line plays three distinct replies over each cycle. Their second stroke often has the largest mix rise. The late repeats keep that relationship. Both camera lanes and the registered drop already describe these entrances.
+
+Seed 101 completed, 159/159 requested strikes matched. Asked .216–.977, SD .164, matched Pearson r .928. First pass 139/139, SD .143, r .931. The trial made 22.125 stronger than the return (.94 against .88), and the last two low strokes at 46.424 and 46.947 reached only .46 and .58. I eased the 22.125 request and gave the last pair more air. They now deliver .54 and .64, and the return leads .88 to .71. The treble reply at 38.414 is still slight (.45 for .75). First to final air/speed/impact RMS .034/.046/.073 to .047/.057/.086, score 807 to 769, unmatched strikes 11 to 12. Watch the answering triplets at 0.4–6.35, the quick articulation into 14.87, and the upper-to-low exchange at 37.6–39.7. Video judgment is pending.

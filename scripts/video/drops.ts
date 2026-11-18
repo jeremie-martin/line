@@ -29,4 +29,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   short_montagem_coma: [8.09, 22.59],
   short_petrunko: [22.4, 40.5],
   short_tiki_tiki: [10.472, 24.381],
+  short_circus_minimus: [18.69, 31.499],
 };

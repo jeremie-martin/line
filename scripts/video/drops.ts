@@ -16,4 +16,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   short_valhalla: [1.149, 11.529],
   short_montagem_tomada_extended: [38.152, 52.92],
   short_montagem_tomada_super_slowed: [20.093, 39.806],
+  short_passo_bem_solto_super_slowed: [30.6, 48.16],
 };

@@ -483,3 +483,7 @@ I picked up the marked opening vowel and the upper voice just before the two low
 ## Third review · Passo Bem Solto super slowed
 
 The repeated C has a softer vocal answer in the gaps. The bare call keeps its two interior renewals very light. The late drum phrase again carries its natural pace and accents. 13.602 s — The first three calls each have a small answer. 19.082 s — The change of pitch already supplied the reply here. 28.695 s — The little renewals lead to the returning drum. 44.867 s — Both drum strokes carry weight, with the accent on the second.  Seed 101 reached the end.
+
+## Third review · No Batidão
+
+The opening singer now has light catches on the sustained F and its little replies. The words that rise above them still lead into the drums. I also filled in the quiet upper answer in the first bass phrase. 0.356 s — Listen for the long F after the first accented syllable. 3.16 s — The lifted notes carry more weight as the drums join the voice. 18.862 s — The hook has one small inner note before it starts again.  Seed 101 reached the end.

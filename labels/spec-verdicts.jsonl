@@ -123,3 +123,6 @@
 {"spec":"productions/short_montagem_tomada_super_slowed/spec.ts","verdict":"good","specSha256":"3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b","at":"2026-11-18T20:48:01.851Z"}
 {"spec":"productions/short_montagem_tomada_super_slowed/spec.ts","verdict":"love","specSha256":"3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b","at":"2026-11-18T20:48:17.970Z"}
 {"spec":"productions/short_montagem_tomada_super_slowed/spec.ts","verdict":"good","specSha256":"3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b","at":"2026-11-18T20:49:45.845Z"}
+{"spec":"productions/short_montagem_tomada_super_slowed/spec.ts","verdict":"good","specSha256":"30ed953ef0b720107e5f1f80212054f71bfbc3ba8541fd595a33d698b40b64f4","at":"2026-11-18T21:00:36.634Z"}
+{"spec":"productions/short_passo_bem_solto/spec.ts","verdict":"good","specSha256":"8abb393f2ef269320cb0b54434b1289b310024121bc1382ca49c92de0c703c8b","at":"2026-11-18T21:00:47.286Z"}
+{"spec":"productions/short_passo_bem_solto_super_slowed/spec.ts","verdict":"good","specSha256":"b4d7ec55772a0d361398603b7bdd2ff8836519f27d58a187703b9016af270869","note":"let's make sure to leverage the significant amount of time and effort spent on the beginning of the other version","noteSha256":"53f86c1436ac8901b2b92b47ec22dd82f56edd18f35387a9d324df15cc3d4200","at":"2026-11-18T21:01:12.168Z"}

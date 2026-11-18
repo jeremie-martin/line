@@ -114,6 +114,20 @@
       "updatedAt": "2026-11-17T21:36:48.051Z"
     },
     {
+      "id": "range:295:4236",
+      "t": 2.2653,
+      "scope": "range",
+      "index": null,
+      "t0": 0.2948,
+      "t1": 4.2358,
+      "axis": null,
+      "title": "range 0:00.29 to 0:04.24",
+      "text": "i'd try to map these voice marks with ultra low impact",
+      "tags": [],
+      "createdAt": "2026-11-18T14:34:47.835Z",
+      "updatedAt": "2026-11-18T14:35:05.069Z"
+    },
+    {
       "id": "moment:2540",
       "t": 2.54,
       "scope": "moment",
@@ -258,52 +272,104 @@
       "updatedAt": "2026-11-17T21:37:43.584Z"
     },
     {
-      "id": "moment:5000",
-      "t": 5,
-      "scope": "moment",
-      "index": null,
+      "id": "contact:11",
+      "t": 5.555,
+      "scope": "contact",
+      "index": 11,
       "t0": null,
       "t1": null,
       "axis": null,
-      "title": "moment 0:05.00",
-      "text": "",
-      "tags": [
-        "voice"
-      ],
-      "createdAt": "2026-11-17T21:38:26.466Z",
-      "updatedAt": "2026-11-17T21:38:26.466Z"
+      "title": "contact #11 at 0:05.55 - impact 0.17",
+      "text": "remove",
+      "tags": [],
+      "createdAt": "2026-11-18T14:34:39.771Z",
+      "updatedAt": "2026-11-18T14:34:39.771Z"
     },
     {
-      "id": "moment:5540",
-      "t": 5.54,
-      "scope": "moment",
-      "index": null,
+      "id": "contact:14",
+      "t": 6.658,
+      "scope": "contact",
+      "index": 14,
       "t0": null,
       "t1": null,
       "axis": null,
-      "title": "moment 0:05.54",
-      "text": "",
-      "tags": [
-        "voice"
-      ],
-      "createdAt": "2026-11-17T21:39:04.195Z",
-      "updatedAt": "2026-11-17T21:39:04.195Z"
+      "title": "contact #14 at 0:06.66 - impact 0.21",
+      "text": "remove",
+      "tags": [],
+      "createdAt": "2026-11-18T14:34:43.004Z",
+      "updatedAt": "2026-11-18T14:34:43.004Z"
     },
     {
-      "id": "moment:6080",
-      "t": 6.08,
+      "id": "contact:18",
+      "t": 8.04,
+      "scope": "contact",
+      "index": 18,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #18 at 0:08.04 - impact 0.35",
+      "text": "remove",
+      "tags": [],
+      "createdAt": "2026-11-18T14:35:23.235Z",
+      "updatedAt": "2026-11-18T14:35:23.235Z"
+    },
+    {
+      "id": "contact:19",
+      "t": 8.684,
+      "scope": "contact",
+      "index": 19,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #19 at 0:08.68 - impact 0.25",
+      "text": "remove",
+      "tags": [],
+      "createdAt": "2026-11-18T14:35:28.409Z",
+      "updatedAt": "2026-11-18T14:35:29.046Z"
+    },
+    {
+      "id": "contact:66",
+      "t": 25.908,
+      "scope": "contact",
+      "index": 66,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #66 at 0:25.91 - impact 0.27",
+      "text": "remove",
+      "tags": [],
+      "createdAt": "2026-11-18T14:36:07.704Z",
+      "updatedAt": "2026-11-18T14:36:07.704Z"
+    },
+    {
+      "id": "contact:68",
+      "t": 26.285,
+      "scope": "contact",
+      "index": 68,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #68 at 0:26.29 - impact 0.31",
+      "text": "remove",
+      "tags": [],
+      "createdAt": "2026-11-18T14:36:03.578Z",
+      "updatedAt": "2026-11-18T14:36:03.578Z"
+    },
+    {
+      "id": "moment:42380",
+      "t": 42.38,
       "scope": "moment",
       "index": null,
       "t0": null,
       "t1": null,
       "axis": null,
-      "title": "moment 0:06.08",
+      "title": "moment 0:42.38",
       "text": "",
       "tags": [
-        "voice"
+        "mark"
       ],
-      "createdAt": "2026-11-17T21:38:24.081Z",
-      "updatedAt": "2026-11-17T21:38:24.081Z"
+      "createdAt": "2026-11-18T14:37:03.423Z",
+      "updatedAt": "2026-11-18T14:37:03.423Z"
     }
   ]
 }

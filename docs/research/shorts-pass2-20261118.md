@@ -475,3 +475,7 @@ The voice keeps speaking across the swell before the drums return. I gave its qu
 ## Third review · Passo Bem Solto
 
 The upper answer still leads the middle, with the singer now catching it on the beat and answering more quietly. The bare phrase before the drum return has much lighter touches between its stressed ends. 14.952 s — Listen for the singer just after the upper pickup and the little reply to the next strong beat. 23.357 s — The same exchange returns under the bright line. 27.699 s — The last bare word leans into the returning drum.  Seed 101 reached the end.
+
+## Third review · Passo Bem Solto slowed
+
+I picked up the marked opening vowel and the upper voice just before the two low beats. The short drum fills now interrupt both middle bursts, and the bare words leading back to the drums are lighter. 0.128 s — The low sung pickup starts the first sentence. 7.692 s — The bright syllable and the two low answers each get a landing. 16.121 s — The little drum lands inside the burst. It returns at 24.52. 27.063 s — The quiet renewals lead into a shared drum and word. Seed 101 stopped at the opening (no_arc).

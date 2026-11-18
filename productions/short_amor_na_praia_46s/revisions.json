@@ -23,6 +23,25 @@
           "text": "Your mark: the voice caught lightly between two kicks."
         }
       ]
+    },
+    {
+      "spec": "productions/short_amor_na_praia_46s/spec.ts",
+      "sha256": "8d07eebce3fd0886520c5403ff0c8adedb9cbf1b0878eeb4c1b54009e221302e",
+      "at": "2026-11-18T21:25:25.711Z",
+      "by": "Claude",
+      "summary": "As you said: the landing at 3.24 s is now at 3.08 s, on the syllable that starts there, and the one at 3.77 s is removed.",
+      "points": [
+        {
+          "from": 3.082,
+          "to": null,
+          "text": "Moved here from 3.24 s."
+        },
+        {
+          "from": 3.767,
+          "to": null,
+          "text": "Removed."
+        }
+      ]
     }
   ]
 }

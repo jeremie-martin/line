@@ -17,8 +17,8 @@ const strikes: [number, number][] = [
   // A shared boom and word. The small overlapping voice comes off the boom and answers across its decay.
   [.337,.747],[.614,.042],[.865,.064],[1.126,.079],[1.44,.049],[1.672,.066],[2.038,.045],[2.299,.031],
   // The small mouth sounds each have an edge. Keep even the stress at 3.355 low.
-  [2.548,.06],[2.641,.045],[2.932,.05],[3.233,.05],[3.355,.08],
-  [3.611,.05],[3.767,.06],[3.895,.05],[4.174,.065],
+  [2.548,.06],[2.641,.045],[2.932,.05],[3.082,.05],[3.355,.08],
+  [3.611,.05],[3.895,.05],[4.174,.065],
   // Eight exposed 808 strokes. Carry the voice in the spaces and across the breath.
   [4.458,.981],[4.731,.704],[5.277,.895],[5.828,.742],[6.38,.788],
   [6.931,.639],[7.343,.718],[7.755,.683],

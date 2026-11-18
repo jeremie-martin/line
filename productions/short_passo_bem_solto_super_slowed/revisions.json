@@ -76,6 +76,20 @@
           "text": "On the drum, strong."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "sha256": "07a7931ddc5c90891f580fd7e71966337245482c9c35ec546c9097bc897d7c31",
+      "at": "2026-11-18T21:25:25.778Z",
+      "by": "Claude",
+      "summary": "As you said, the drums continue to the end. A correction to my question: from 30.6 s the third beat itself was already landed; what was missing is a pair of lighter drum strokes in every bar, falling between the landings already there. Both are now landed in every bar to the end, lightly, the second a little more than the first.",
+      "points": [
+        {
+          "from": 31.435,
+          "to": 48.995,
+          "text": "Two lighter drum strokes per bar, between the existing landings."
+        }
+      ]
     }
   ]
 }

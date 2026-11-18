@@ -63,7 +63,7 @@ try{
  const started=await page.evaluate(()=>window.__oscs.length);await page.waitForTimeout(1200);
  check(await page.evaluate(()=>window.__oscs.length)===started,'no clicks while off');check(await playLabel()==='Pause','C does not stop the music');
  await page.keyboard.press(' ');
- await page.reload();await ready();check(await page.locator('#notes-list li').count()===notes.size,'marks survive reload');
+ await page.reload();await ready();check((await page.locator('#notes-marks').textContent()).startsWith(notes.size+' mark'),'marks survive reload');  // marks without words are counted, not listed
  check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='false','clicks off survives reload');
  await page.locator('#toggle-clicks').click();check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='true','Clicks button turns them back on');
  await page.setViewportSize({width:390,height:844});check(await page.locator('[data-quick-mark="voice"]').isVisible(),'touch mark control available');

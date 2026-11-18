@@ -1823,7 +1823,11 @@ function upsertLocalNote(note) {
 function renderNotesList() {
   refs.notesTitle.title = state.notesPath ? `Kept in ${state.notesPath}` : "";
   refs.notesList.innerHTML = "";
-  for (const note of state.notes) {
+  // the list is for what he wrote: a mark without words is on the timeline's notes lane, and only counted here
+  const worded = state.notes.filter((note) => (note.text || "").trim() || note.id === state.activeNoteId);
+  const marks = state.notes.length - state.notes.filter((note) => (note.text || "").trim()).length;
+  document.getElementById("notes-marks").textContent = marks ? `${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline` : "";
+  for (const note of worded) {
     const li = document.createElement("li");
     li.classList.toggle("active", note.id === state.activeNoteId);
     const button = document.createElement("button");

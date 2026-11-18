@@ -958,7 +958,7 @@ textarea {
 }
 
 .reading-note textarea {
-  height: 46px;
+  height: clamp(46px, 9vh, 110px);
   margin-top: 4px;
 }
 
@@ -1005,8 +1005,8 @@ textarea {
 }
 
 #note-text {
-  flex: none;
-  height: 56px;
+  flex: 2 1 56px;
+  min-height: 56px;
   margin-top: 4px;
 }
 
@@ -1047,7 +1047,8 @@ textarea {
 }
 
 .notes-list {
-  flex: 1;
+  flex: 0 1 auto;
+  max-height: 32%;
   min-height: 0;
   list-style: none;
   padding: 0 2px 0 0;
@@ -1241,3 +1242,7 @@ textarea {
     flex-wrap: wrap;
   }
 }
+
+/* the list holds his notes with words; bare marks are counted, and seen on the timeline */
+.notes-marks { margin-top: 6px; font-size: 11px; color: var(--muted); }
+.notes-marks:empty { display: none; }

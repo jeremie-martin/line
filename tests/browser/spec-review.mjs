@@ -9,7 +9,8 @@ const check = (ok, why) => {if (!ok) throw Error(why);};
 const errors = [], verdicts = new Map(), changed = new Set();
 page.on('pageerror', e => errors.push(e.message));
 page.on('console', m => {if (m.type() === 'error') errors.push(m.text());});
-const overlay = r => verdicts.has(r.path) ? {...r, verdict: verdicts.get(r.path), changed: changed.has(r.path)} : r;
+// the check's own verdicts stand in for the owner's, which it neither shows nor changes
+const overlay = r => ({...r, verdict: verdicts.get(r.path) ?? null, changed: changed.has(r.path)});
 await page.route('**/api/spec-review', async route => {
   const listing = await (await context.request.get(base + '/api/spec-review')).json();
   if (route.request().method() === 'POST') {

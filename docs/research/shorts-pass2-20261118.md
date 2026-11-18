@@ -405,3 +405,5 @@ Times below are seconds in each short. The values are requests in the specificat
 **Luna Bala slowed.** The drum punctuation at 6.713 (.48 → .553), the leaned vowel at 14.626 (.175 → .125), its small reply at 14.899 (.018 → .048) and the entrance at 15.444 (.49 → .438) restore the reviewed requests. Those four weights changed between the first musical reading and the physical trials. The opening still swells into the punctuation, and the later fifth strokes retain their raised class.
 
 **Luna Bala original.** At 2.124 the continuation returns (absent → .035). It is the quieter second articulation after 2.019 (.057), present in the opening score before the missed-catch trial.
+
+**Los Voltaje.** Seven strength changes restore the exact stresses of the reviewed quick voice. In time order they are 11.002 (.53 → .462), 11.792 (.62 → .496), 13.359 (.23 → .335), 13.533 (.43 → .369), 13.708 (.36 → .295), 14.427 (.23 → .344) and 14.590 (.25 → .306). The crescendo in the preceding calls ends on the drum answer.

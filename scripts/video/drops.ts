@@ -19,4 +19,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   short_passo_bem_solto_super_slowed: [30.6, 48.16],
   short_passo_bem_solto: [29.35, 45.05],
   short_passo_bem_solto_slowed: [29.32, 44.98],
+  short_luna_bala_slowed: [15.44, 30.7],
 };

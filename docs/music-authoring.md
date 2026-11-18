@@ -93,8 +93,14 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    mix rises there), `loud` and `share`; and prints a fold of each four bars onto one bar, where a figure that returns
    shows as a row. The bar is a hypothesis (check `repeats`); slot 0 is a beat, not necessarily the first.
    `sung.json` misses most syllables of a fast or chopped voice; use it for pitch, not for where the syllables are.
-5. **Read what the owner said.** His notes on the song (`productions/<song>/notes.json`, from the spec dashboard)
-   and on its earlier videos. For a song he has said nothing about, write a first reading and show its video.
+5. **Read what the owner said.** `node tools/music/notes.ts --song=<song> [--variant=<name>]` prints his verdict and
+   words on the reading, then his notes (`productions/<song>/notes.json`, from the spec dashboard) in two groups.
+   Notes **on this version** were written on the reading as it stands: act on them. Notes **on earlier versions**
+   were written before the reading last changed: they are kept, may already be answered, and a landing number in
+   them belongs to a ride that no longer exists; their times still say where he heard something. A note is a
+   direction with a few examples: carry it through the piece wherever the same music returns, and adapt what
+   surrounds it (a stroke made strong makes its neighbours lighter). Never delete or rewrite his notes.
+   For a song he has said nothing about, write a first reading and show its video.
    On the dashboard he slows a passage and loops it (a drag across the timeline selects a range, L loops it),
    hears the mix or one stem alone (Hear: mix, voice, other, drums, bass), and places notes that snap to measured events: M a mark, S the strong one (a mark one level up, relative
    to the passage; a moment holds one of the two), V a voice, I an impact.

@@ -1392,7 +1392,7 @@ function drawNoteLane(svg, L, plotW, y, h) {
         height: h - 16,
         rx: 2,
         fill: note.id === state.activeNoteId ? "#a8442f" : "#2d5d8f",
-        opacity: 0.78,
+        opacity: note.current ? 0.78 : 0.22,
       });
       continue;
     }
@@ -1407,7 +1407,7 @@ function drawNoteLane(svg, L, plotW, y, h) {
       height: h - (strong ? 4 : 12),
       rx: 2,
       fill: note.id === state.activeNoteId ? "#a8442f" : strong ? "#173a5e" : "#2d5d8f",
-      opacity: strong ? 1 : 0.88,
+      opacity: note.current ? (strong ? 1 : 0.88) : 0.28,
       "data-note-tag": strong ? "strong" : "note",
     });
   }
@@ -1773,11 +1773,11 @@ async function deleteActiveNote() {
 
 async function clearAllNotes() {
   if (!state.data) return;
-  if (!window.confirm(`Clear all notes for ${state.data.spec.label}?`)) return;
+  if (!window.confirm(`Clear your notes on this version of ${state.data.spec.label}? Notes on earlier versions are kept.`)) return;
   clearTimeout(state.saveTimer);
   state.saveTimer = null;
   state.pendingNoteSave = null;
-  state.notes = [];
+  state.notes = state.notes.filter((note) => !note.current);
   refs.noteText.value = "";
   state.activeTags = [];
   renderTags();
@@ -1800,7 +1800,9 @@ async function clearAllNotes() {
 function upsertLocalNote(note) {
   const text = note.text || "";
   const tags = note.tags || [];
-  state.notes = state.notes.filter((item) => item.id !== note.id);
+  // an earlier version's note is not written over: it stays (the server keeps it under an id of its own)
+  state.notes = state.notes.map((item) => item.id === note.id && !item.current ? { ...item, id: `${item.id}~earlier` } : item)
+    .filter((item) => item.id !== note.id);
   if (text.trim() || tags.length) {
     state.notes.push({
       id: note.id,
@@ -1815,6 +1817,7 @@ function upsertLocalNote(note) {
       tags,
       createdAt: note.createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
+      current: true,
     });
   }
   state.notes.sort((a, b) => a.t - b.t || a.id.localeCompare(b.id));
@@ -1824,19 +1827,31 @@ function renderNotesList() {
   refs.notesTitle.title = state.notesPath ? `Kept in ${state.notesPath}` : "";
   refs.notesList.innerHTML = "";
   // the list is for what he wrote: a mark without words is on the timeline's notes lane, and only counted here
-  const worded = state.notes.filter((note) => (note.text || "").trim() || note.id === state.activeNoteId);
-  const marks = state.notes.length - state.notes.filter((note) => (note.text || "").trim()).length;
-  document.getElementById("notes-marks").textContent = marks ? `${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline` : "";
+  // and for this version of the reading: notes on earlier versions are kept, pale on the timeline, listed on demand
+  const words = (note) => (note.text || "").trim();
+  const now = state.notes.filter((note) => note.current), earlier = state.notes.length - now.length;
+  const worded = state.notes.filter((note) => note.id === state.activeNoteId || (words(note) && (note.current || state.showEarlierNotes)));
+  const marks = now.filter((note) => !words(note)).length;
+  const summary = document.getElementById("notes-marks");
+  summary.textContent = [`${now.length} on this version` + (marks ? ` (${marks} mark${marks === 1 ? "" : "s"} without words, on the timeline)` : ""),
+    earlier ? `${earlier} on earlier versions, pale on the timeline` : ""].filter(Boolean).join(" · ");
+  if (earlier) {
+    const toggle = document.createElement("button");
+    toggle.type = "button"; toggle.className = "notes-earlier"; toggle.textContent = state.showEarlierNotes ? "hide them" : "list them";
+    toggle.addEventListener("click", () => { state.showEarlierNotes = !state.showEarlierNotes; renderNotesList(); });
+    summary.append(" ", toggle);
+  }
   for (const note of worded) {
     const li = document.createElement("li");
     li.classList.toggle("active", note.id === state.activeNoteId);
+    li.classList.toggle("earlier", !note.current);
     const button = document.createElement("button");
     button.type = "button";
     button.dataset.noteId = note.id;
     const timeLabel = note.scope === "range" && typeof note.t0 === "number" && typeof note.t1 === "number"
       ? `${formatTime(note.t0)}-${formatTime(note.t1)}`
       : formatTime(note.t);
-    const scopeLabel = note.scope === "keyframe" && note.axis ? `${note.axis} keyframe` : note.scope;
+    const scopeLabel = (note.scope === "keyframe" && note.axis ? `${note.axis} keyframe` : note.scope) + (note.current ? "" : " · earlier version");
     button.title = `${timeLabel} · ${scopeLabel}\n${note.text || ""}${note.tags.length ? `\n${note.tags.join(", ")}` : ""}`;
     button.innerHTML = `<span class="note-time">${escapeHtml(timeLabel)}</span>`
       + `<span class="note-text">${escapeHtml(note.text || note.tags.join(", "))}</span>`

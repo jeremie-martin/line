@@ -6,6 +6,10 @@
  *                                            music.stems: the song's separated stems that exist, by name)
  *   GET  /api/spec-notes?spec=…             → {specPath, notesPath, notes}
  *   POST /api/spec-notes  ← {spec, note} upsert (empty text and no tags deletes), {spec, id} delete, {spec, clear}
+ * A note records what it was written on: `on` = {spec, sha256} (the reading and specSha256 at the time). While the reading
+ * has not changed since, the note is `current` (reported, not stored); after a revision it is a note on an earlier version:
+ * kept, shown apart, its landing number no longer valid. Notes without `on` predate this and are earlier. Writing over an
+ * earlier note keeps it (under a new id) and makes a current one; `clear` removes only the current notes of the reading.
  * Specs are edited in their source files; the dashboard does not write them. */
 import type {IncomingMessage, ServerResponse} from 'node:http';
 import {existsSync, readdirSync, readFileSync, writeFileSync} from 'node:fs';
@@ -17,7 +21,8 @@ import {AXES, type Spec, type SpecMusic} from '../v0/types.ts';
 
 type SpecEntry = {path: string; name: string; label: string; group: string};
 type Note = {id: string; t: number; scope: string; index: number | null; t0: number | null; t1: number | null;
-  axis: string | null; title: string; text: string; tags: string[]; createdAt: string; updatedAt: string};
+  axis: string | null; title: string; text: string; tags: string[]; createdAt: string; updatedAt: string;
+  on?: {spec: string; sha256: string}};
 
 const SCOPES = new Set(['moment', 'contact', 'gap', 'range', 'keyframe']);
 const round = (x: number, digits = 4) => Math.round(x * 10 ** digits) / 10 ** digits;
@@ -75,6 +80,8 @@ export function createSpecApi(root = process.cwd()) {
     const notes = JSON.parse(readFileSync(file, 'utf8')).notes;
     return Array.isArray(notes) ? notes : [];
   };
+  const onNow = (specPath: string) => ({spec: specPath, sha256: specSha256(join(root, specPath))});
+  const isCurrent = (n: Note, on: {spec: string; sha256: string}) => n.on?.spec === on.spec && n.on.sha256 === on.sha256;
   const writeNotes = (specPath: string, notes: Note[]) => writeFileSync(notesFile(specPath),
     JSON.stringify({specPath, notes: [...notes].sort((a, b) => a.t - b.t || a.id.localeCompare(b.id))}, null, 2) + '\n');
   const asset = (ref: string | undefined) => {
@@ -138,7 +145,7 @@ export function createSpecApi(root = process.cwd()) {
     };
   }
 
-  function note(input: any, previous: Note | undefined): Note {
+  function note(input: any, previous: Note | undefined, on: {spec: string; sha256: string}): Note {
     const now = new Date().toISOString(), num = (v: unknown) => typeof v === 'number' && Number.isFinite(v) ? v : null;
     const t = num(input.t) ?? previous?.t ?? 0, scope = SCOPES.has(input.scope) ? input.scope : previous?.scope ?? 'moment';
     const index = num(input.index) !== null ? Math.trunc(input.index) : previous?.index ?? null;
@@ -148,7 +155,7 @@ export function createSpecApi(root = process.cwd()) {
     return {id, t: round(Math.max(0, t)), scope, index, t0: t0 === null ? null : round(Math.max(0, t0)), t1: t1 === null ? null : round(Math.max(0, t1)),
       axis: typeof input.axis === 'string' ? input.axis.trim() || null : previous?.axis ?? null,
       title: String(input.title ?? previous?.title ?? scope).trim().slice(0, 160), text: String(input.text ?? previous?.text ?? '').slice(0, 20000),
-      tags: [...new Set<string>(tags)], createdAt: previous?.createdAt ?? now, updatedAt: now};
+      tags: [...new Set<string>(tags)], createdAt: previous?.createdAt ?? now, updatedAt: now, on};
   }
 
   /** Each view loads its spec in a short-lived worker thread: a fresh module graph, so edits
@@ -174,7 +181,8 @@ export function createSpecApi(root = process.cwd()) {
     if (req.method === 'GET') {
       const entry = resolveSpec(u.searchParams.get('spec') ?? '');
       if (!entry) {reply(res, {error: 'unknown spec'}, 400); return true;}
-      reply(res, {specPath: entry.path, notesPath: relative(root, notesFile(entry.path)), notes: readNotes(entry.path)}); return true;
+      const on = onNow(entry.path);
+      reply(res, {specPath: entry.path, notesPath: relative(root, notesFile(entry.path)), notes: readNotes(entry.path).map(n => ({...n, current: isCurrent(n, on)}))}); return true;
     }
     if (req.method !== 'POST') {reply(res, {error: 'method not allowed'}, 405); return true;}
     if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {reply(res, {error: 'same-origin requests only'}, 403); return true;}
@@ -183,14 +191,21 @@ export function createSpecApi(root = process.cwd()) {
     const body = JSON.parse(text), entry = resolveSpec(body.spec ?? '');
     if (!entry) {reply(res, {error: 'unknown spec'}, 400); return true;}
     const notes = readNotes(entry.path), base = {ok: true, specPath: entry.path, notesPath: relative(root, notesFile(entry.path))};
-    if (body.clear === true) {writeNotes(entry.path, []); reply(res, {...base, count: 0, notes: []}); return true;}
+    const on = onNow(entry.path);
+    if (body.clear === true) {
+      const kept = notes.filter(n => !isCurrent(n, on)); writeNotes(entry.path, kept);
+      reply(res, {...base, count: kept.length, notes: kept.map(n => ({...n, current: false}))}); return true;
+    }
     if (body.note == null) {
       if (typeof body.id !== 'string') {reply(res, {error: 'missing note or id'}, 400); return true;}
       const next = notes.filter(n => n.id !== body.id); writeNotes(entry.path, next); reply(res, {...base, count: next.length}); return true;
     }
-    const n = note(body.note, notes.find(x => x.id === body.note.id)), empty = !n.text.trim() && n.tags.length === 0;
-    const next = [...notes.filter(x => x.id !== n.id), ...(empty ? [] : [n])];
-    writeNotes(entry.path, next); reply(res, {...base, count: next.length, note: empty ? null : n}); return true;
+    // a note on an earlier version is not written over: it stays, under an id of its own, and the new one is current
+    const before = notes.find(x => x.id === body.note.id), earlier = before && !isCurrent(before, on) ? before : undefined;
+    const n = note(body.note, earlier ? {...earlier, createdAt: new Date().toISOString()} : before, on), empty = !n.text.trim() && n.tags.length === 0;
+    const archived = earlier ? [{...earlier, id: `${earlier.id}~${earlier.createdAt.slice(0, 19).replace(/[^0-9]/g, '')}`}] : [];
+    const next = [...notes.filter(x => x.id !== n.id), ...archived, ...(empty ? [] : [n])];
+    writeNotes(entry.path, next); reply(res, {...base, count: next.length, note: empty ? null : {...n, current: true}}); return true;
   };
   return Object.assign(handle, {computeView});
 }

@@ -9,7 +9,8 @@ page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/api/spec-notes**',async route=>{
  const body=route.request().method()==='POST'?route.request().postDataJSON():null;
  if(body?.note)notes.set(body.note.id,body.note);
- await route.fulfill({json:{notes:[...notes.values()],note:body?.note,notesPath:'test-only'}});
+ const now=n=>n&&{...n,current:true};  // written on the reading as it stands
+ await route.fulfill({json:{notes:[...notes.values()].map(now),note:now(body?.note),notesPath:'test-only'}});
 });
 // Every click oscillator, its start time, and whether it was cut short (stop() with no time).
 await page.addInitScript(()=>{const oscs=window.__oscs=[],{start,stop}=OscillatorNode.prototype;
@@ -63,7 +64,7 @@ try{
  const started=await page.evaluate(()=>window.__oscs.length);await page.waitForTimeout(1200);
  check(await page.evaluate(()=>window.__oscs.length)===started,'no clicks while off');check(await playLabel()==='Pause','C does not stop the music');
  await page.keyboard.press(' ');
- await page.reload();await ready();check((await page.locator('#notes-marks').textContent()).startsWith(notes.size+' mark'),'marks survive reload');  // marks without words are counted, not listed
+ await page.reload();await ready();check((await page.locator('#notes-marks').textContent()).includes('('+notes.size+' mark'),'marks survive reload');  // marks without words are counted, not listed
  check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='false','clicks off survives reload');
  await page.locator('#toggle-clicks').click();check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='true','Clicks button turns them back on');
  await page.setViewportSize({width:390,height:844});check(await page.locator('[data-quick-mark="voice"]').isVisible(),'touch mark control available');

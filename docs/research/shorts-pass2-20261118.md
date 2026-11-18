@@ -447,3 +447,7 @@ A few low drum accents now carry more of the beat under the replies. The smaller
 ## Third review · Los Voltaje slowed
 
 I brought forward a few low strokes where the drum breaks through the words. The gathering calls and the quick voice keep their original phrasing. 17.964 s — The first long beat and the short kick pair have different accents. 32.187 s — The low beat comes through the hook here. 46.153 s — The short kick and the later full beat carry the last phrase.  Seed 101 reached the end.
+
+## Third review · Los Voltaje ultra slowed
+
+The broad beat has a little more weight where it answers the singer most clearly. The strongest entrance and the small vocal replies keep their places. 18.947 s — Hear the single low accent, then the pair. 25.577 s — The strongest answer in this group gets a little more weight. 46.8 s — Two later phrases lean on their low strokes.  Seed 101 reached the end.

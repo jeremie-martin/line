@@ -38,6 +38,7 @@ import shortLunaBala44s from '../../productions/short_luna_bala_44s/zooms.ts';
 import shortLunaBalaOriginal from '../../productions/short_luna_bala_original/zooms.ts';
 import shortAmorNaPraia from '../../productions/short_amor_na_praia/zooms.ts';
 import shortAmorNaPraia46s from '../../productions/short_amor_na_praia_46s/zooms.ts';
+import shortLuaNaPraca from '../../productions/short_lua_na_praca/zooms.ts';
 import shortMontagemTomadaSlowed from '../../productions/short_montagem_tomada_slowed/zooms.ts';
 import shortBeliever from '../../productions/short_believer/zooms.ts';
 import shortNoBatidao from '../../productions/short_no_batidao/zooms.ts';
@@ -86,6 +87,7 @@ export const ZOOMS: Record<string, ZoomLane[]> = {
   short_luna_bala_original: shortLunaBalaOriginal,
   short_amor_na_praia: shortAmorNaPraia,
   short_amor_na_praia_46s: shortAmorNaPraia46s,
+  short_lua_na_praca: shortLuaNaPraca,
   short_montagem_tomada_slowed: shortMontagemTomadaSlowed,
   short_believer: shortBeliever,
   short_no_batidao: shortNoBatidao,

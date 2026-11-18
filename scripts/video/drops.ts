@@ -10,4 +10,5 @@ export const DROP_TIMES: Record<string, [number, number]> = {
   let_the_world_burn_selection: [4.5, 24.5],
   montagem_coma_selection: [19.1, 33.6],
   montagem_tomada_super_slowed_selection: [37.0, 50.0],
+  short_montagem_tomada_slowed: [17.857, 35.15],
 };

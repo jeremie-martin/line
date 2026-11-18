@@ -417,3 +417,5 @@ Times below are seconds in each short. The values are requests in the specificat
 **Lua na Praça, upper.** Air at 19.85 returns from .47 to .76. The points at 21.21 (.25), 25.87 (.29) and 26.205 (.36) give way to the reviewed smooth arc from .76 to .58 at 27.34. The bare upper notes hang in the space left by the drums. Their very light strengths and the owner's higher speed run through the suspension.
 
 **Lua na Praça, main.** Nothing was tuned for delivery. The higher speed throughout the cut was the owner's request.
+
+**Circus Minimus.** The hook had carried its inner beats and word endings across single arcs to give the low strokes room. Each of the following was absent. The inner beat comes back at 19.088 (.34), 22.281 (.32), 25.485 (.34) and 28.690 (.33). The quieter end of the word returns at 19.669 (.23), 22.850 (.23), 26.066 (.22) and 29.317 (.24). The short intervening reply returns at 20.516 (.27), 23.721 (.28) and 26.913 (.27). In the full groove the marked answer at 34.495 (.31) has its own catch before the 34.727 low. The weights place these attacks among the other light answers to the recurring bass.

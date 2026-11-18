@@ -23,6 +23,27 @@
           "text": "The hook has one small inner note before it starts again."
         }
       ]
+    },
+    {
+      "spec": "productions/short_no_batidao/variants/astra.ts",
+      "sha256": "7be9ad7a195557873397a5306ee3249898befb2bc8810426d99dca61fe55bc1a",
+      "at": "2026-11-18T22:52:35.099Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Let the opening F hang, then gather speed under the singer until the drums take over. The last three drum steps send the rider up into the bright stab at twelve seconds. The bass catches him and sends him skimming through the hook. He gives up speed for the lower singer, takes off again with the roll and coasts out on the drums."
+    },
+    {
+      "spec": "productions/short_no_batidao/variants/sol.ts",
+      "sha256": "d2ffa466e8c2ea536e5401a49f2d7e2edf178151f3b5c40d8f865dc90a1bcfdd",
+      "at": "2026-11-18T22:52:35.243Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Let the opening F hang on a light catch, then gather speed under the singer as the drums come in. The climb stays low until the last drum gives way to one high arc into the bright stab. The bass hook skips forward close to the line, while the low singer gets a slower, rounder answer. Light syllables leave more room around the accents. The roll tightens low and fast, then the drums get the last lift."
+    },
+    {
+      "spec": "productions/short_no_batidao/variants/opus.ts",
+      "sha256": "012317dab3a7f6a55cfa4b61718e9f2527acf97e9f682b2479cbe37a5f72262e",
+      "at": "2026-11-18T22:52:35.362Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: The singer alone at the start is weightless: the rider floats slowly, long in the air, every catch a whisper. When the drums arrive it comes down to earth, and the climb lifts each arc a little higher than the last, until the long breath before the stab throws it into the biggest loft of the song. From the stab on, with the bass under it, it runs low and fast, close to the line, and the body's strokes fall into a few clear weights instead of many near-equal ones. The lower singer lifts it off the ground again, slower and rounder, before the full drums send it flat and fast to the last four strokes. The approved reading changed height and pace only gradually across the song; here the two singers float and the bass runs. Most visible at the stab (12.2 s) and when the lower voice takes over (26.9 s)."
     }
   ]
 }

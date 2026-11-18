@@ -62,6 +62,27 @@
           "text": "The final group hands the phrase back to the singer."
         }
       ]
+    },
+    {
+      "spec": "productions/short_los_voltaje_ultra_slowed/variants/astra.ts",
+      "sha256": "ae04fc36716d5a0bff4788158a55ca4c1707c2e1f5de8ac546fbae7d407a04cf",
+      "at": "2026-11-18T22:52:31.124Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The opening gathers speed syllable by syllable until the first heavy drum seems to stop the rush. Give that whole answer slow, high rebounds. When the F starts answering back, the sled slips lower and quicker between the two sounds. The heavy beats gradually win back the height, spending it all on the last drum before the four soft syllables coast out together."
+    },
+    {
+      "spec": "productions/short_los_voltaje_ultra_slowed/variants/sol.ts",
+      "sha256": "c802818f3db47ba45f5a33422664a11a278d84b430ef19d11f558b93aa5e6a37",
+      "at": "2026-11-18T22:52:31.244Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Let the low calls gather into a run, then let the first broad drum catch the rider and pull the stride down. The F refrain lifts out of that weight. It crosses the low drum in longer, slower arcs until the bass takes over again. The late downbeats run close to the ground and gain speed into the two big answers. Give the four exposed syllables at the end barely a touch and let the last one trail away."
+    },
+    {
+      "spec": "productions/short_los_voltaje_ultra_slowed/variants/opus.ts",
+      "sha256": "c5ac540052767533f61addfb65cf8e33a92c269b993df7a4a4b09d7163edf89d",
+      "at": "2026-11-18T22:52:31.377Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Heavy, slow-motion bounces, in three waves. The rider starts close to the line, talking along with the singer in small low steps, and lifts off as the words quicken, the hops growing taller to the first broad drum. From there each low stroke throws it into a deep, round, unhurried arc, slower than the approved reading so the height reads. The three waves of the drum climb: the first is the lowest and lightest, the one with the F loop rises higher, and the heavy downbeats at the end swing tallest and fastest with their plain strokes at full weight. The singer's words between the drums are low quick touches under the arcs. The four exposed syllables at the end bring the rider back down onto the line, as it began."
     }
   ]
 }

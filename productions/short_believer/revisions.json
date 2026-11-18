@@ -23,6 +23,27 @@
           "text": "The next statement already had both members of the pair."
         }
       ]
+    },
+    {
+      "spec": "productions/short_believer/variants/astra.ts",
+      "sha256": "c7fed5fbc258fc626498c18833b61c8fd548da3512774c8ac79b21942b5cc1ed",
+      "at": "2026-11-18T22:52:27.628Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The stomp has a heavy tread until the triplets slip out from under it in one low, quick run. The rider pulls up on the last snare and crosses the silence in two great bounds on the bass. After “Pain!” the quarter beats stride out at half that height. When the second drummer joins, the rider digs in and gathers speed beneath the chant, rising again for the snare at 44.74."
+    },
+    {
+      "spec": "productions/short_believer/variants/sol.ts",
+      "sha256": "ddeba2eeb60569bcf44c0d12ff38c39115fd64c9110a6fede068b68c3ebca0e9",
+      "at": "2026-11-18T22:52:27.745Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The opening stomp runs close to the line and makes space for each answering guitar chord. The triplets skim by as one quick breath, then the returning drums climb toward the break. The two bass notes land at the foot of tall, separate flights. The first shout drives the rider low again, and the second drummer gradually sends it higher, with a clear swing into the late snares. The final chant gathers speed and carries that forward motion through the cut."
+    },
+    {
+      "spec": "productions/short_believer/variants/opus.ts",
+      "sha256": "983021c860230928a7e0adf5771a051962fd9ae58338aa4e7e23d79ba45b689a",
+      "at": "2026-11-18T22:52:27.862Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Earth, then sky. The stomp is ridden heavy and grounded: the rider trudges low along the line, at a walking pace, and every stomp lands from almost no height. The triplets are a quick skip on tiptoe. After the stomp returns, the empty beat and the two bass notes become three huge bounds, the tallest of the film, and “Pain!” lands from the last of them. From there the rider stays in the air: the chant is a run of high, regular hops on the quarter beats. Under the second drummer it drops into a fast low run, and only the two late snares get a jump of their own, with the stroke just before each made lighter so they land clean. Strengths otherwise as approved."
     }
   ]
 }

@@ -42,6 +42,27 @@
       "at": "2026-11-18T20:14:55.392Z",
       "by": "Claude",
       "summary": "Nothing changed in the reading itself: this was the song's main reading until the one you preferred took its place."
+    },
+    {
+      "spec": "productions/short_trouble/variants/astra.ts",
+      "sha256": "324f2d01f4bb36927f94dee5e4569f4f402224c3a5d6315a77bbb8db1bc95a3b",
+      "at": "2026-11-18T22:52:38.122Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The opening crash throws a long shadow. Let the rider drift through the gaps between the words, then tuck low as the three uneven stresses take over. The quick drum answers barely lift. When the bass comes in, the rider bounds away from the heavy kicks twice, gathering speed into each climbing triple. One long glide carries the last kick out to the two exposed words."
+    },
+    {
+      "spec": "productions/short_trouble/variants/sol.ts",
+      "sha256": "3ab267c177c15a82532be614d6b7ca0b49f1b839344c1ccc446365ec13a60436",
+      "at": "2026-11-18T22:52:38.250Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The opening crash lets go into long, unhurried bows under the words. The quiet catches barely interrupt them. The three uneven kicks feel like a push, a softer step and a second push. Once the little drum answers arrive, the rider stays low and carries pace through the whole figure. The exposed G briefly lifts that motion. After the drop the bass pickups hug the line and the longer gaps open into fast, broad flights. The two rising triples pull those flights back down into the drums. The last two words drift out lightly."
+    },
+    {
+      "spec": "productions/short_trouble/variants/opus.ts",
+      "sha256": "eac09d07adef57c6e8fb493df8808ee0bc80788cb137a59cab59f65f4115aed9",
+      "at": "2026-11-18T22:52:38.396Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: The verse limps and the chorus bounds. Under the words the rider glides almost level, softer than before. When the three stresses arrive it takes up their long-long-short lilt in its height: two arcs and a skip, two arcs and a skip; once the small percussion fills the spaces the lilt stays in the weights and the little steps run flat beneath it. The exposed E and G hang slow and high. Then each heavy release of the chorus throws the rider into a tall bound through the gap that follows it, with the close answering pairs taken low and quick, so the chorus breathes in big arcs that the verse never had. The approved reading kept the chorus at one height and pace; here the difference between verse and chorus is drawn in the air. Most visible from 29 s on."
     }
   ]
 }

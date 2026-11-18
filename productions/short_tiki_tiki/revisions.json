@@ -1,0 +1,25 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_tiki_tiki/variants/astra.ts",
+      "sha256": "8cc0c586abd7b6f774ca1d79f209fad7196c582582c23c8850e42f53ced02c37",
+      "at": "2026-11-18T22:52:37.718Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Let the solo words rock gently over the seven brushes. The four beats pull the rider down and send it racing close to the ground through the first hook. At the boom the stride opens. The second hook takes its time in the air, swinging highest on the long beats between lines. The voice carries that swing on after the kick has gone, a little less each time."
+    },
+    {
+      "spec": "productions/short_tiki_tiki/variants/sol.ts",
+      "sha256": "d9b5c0a569249a974937a2175ce8ed41d1fd94729bd59cd8f59593a881a8d56f",
+      "at": "2026-11-18T22:52:37.847Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The solo words skim in slowly, then four increasingly quick steps open the first drop. In the hook, each long gap swings up on the voice before the rider slips back into low, soft answers between the kicks. The reset at the boom stretches the step and slows it down. The second drop sends the rider on a faster, flatter run, with shorter breaths at each return. Once the kicks go, the solo voice gets a higher, almost weightless glide out."
+    },
+    {
+      "spec": "productions/short_tiki_tiki/variants/opus.ts",
+      "sha256": "0f3808624f619a5ef76ac973f18c1ae08b06241077de8d09253b02d009da6fcf",
+      "at": "2026-11-18T22:52:37.944Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Bookended by soft hills. Under the solo words the rider rolls over low, slow swells, one per brush; the four gathering beats are a staircase, each arc higher than the last, so the drop at 10.4 lands from the top step. In the hook the beat and its answer part ways: the kick on the beat lands full, the short answer between beats only grazes the line, so the hook reads as a clean tick-tock instead of a row of equal strokes. The reset climbs a second staircase into the run, which rides higher than the hook with a lift into each bar's first kick. Under the closing voice the hills come back, growing as the rider slows to the cut. The approved reading made the answers nearly as firm as the beats; most visible in the hook (10.4–24.4 s) and the two staircases."
+    }
+  ]
+}

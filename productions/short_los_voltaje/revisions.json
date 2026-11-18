@@ -57,6 +57,27 @@
           "text": "Follow the middle reply through the marked bars and into the hook."
         }
       ]
+    },
+    {
+      "spec": "productions/short_los_voltaje/variants/astra.ts",
+      "sha256": "c44ebbab19a682bcbe9faa46b3a148252a35761301dffcc31998ea91f39a00da",
+      "at": "2026-11-18T22:52:30.232Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Let the rider linger in the silences after the first little calls. The calls gather into the quick exposed voice, then the first drum takes a long stride. Under the bright replies the rider swings out and draws back three times. Each swing runs low and quick into the footfall at its end. The three words after the drums get a little lift of their own."
+    },
+    {
+      "spec": "productions/short_los_voltaje/variants/sol.ts",
+      "sha256": "3588c5a997b8bcc78cdab090c490de9d48438ffa792bd9e0b73fec6536ec05dc",
+      "at": "2026-11-18T22:52:30.350Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Begin on light syllables and let the rider hang in the gaps between the first calls. Gather pace as those gaps close. Carry the quick bare words into the big drum entrance, then let the drum push the rider out in broad strides. Under the bright replies, build one sweep from several steps. Start low, lift through the answer, then drive into the next phrase. Let the low drum land with more weight under those replies. Unwind the last surge into the three bare words at the cut."
+    },
+    {
+      "spec": "productions/short_los_voltaje/variants/opus.ts",
+      "sha256": "a7de0edd48beb8c9182fc7d7c325b37c5192e025f4158bb47b841231474091fd",
+      "at": "2026-11-18T22:52:30.472Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Charge and discharge. In the opening each call is a little spark that jumps the silence after it: a slow small arc over every space, the arcs growing as the calls gather. The quick naked voice charges up: flat to the line and accelerating, no height at all. The slam lets it go, and the drums that take over are ridden as tall, regular hops, one per beat, so the drum drives the picture. Under the bright replies the rider runs low and fast like current along a wire, and only the drum beat that closes each phrase lifts it, a little higher phrase by phrase, so the long passage keeps climbing to the end; the last words glide out. The approved reading keeps the drum passage and the replies at one pace and height; strengths are unchanged."
     }
   ]
 }

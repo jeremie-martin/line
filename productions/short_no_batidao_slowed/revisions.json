@@ -23,6 +23,27 @@
           "text": "The word finishes before the four strokes of the roll."
         }
       ]
+    },
+    {
+      "spec": "productions/short_no_batidao_slowed/variants/astra.ts",
+      "sha256": "93d452693bb1a03826ffd64fe884065a09ed239a6c434c4fc260ab2959a8c3f0",
+      "at": "2026-11-18T22:52:35.552Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The first drummer barely lifts his feet. The bright signal opens the stride, and each bass beat buys a little more time in the air. The pickup halfway through breaks that swing and the second run of beats starts building it again. The low D brings the rider down close enough to brush the words, then the returning beat carries him forward until the four short strokes catch up."
+    },
+    {
+      "spec": "productions/short_no_batidao_slowed/variants/sol.ts",
+      "sha256": "412fde624a1bd498227cf77f3f8a9d297e987dc9d7188aa9958e747fbdce89fd",
+      "at": "2026-11-18T22:52:35.677Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Make the bare drummer feel planted, with little words brushing past each beat. The bright signal opens a window above the track, then the low pulse takes off in a long, shallow run. The low singer breaks that run into slow arcs over the bare drums, leaving the last two vowels almost weightless. The returning kick pulls the rider back into stride. The roll folds into four short, low steps."
+    },
+    {
+      "spec": "productions/short_no_batidao_slowed/variants/opus.ts",
+      "sha256": "0bf4880162f3f48f2cb9e8ea191b7f3fa161338b0ff6278af1da09b9d7ec5ec3",
+      "at": "2026-11-18T22:52:35.803Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Slowed down, the low pulse becomes a heavy ball: once the bright signal has rung out, the rider bounces once per beat in round, unhurried arcs, slower than before, each landing an even weight so that the two big kicks (5.3 s and 14.2 s) stand out of the gait instead of being two among many. Before it, the bare drummer and words skitter low and quick, hard drum and feather word in turn. The lower singer then lets it drift, flatter and softer, until the return at 31.4 slams down and the rest runs low and driving, strong and light strokes alternating, into a roll that climbs. The approved reading rode everything at one fast pace with landings of many similar weights; this one gives each passage its own gait. Most visible in the bouncing pulse (5–22 s) against the drift after it."
     }
   ]
 }

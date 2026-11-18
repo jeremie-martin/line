@@ -66,6 +66,27 @@
           "text": "Seven light syllables rising into the drum."
         }
       ]
+    },
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/astra.ts",
+      "sha256": "f3f18fbe52d5029362a43e8f32b5e70e2c6697a28f6924098d06d453129dd59e",
+      "at": "2026-11-18T22:52:34.669Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Let the held call carry the rider forward at a walk. When the upper notes have two seconds to themselves, the rider lifts with them, then sinks under the returning voice. Both little strings of syllables draw the rider close to the ground. Out of each drum entrance comes a rolling stride, rising on the three low rebounds together. After the last kick the treble keeps hopping as the forward motion ebbs away."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/sol.ts",
+      "sha256": "a5d0efd88766b1ec5c2c7693e707f834a81365b797a0ad9c660a12fa34ef3a8c",
+      "at": "2026-11-18T22:52:34.800Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Hang over the held call, then cross the exposed upper notes in a quicker, shallower sweep. When the singer comes back, settle closer to the ground and let the little upper notes brush past. The two quiet runs of syllables let the drums hit in clear space. After each return, start low and let the offbeat bass push the rider upward. Coast out on the bright notes after the last kick."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/opus.ts",
+      "sha256": "81d2d11fc5a0f6a99c5517f88924ce52b21d77f8267302fdfc43b690329fd570",
+      "at": "2026-11-18T22:52:34.918Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Airborne, then stamping. For the long opening the rider swings with the upper figure: the two wide strokes of every bar are two tall, slow arcs and the six close ones a low ripple along the line, and the swing changes with the voice: small and slow under the held call, wider and quicker when the figure is left alone at 6.2, hushed and low when the voice returns, and widening again into the swell. The quick voice before the drum is a light run gathering speed. Then the drum puts the foot down and the motion turns over: from 20.1 to the end the rider stays low and fast, stamping along the line on the quarters, with no tall arcs left, except the long syllable at 28.9, which is ridden like the run before the first drum and lands on the second downstroke at full weight."
     }
   ]
 }

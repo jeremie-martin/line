@@ -101,6 +101,27 @@
           "text": "Added, strong: voice and drum together."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto/variants/astra.ts",
+      "sha256": "f54ae59ce8118f8cd9be913f9887fb5f8194fdf1a2d7694bc6d6b7e10dda3758",
+      "at": "2026-11-18T22:52:35.988Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The rider takes the opening syllables in quick, shallow steps. When the treble starts dancing, he skips over the same hole in each phrase, landing back among the little answers. The bare call takes the spring out of his step. When the drums come back he spends that energy on one long accelerating run, easing off as the last word breaks up the beat."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto/variants/sol.ts",
+      "sha256": "b7450e4e217a08ba57823ef353787c5746a9792072704c705eaf33cc70314d12",
+      "at": "2026-11-18T22:52:36.109Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Skim through the quick words in one run, with softer catches between the three low accents. When the treble takes over, stretch each long space into a leap and tuck the close replies under it. The bare call eases into short, light steps. The returning drum sends the rider out low and fast. Let the broad drum strides carry the broken pickups, then shorten them as the last figure frays."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto/variants/opus.ts",
+      "sha256": "d4d7592d1400ea8abe64ed31392a61ba33f345ecc1fcc20bded9e47096989877",
+      "at": "2026-11-18T22:52:36.241Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: A loose step, from the ground up. The opening sentence is a low ripple: the rider hardly leaves the line and goes slowly, each syllable a light touch, so that the three strokes he marked (7.2, 9.05, 10.9) are the first real weight and kick it off the ground. The high answer rides in the air, the treble dance settles into a springy middle with clear accents and small in-between notes, and the naked call floats on the barest touches, the most airborne stretch of the song and the room before the drums return at 29.35 with the heaviest landing. From there it runs low and fast, a firm beat with light pickups, and loosens as the drum figure frays. The approved reading gave the opening the height of the rest and near-equal weights; here the song climbs out of a quiet floor."
     }
   ]
 }

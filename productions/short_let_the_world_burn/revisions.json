@@ -1,0 +1,25 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_let_the_world_burn/variants/astra.ts",
+      "sha256": "7d9c1d4540a6a7656f761f9ba2dcfbd9a580e56ee388c3fe1fc008a58997e5ac",
+      "at": "2026-11-18T22:52:29.795Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The first two calls lift the rider up to the chorus, then the drums pull the words into a low, urgent run. When the singer holds the G the rider stretches out ahead of the drums. The upper C is the summit, slower and higher, with time to fall all the way back to the three drum answers. The last word lifts off again on its own."
+    },
+    {
+      "spec": "productions/short_let_the_world_burn/variants/sol.ts",
+      "sha256": "a354914b2c91472fcf8f739c600e489b715c24f9d54363fb19061f28cbafd48f",
+      "at": "2026-11-18T22:52:29.918Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Keep the distant words close to the track, then take the two exposed C calls as a run-up to the first big fall. In the chorus, draw out the approach to each drum answer and tuck the words close between those strokes. Let the held G carry one long flight and the higher C carry a higher one. These are the two widest shapes in the ride. Coming out of the high note, sink into three close drum steps and give the last word a quiet glide through the cut."
+    },
+    {
+      "spec": "productions/short_let_the_world_burn/variants/opus.ts",
+      "sha256": "d030a72ed5bedadc1b0b55cc789d7f1365ac7c21fd9c4cef33c730ba0e03114c",
+      "at": "2026-11-18T22:52:30.042Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Fire, then smoke. The distant opening smoulders, slow and low; the two exposed calls draw a breath. The drum sentence is the fire: fast, close to the line, crackling, and once a bar the sharp answering stroke throws a spark, a small jump onto it, always at the same place in the bar. When the voice leaves the drummer behind the rider rises like smoke: it slows right down and climbs into huge, slow arcs over the held notes, the upper C the highest and slowest of all. The three drum answers bring it back to earth, and the last word glides low through the cut. The approved reading rides the held notes at full speed; here they are slow and tall, and the drums are lower and quicker."
+    }
+  ]
+}

@@ -42,6 +42,27 @@
           "text": "Removed."
         }
       ]
+    },
+    {
+      "spec": "productions/short_amor_na_praia_46s/variants/astra.ts",
+      "sha256": "12d1f2ccfb595eaa66b26b90b4448352395becb9fd1ebd991d98c96fb1b752c7",
+      "at": "2026-11-18T22:52:26.733Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The opening boom loses its weight in a string of tiny mouth sounds. Eight dry strokes set off a single long jump into the band. The kicks swing in pairs of bars, the first stretching out and the second drawing the rider back down. At the big kick near 27 seconds that rocking motion straightens into a fast glide. Only the last two echoes lift out of it."
+    },
+    {
+      "spec": "productions/short_amor_na_praia_46s/variants/sol.ts",
+      "sha256": "2107704130e95d05a691ded4b187f729c63f67556f4f67eb3760eb55c1f20819",
+      "at": "2026-11-18T22:52:26.864Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The chops after the opening boom nearly whisper, in one low, even glide. The eight dry drums push the rider forward, then a single long flight gathers up the voice. The first kick groove rises and eases across whole phrases. When the kick comes back, the rider gets low and runs, leaving just a flick for the word before the last pair. The last low hit sends the two echoes drifting farther apart, and the pace falls away."
+    },
+    {
+      "spec": "productions/short_amor_na_praia_46s/variants/opus.ts",
+      "sha256": "3ef0107b39b5522feae307f7c0da764c7aa5d16481d350c549f06036051c7eb2",
+      "at": "2026-11-18T22:52:27.002Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: One held breath and its release. Under the chopped voice the rider tiptoes, slow and close to the line; the dry 808 strokes throw it into tall bounds, and the long silence after them is the highest arc of the film, falling onto the first kick. The first band passage then runs low and flat, gaining speed bar after bar like a held breath, with no lift at all until the stroke before the great downbeat is softened and the rider rises once to meet it. From there the second passage flies: the same groove, ridden high and wide. The last words come down in smaller and smaller bounces. Versus the approved reading: the two band passages, ridden alike there, are here opposites (low run, then flight); strengths keep their order, the first passage's answers are a little softer."
     }
   ]
 }

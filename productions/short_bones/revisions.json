@@ -33,6 +33,27 @@
           "text": "Your two marks."
         }
       ]
+    },
+    {
+      "spec": "productions/short_bones/variants/astra.ts",
+      "sha256": "882bb707c0e1e9a4a4691ef50a041a97815ceb42838fa7f4d2de15be4eef2f22",
+      "at": "2026-11-18T22:52:28.053Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The bridge moves at speaking pace. The long lower vowels lift the rider, then the tightening syllables send it down into the crash. The chorus runs in four sentences. The first stays low, the second takes longer strides on the bass replies, and the third eases back for the held voice. The last line picks up speed into the fill and spends the two seconds of ringing sound coasting out."
+    },
+    {
+      "spec": "productions/short_bones/variants/sol.ts",
+      "sha256": "85016e70e2659508bb98890a578967fcd698193d7681a0623a488586969161e2",
+      "at": "2026-11-18T22:52:28.171Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The spoken bridge barely brushes the line. The lower sung notes stretch it into slow, suspended arcs, with a quick tightening as the pickups drive into the first crash. In the chorus the rider stays low through the drum-and-bass exchanges so the backbeats stand out. The held lower voice widens the next turn, then the clipped notes pull it back to the line. The last drum fill lifts the rider once more, and the resonance carries a long, settling coast."
+    },
+    {
+      "spec": "productions/short_bones/variants/opus.ts",
+      "sha256": "884ce3340d643717ec43a739698df045384fdcb1f90a13d7824cfdc0197111a6",
+      "at": "2026-11-18T22:52:28.313Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Rising out of the ground. The spoken bridge creeps, slow and close to the line, and only the held vowel lifts it once. With the low register the bass entries swell under it: slow, tall arcs over each long rest. The pickup then pulls taut, flat and accelerating, into the crash. The chorus is ridden hard and grounded, and the second drum sentence a notch faster still. Where the singer holds the long low notes the rider eases off and floats above the drums; the last line drops it back to the ground, the fill gets one hop into its last heavy stroke, and the closing resonance is a long, slowing glide. The approved reading holds full speed from the pickup to the end; this one moves between passages. Strengths as approved."
     }
   ]
 }

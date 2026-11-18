@@ -23,6 +23,27 @@
           "text": "From here the upper answers are lighter, their fifth strokes medium."
         }
       ]
+    },
+    {
+      "spec": "productions/short_luna_bala_original/variants/astra.ts",
+      "sha256": "675e52a347b4983101819d53dca4fea48ce4a10a97a0262fbc47f0ab722278cc",
+      "at": "2026-11-18T22:52:32.457Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The singer lets the sled go with a whisper. The broken drum bars pick up speed in bursts, and the bass takes those bursts into one sustained run. Keep the four bare drums moving fast right to the edge of the sung answer. Each low A-sharp then gives the sled a fresh push up toward the higher voice; the replies touch lightly, and the last one has time to drift away."
+    },
+    {
+      "spec": "productions/short_luna_bala_original/variants/sol.ts",
+      "sha256": "4002c3e0f0d75d48018e5b264345119c5b30e52b0b39e00f6965adf79e201e09",
+      "at": "2026-11-18T22:52:32.578Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Give the quick opening words a low, soft run, then let the drums kick it into a sprint. Keep the upper figure in short bounds. The broken bars bunch together, then spring into the next downbeat. Leave more space above the low answers as the upper strokes thin out. The four bare drums brake the ride in steps. The singer comes back in three separate leaps with little touches in between."
+    },
+    {
+      "spec": "productions/short_luna_bala_original/variants/opus.ts",
+      "sha256": "e6243f912349ea1cd62b143f907cb005ad39a1afc9e540dca1e951332f58f373",
+      "at": "2026-11-18T22:52:32.697Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Down into the drive, then out into the open. The breathy pickup glides almost on the line. Under the broken percussion the rider gathers pace bar by bar, in steady hops with the doubles skimmed. When the low answers come in (18.5) it runs lowest and fastest, close to the line, the hardest part of the ride. Then it opens up: where the upper strokes thin out over the bass the hops grow tall, the four bare drums are four separate high leaps, slowing, and the three pitched calls at the end are wide, slow, lazy arcs with their fine answers barely touched. The middle stroke of each bar is a little softer than before, so the downbeats stand clearer."
     }
   ]
 }

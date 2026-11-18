@@ -30,6 +30,27 @@
       "at": "2026-11-18T20:13:33.583Z",
       "by": "Claude",
       "summary": "Nothing changed here. Its opening, which you mapped by hand, is now carried into the original and the super slowed entries."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_slowed/variants/astra.ts",
+      "sha256": "93539043908c006a98707c661b9963e91e30a97e3076ff839dd5eff51f99ef53",
+      "at": "2026-11-18T22:52:36.436Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Let the rider rock along with the opening words and lean forward on the two low beats. Give the paired syllables one easy, loping stride. Twice the little drum fill pulls him sharply down and through, and twice he settles back into that stride. The shared word and drum near 29 seconds sets a heavier tread that lasts until the voice lets go and the upper reply lifts clear of the ground."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_slowed/variants/sol.ts",
+      "sha256": "1fdd30adf540efc4384c6efc58fb9a4da29a6490193204f7a5a160cebc3cbc83",
+      "at": "2026-11-18T22:52:36.562Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Give the mapped words a gentle sway, leaning into the ends of the phrases and pulling back after the low double stroke. Across the middle, the first sung stroke carries the long bow and the second stays close beneath it. The bows grow through the centre and dissolve into the exposed words, where even the low beat leaves space for the reply. The drums widen the stride in two waves. The last words settle, then the upper answer gets one more rise."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_slowed/variants/opus.ts",
+      "sha256": "eb6f4204187f446589aba84f786554c4802c1257f548b732bb6f24ef332b1e4b",
+      "at": "2026-11-18T22:52:36.693Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Slowed, the centre of the song is a swing. Each measure has two long breaths, and the rider uses them: a high, round arc into every strong syllable, then quick low steps through the answer and its small neighbours, so the measure reads as loft, step, step, again and again. The sung opening, mapped by hand, stays as it was, carried low and unhurried; the two low strokes at 7.9 cut it off hard. The exposed link floats, and after 28.9 the broken drums keep a smaller version of the swing: a shorter lift into each bar's heavy head, flat and fast between. The approved reading rode at an even height with the strong and answering syllables close in weight; here the long gaps become height and the answers step back. Most visible from 12.3 to 26.8 s."
     }
   ]
 }

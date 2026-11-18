@@ -28,6 +28,27 @@
           "text": "The figure breaks: left open until the drum returns."
         }
       ]
+    },
+    {
+      "spec": "productions/short_montagem_tomada_slowed/variants/astra.ts",
+      "sha256": "f7f939d9a0b25440f5d60d8544e2c1c0df98b0fb8ecd015a215997c71be9c4aa",
+      "at": "2026-11-18T22:52:34.236Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Six close strokes hurry past and the delayed seventh gets a little flight of its own. Each time the figure comes round the rider stretches that last step, until the tune thins and the steps barely clear the ground. With the drums back the stride opens again. The missing strokes after 25.54 leave room for one long vault. Its echoes grow shorter through the last double, then the rider coasts out on the three replies."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_slowed/variants/sol.ts",
+      "sha256": "cc8122fec4a6deabf72e560101a281fa3882dcf2a9ea6755ab77dbbe74d7db0c",
+      "at": "2026-11-18T22:52:34.359Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Give the seven-stroke figure a low start and a lift at its delayed seventh note. The lifts grow across the opening, then the voice pares them down to quick, soft catches before the drum. The same figure comes back with a faster run between the lifts. The missing bar around twenty-six seconds makes room for the longest leap, and the final double brings the rider back down."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_slowed/variants/opus.ts",
+      "sha256": "b9c1a937d6b6d511bb1ad859df98f031cdac3f4dce244241d846e849df36aadd",
+      "at": "2026-11-18T22:52:34.475Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Every bar is a dive. The upper figure counts six close strokes and then a delayed seventh, and the strokes grow toward it; the rider rides each bar as one gesture: it starts the bar floating, then each close stroke comes lower and faster, skimming down the staircase, and the delay before the seventh is one tall arc that drops onto it. The same dive runs through the opening figure and through the drum bars, so the two halves of the song rhyme. In the second half of the opening, where the figure loses weight, the dive is gentler and slower; the voice across the swell is ridden as approved; with the drum the dives are deepest and fastest."
     }
   ]
 }

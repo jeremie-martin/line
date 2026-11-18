@@ -90,6 +90,27 @@
           "text": "Two lighter drum strokes per bar, between the existing landings."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/astra.ts",
+      "sha256": "4c2afa737b12ebfb4530e299fb761b73758ee8d125e7f71d57840ff1acea8da7",
+      "at": "2026-11-18T22:52:36.883Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Follow the low vowel up to the high answer at six and a half seconds. On the repeated C the rider gradually trades height for speed, until the exposed calls bring him almost to a walk. Listen for the second drum stroke at 36.64 and again at 45.43. Each throws him up, with just enough time to come down for the reply. The last syllables carry him away at a walk again."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/sol.ts",
+      "sha256": "7075912a8526e50aad4dd3b2ca9e47c28999e0913d36c844ffb506b089b81418",
+      "at": "2026-11-18T22:52:37.009Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Start with long, low glides under the dark vowel. Let the high reply at six and a half seconds make the first big rise. The repeated C settles to a steady pace, with shorter flights around the third-beat drum and a lift into each A-sharp turn. Five exposed calls hang close to the line before the kick sets down firmly at the return. Give the late drums weight and keep their two little steps audible. Let the last word carry the rider over their fading edge."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/opus.ts",
+      "sha256": "bd903a6449410cf3c887efa611d2f058f356793e9529f4e3585c6ae06f0c3b9c",
+      "at": "2026-11-18T22:52:37.131Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Super slowed, the rider glides. It stays down on the line and moves at an unhurried pace, and the small notes between the calls become ripples it rolls over rather than steps it lands on; what remains as weight is the recurring C, the drum strokes he asked for under it (14.1, 18.5, 20.7, 22.9, 27.3) and the strong strokes of the high answer. The hand-mapped opening keeps its syllables as they were. The five unaccompanied calls are the one place it lifts and floats, the held breath before the return at 30.6, and the drum pairs after it glide again, a little faster, heads firm and pickups soft. The approved reading hopped through every note at a brisker pace; this one should look like one long line with a few deep strokes in it, most of all from 13 to 28 s."
     }
   ]
 }

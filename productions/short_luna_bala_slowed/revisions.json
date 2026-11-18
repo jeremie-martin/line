@@ -57,6 +57,27 @@
           "text": "The same downstroke, raised too."
         }
       ]
+    },
+    {
+      "spec": "productions/short_luna_bala_slowed/variants/astra.ts",
+      "sha256": "aab8daa584b3236c48003895aa35a6f96998a2fd364bd08763a1930fe992388a",
+      "at": "2026-11-18T22:52:32.907Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The distant words gather speed from a murmur until the drum cuts them off. The bare voice keeps its delicate tread. The five upper strokes travel in broad bounds, pulling close to the ground for the shortened bar around 23 seconds. When the bass begins answering, the rider folds low and runs. As the bass thins, the bright notes lift the rider out of that run, with the last few strokes hanging almost in place."
+    },
+    {
+      "spec": "productions/short_luna_bala_slowed/variants/sol.ts",
+      "sha256": "11f3fd32423cd029106fa19e6e8207ddf34ba9527370dd027836e42b4e04ec80",
+      "at": "2026-11-18T22:52:33.037Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Start close to the ground and let the distant words gather pace up to the drum. The bare voice stays soft. Its breath at eleven seconds gets a longer, slower arc. When the full band arrives, the five-note figure rolls low and fast, then opens into wider jumps as the low replies come back. Let the treble glide out as the bass falls away."
+    },
+    {
+      "spec": "productions/short_luna_bala_slowed/variants/opus.ts",
+      "sha256": "a52bee5e24ebd8c31d6acef11b4d40df3cbf451c5084f25fc9881091433c5006",
+      "at": "2026-11-18T22:52:33.166Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Two worlds, and a door between them. The distant words arrive from far away: wide, slow arcs that tighten and quicken as the voice comes into focus, into the drum at 6.7. The bare voice stays exactly as it was, low and quiet on the line. Then the first upper stroke at 15.4, now the strongest landing of the song, throws the rider up into the strokes, and from there it never quite comes down: every arc is as tall as the stroke it falls onto is strong, so the big strokes are seen coming from high and the light ones are low quick steps. The hurried short bar near 23 s runs low and fast for a moment; the low replies after 30.7 swing tallest; when the bass falls away at the end the rider slows and settles."
     }
   ]
 }

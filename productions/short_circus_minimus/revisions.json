@@ -44,6 +44,27 @@
       "at": "2026-11-18T20:14:55.322Z",
       "by": "Claude",
       "summary": "Nothing changed in the reading itself: this was the song's main reading until the one you preferred took its place."
+    },
+    {
+      "spec": "productions/short_circus_minimus/variants/astra.ts",
+      "sha256": "d3013c40f39ff41c397ef14b7b9c728b4b44eed7bd3bf2f0fe3b4e3dd9e30e92",
+      "at": "2026-11-18T22:52:28.487Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The low stroke sets the stride. When the hats come in, the rider leans forward. In the hook the words skim along close together, then the rider vaults the hole at the end of each line and comes down on the bass. The five exposed notes take the pace right back. The full band opens the stride again, widest on the held word."
+    },
+    {
+      "spec": "productions/short_circus_minimus/variants/sol.ts",
+      "sha256": "029083e4cda028040ddcabfd3bd08f3036cedca2d5235d5094e4ea1fbaaf29f6",
+      "at": "2026-11-18T22:52:28.607Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Let the bass swing the rider through wide arcs in the verse, with softer touches for the answering words. When the hook starts catching on every little syllable, gather speed and skim low until each phrase opens up. In the break, the five upper notes climb lightly toward the hardest bass return. Give the full groove its swing back, then let the held voice lift the rider once more before the last bar."
+    },
+    {
+      "spec": "productions/short_circus_minimus/variants/opus.ts",
+      "sha256": "f244cf222846ac4061d6c50025a8657c3106e89fec7a6624e35208340b4d71ea",
+      "at": "2026-11-18T22:52:28.739Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: A juggler's act. In the verse every big low stroke is thrown: the rider goes up slowly over the long rest before it and falls onto it, tall against an unhurried pace. Under the hats the throws stop and the rider runs quick and low through the groove. In the hook the throw returns once per phrase, always on the same stroke, so the passage has a visible period. The five even notes are a drum roll on the ground, accelerating into the band's return; the full groove floats in quick small hops; the held note is one slow high lob, landing softly, and the last bar throws once more. The approved reading keeps one even motion per passage; this one shapes the long rests. Strengths as approved."
     }
   ]
 }

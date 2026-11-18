@@ -23,6 +23,27 @@
           "text": "No drop any more; the passage itself is unchanged."
         }
       ]
+    },
+    {
+      "spec": "productions/short_amour_de_ma_vie/variants/astra.ts",
+      "sha256": "93df25312cd17916d38020b0cb2730a0dfd3abd44ac0e5eab78f3c7a28373ed7",
+      "at": "2026-11-18T22:52:27.193Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Let the first words slide by almost silently, with three equally sharp knocks across them. The backbeat has a lazy swing. The rider takes a little more sky each time the drums leave a beat empty, until the held word at 24 seconds can carry a whole flight. The return runs close to the ground for four bars, then the beat softens and the rider drifts on past it."
+    },
+    {
+      "spec": "productions/short_amour_de_ma_vie/variants/sol.ts",
+      "sha256": "f2b136d309160e7e02cd28744175afc317dc20322bdd4ea2d9d978d1a3e45d19",
+      "at": "2026-11-18T22:52:27.315Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The first words brush the line, then the melody draws a small bow before the three sharp drums. After those drums the rider settles into a rolling backbeat that loosens as the singer holds the high note. The bass pickup leads to the longest, highest breath of the ride and a soft return to the rolling pace. The final bars let the voice draw the rider outward again, with lighter landings and room at the cut."
+    },
+    {
+      "spec": "productions/short_amour_de_ma_vie/variants/opus.ts",
+      "sha256": "34eebfc628a021da025fd5588c23f2f01ff6f9a2abed1ffcc1619776baedc409",
+      "at": "2026-11-18T22:52:27.442Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: A slow dance. This song is chill, and the approved reading rides it at full pace; here the rider sways. After the near-still opening words and the three hard drums, it settles to an unhurried speed: low through the steps of each bar, and a soft lift over every bar's long rest, the same in every bar. The held voice gets the one tall flight of the film. When the backbeat returns the rider is heavier, quicker and closer to the line for those bars; as the groove eases it slows again and the lifts grow, floating out to the cut. The body of the strokes is a little softer in the swaying passages, so the three drums and the return stand clear; the order of the strengths is unchanged."
     }
   ]
 }

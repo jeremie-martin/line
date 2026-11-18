@@ -32,6 +32,27 @@
           "text": "The same before the second return."
         }
       ]
+    },
+    {
+      "spec": "productions/short_montagem_tomada_extended/variants/astra.ts",
+      "sha256": "bf5288bd4351c6098eda04e58d6be73627ec288170b58c30f75101df51d6d45e",
+      "at": "2026-11-18T22:52:33.799Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Each sung pair flicks up and leaves the rider hanging on the long vowel. The first drum takes up that bounce, with an extra lift in the missing beat before 16 seconds. The upper notes in the break gather into a quick skim. On the second verse the long vowels stretch out again. This time the drum pulls everything low and fast until the singer briefly gets the space back at 44.7 seconds. The last kick sends the treble clear."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_extended/variants/sol.ts",
+      "sha256": "21af893557a657d62d54e881446f396c39c221f08f3dbc5f856ffa4210fd2cd8",
+      "at": "2026-11-18T22:52:33.929Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Let the paired words build through progressively longer, higher steps, then skim the quick syllables. The first drum entrance brings a measured stride that loosens into a high, slow glide when the voice holds its note in the break. The second entrance sends the rider much faster and lower. Let the held word near forty-five seconds briefly lift that run before the last low beat and bright tail."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_extended/variants/opus.ts",
+      "sha256": "195e8bc8f776a89372d36ff1bd5ac714e2cc6e3fc41e1bbee3fdc2708d2f756c",
+      "at": "2026-11-18T22:52:34.050Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: The same road twice, the second time higher. The song tells its story two times: a verse, the quick voice, the drum. The first time the rider holds back: the verse starts low and soft and grows, the first drum is ridden close to the line with modest hops. In the break without drums it hangs, slow and high, over the upper figure. Then the second verse and the second drum repeat the same motions, but everything is taller, faster and heavier, so the eye recognises the road and feels the return as the bigger one: the arcs between low beats there are the tallest of the song. The quick voice before each drum keeps its light, syllable-by-syllable touches."
     }
   ]
 }

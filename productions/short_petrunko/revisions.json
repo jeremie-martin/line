@@ -1,0 +1,25 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_petrunko/variants/astra.ts",
+      "sha256": "7647d1733523a6fde9a0e5598d7cb7d860bd532a3a10dee481a74cec1e0a0a4e",
+      "at": "2026-11-18T22:52:37.309Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The little ticks start close to the ground. Each has more spring until the doubles draw the rider down into the roll. The held note gets the tallest arc. After the return the rider swings up from each last drum into the soft bar opener, then rushes through its answers. The last swing dies out in five steps."
+    },
+    {
+      "spec": "productions/short_petrunko/variants/sol.ts",
+      "sha256": "5715a44e1acc1203bf827b5f7e31d46c2aae3c9c960b21c7ead22e4aa3a32684",
+      "at": "2026-11-18T22:52:37.448Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: The upper figure starts as a string of light, unhurried hops and gathers into a low, quick roll. Its held high note gets the widest flight, with the weight saved for the drum on the far side. The replies now breathe in groups of four bars. Each soft opener comes out of a bound, and the stronger answering drums carry the rider forward close to the line. The last five strokes spend that momentum, with one soft rise before the closing touch."
+    },
+    {
+      "spec": "productions/short_petrunko/variants/opus.ts",
+      "sha256": "b929068a166416c6c5edfa6ecc1b5982698233116e7ef365ab034b2cfd165d63",
+      "at": "2026-11-18T22:52:37.556Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: The growth is told in height. Through the quiet ticks the rider skims almost flat and slow; with every stroke of the twenty-second build the arcs open a little taller and the touches a little firmer, growing slowly at first and then faster, until the roll pulls it down onto the line at full speed. The lone high note becomes the highest arc of the song, and the return lands out of it. The long reply section then rides as big loping bounds: a tall arc through each long breath, a medium one, and quick flat steps where the drum and bass answer close together, the same two-bar gait each time, swelling a little as the voices join, then shrinking and slowing through the five closing strokes. The approved reading kept one height throughout; here the shape of the song is drawn in the air."
+    }
+  ]
+}

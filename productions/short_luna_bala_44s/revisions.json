@@ -18,6 +18,27 @@
           "text": "From here the upper figure crosses the kicks in five positions, as in the slowed entry."
         }
       ]
+    },
+    {
+      "spec": "productions/short_luna_bala_44s/variants/astra.ts",
+      "sha256": "1d5865302561a7779bc3e64219bb88deec9fd5e7593dcb3cb1b297b945a827d7",
+      "at": "2026-11-18T22:52:32.001Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The solo voice barely brushes the snow. In the breath between its two sentences the sled hangs for a moment, then slips back under the words. Hear the five upper strokes as a bow: the sled rises into the long fourth and comes down through the clipped fifth. The bare drums cut that bow short. Bass answers send the sled along the ground until the refrain opens out again."
+    },
+    {
+      "spec": "productions/short_luna_bala_44s/variants/sol.ts",
+      "sha256": "c7ca6293d9104a6610e47b0a3749ad3ef279d22030b120f5f8c38f7d1d0b7b8a",
+      "at": "2026-11-18T22:52:32.130Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Follow the solo voice with small, slow catches. Let the silence between its two lines make the first real leap. After the drums enter, the upper figure gathers into long sweeps and folds low on its short replies. The uncovered drums briefly put the rider back on the ground. The bass sends it out in wider strides, with more room around the late downstrokes before the voice comes through again at the cut."
+    },
+    {
+      "spec": "productions/short_luna_bala_44s/variants/opus.ts",
+      "sha256": "5bdaae4ab1f8f4884ae9c474e92e710a687c7656162a716077158ef3d7ef909e",
+      "at": "2026-11-18T22:52:32.261Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: One gesture per bar. Under the five upper strokes the rider repeats the same figure every bar, so the eye learns it: the heavy downbeat, two small equal steps, a tall arc over the long fourth stroke, a quick skim on the short fifth, and a tall arc again into the next downbeat. The solo voice before it drifts slowly with nearly weightless touches and a breath where the singer breathes. The uncovered drums slow down and hang. When the bass fills the holes the figure runs lower and quicker; when the bass withdraws under the refrain (from 34.8) the in-between touches turn lighter and the rider sails higher between the downbeats, which keep all their weight."
     }
   ]
 }

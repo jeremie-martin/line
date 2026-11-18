@@ -23,6 +23,27 @@
           "text": "This cut's own broad bass entrance, with four lighter replies."
         }
       ]
+    },
+    {
+      "spec": "productions/short_amor_na_praia/variants/astra.ts",
+      "sha256": "35a02de9c54c00521e129270b447206c107dd0e469273a2eeb0260ed6746285b",
+      "at": "2026-11-18T22:52:26.286Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The two little taps before the first drum barely brush the ground. The drum sends the rider running low through the dry strokes and the first four kicks. The upper answers gradually pull that run off the ground. When the bass takes over at 32 seconds, the rider hangs back and swings in longer arcs. The quick words bring the feet back down for the last pair."
+    },
+    {
+      "spec": "productions/short_amor_na_praia/variants/sol.ts",
+      "sha256": "8de59b379a26212dd4453ff633e6f685b2a1c80fb66cb1621900ac2a72b64fd5",
+      "at": "2026-11-18T22:52:26.405Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Carry the high pickup on a soft glide, with two little toe taps before the first dry drum. The dry strokes gather speed, then the full band sends the rider skimming close to the line. The sung replies gradually raise that quick glide. At the broad bass answer it opens into longer, higher sweeps, with room around the low strokes, before the reprise brings it back down. The closing words trail away in a single easy coast."
+    },
+    {
+      "spec": "productions/short_amor_na_praia/variants/opus.ts",
+      "sha256": "4aeccf3bc7c1fb759c99bbd9253b5a0d5b5afa9d51c276ac4dcf8ea55e696f22",
+      "at": "2026-11-18T22:52:26.534Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: The song as a swell on the beach. Every groove bar is one wave: the rider rises over the long step into each downbeat and skims low across the quick steps between them, the same in every bar. The dry drums at the start are slower stepping stones; the run-up stays low and fast, then hangs high over the breath so the full band lands from above. The quick words run lower and quicker with lighter fills; the broad bass answers lift into big, slower swells; the reprise returns to the first wave, and the last vowel is one long high glide that slows to the end. Differs from the approved reading mostly in height and in how each passage moves; strengths keep their order, only the fills of the quick-words passage are lighter."
     }
   ]
 }

@@ -57,6 +57,27 @@
           "text": "The last group leads back to the exposed words."
         }
       ]
+    },
+    {
+      "spec": "productions/short_los_voltaje_slowed/variants/astra.ts",
+      "sha256": "5345fe453ad04e02f6ff4606da094054f8fb8183344b72f412ad922e23846b7a",
+      "at": "2026-11-18T22:52:30.662Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: Each opening call sends the sled a little farther up into the silence. The six answering drum taps bring it down to a quick skim for the rush of words. After the first kick, the strong low notes come in clusters. The sled climbs into the cluster around 23 seconds and its echo nine seconds later, then runs beneath the repeating hook until the last three words lift free."
+    },
+    {
+      "spec": "productions/short_los_voltaje_slowed/variants/sol.ts",
+      "sha256": "ae97b44b4bdeff42d4b15d55f0930ff1fd1e4a8e48966d9f85cc73742c5f9a49",
+      "at": "2026-11-18T22:52:30.788Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Let the first three calls leave three rising arcs across the rests, then keep the quick words close to the track. The first full kick cuts through that low rush. The words in its wake get a lighter touch. The beat moves in waves, opening up around the paired kicks and the long downbeats at 23 and 32 seconds. The repeating hook runs lower and faster until one last lift into the kick, then the bare words let the ride settle."
+    },
+    {
+      "spec": "productions/short_los_voltaje_slowed/variants/opus.ts",
+      "sha256": "3f327d49a1f39be9ccd7a0b082656159f35e66b37eb4aaaad32d1231fb1a9f83",
+      "at": "2026-11-18T22:52:30.922Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Three leaps, a fuse, then a pendulum. The opening calls hang high in the air over their long rests, each call a small skip on the line before the next tall leap; as the calls gather the leaps shrink, and the quick voice runs flat and low along the line, faster and faster, like a lit fuse, into the first kick. From there the body swings: every kick that is followed by a kick is one full arc over the beat, and where the singer speaks between two kicks the rider only skims the word and swings on. The plain kicks are a little softer than before and the accented ones keep their weight, so the downbeat pattern reads in the motion. When the treble loop takes over the hook the swing grows taller and slightly slower, and the last three words drift out high and unhurried."
     }
   ]
 }

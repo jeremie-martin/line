@@ -1,0 +1,25 @@
+{
+  "revisions": [
+    {
+      "spec": "productions/short_funk_do_bounce_super_slowed/variants/astra.ts",
+      "sha256": "8537ba097b8119eb638d7f89cd57cb245b55b325cfa3b4a1fa84f388e47a9c63",
+      "at": "2026-11-18T22:52:28.922Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The opening roll runs the rider out close to the ground. The bass catches that speed and spends it on successively longer bounces. The lone drummer takes big, unhurried steps. When a little high note answers each footfall, the step folds in two and hurries along. The upper tune gradually gets all that room to itself, right up to the last small ticking notes."
+    },
+    {
+      "spec": "productions/short_funk_do_bounce_super_slowed/variants/sol.ts",
+      "sha256": "6728bd06fb34dbce01ae43389e9f22b58d2f914f4f94ca28f31143cba92772d6",
+      "at": "2026-11-18T22:52:29.037Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Curl the last words into a low drum roll, then let the bass restart send the rider out in long, easy rebounds. Ease off for the exposed calls and come down hard on the first drum step. The lone drum keeps a lower stride. When the high replies arrive, the rider skips into the drum and brushes each reply as part of the same step. Open the skip into wider leaps for the upper tune, give the low double a sharp landing, and leave on light treble steps."
+    },
+    {
+      "spec": "productions/short_funk_do_bounce_super_slowed/variants/opus.ts",
+      "sha256": "9c9c6d208371a63594a92eb2ab5ef4c192fde2d511f584b1eaca722aa9596734",
+      "at": "2026-11-18T22:52:29.159Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: A ball learning to bounce, in slow motion. The roll skitters fast and flat along the line. When the bass restarts alone the rider rolls with it, low and smooth, the strokes softened a little, because there are no drums yet. Over the little calls it slows and lifts once; then the drum stride is the bounce itself: slow, tall, regular hops, one per step, every step the same height. When the high answers enter each bounce gains a small skip on its answer. The upper phrase stretches into broader, floating arcs, and the ticking treble at the end lets the ball settle low. The approved reading rides the stride and the answers fast and fairly flat; here they are its tallest, slowest part, and the drumless bass passage is its lowest."
+    }
+  ]
+}

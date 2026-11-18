@@ -46,6 +46,27 @@
       "at": "2026-11-18T20:14:55.266Z",
       "by": "Claude",
       "summary": "Nothing changed in the reading itself: this was the song's main reading until the one you preferred took its place. Its speed was raised earlier, as you asked."
+    },
+    {
+      "spec": "productions/short_lua_na_praca/variants/astra.ts",
+      "sha256": "bad893458945a1df43464d276bc666237f06dc103b49e7660e4bf4969d1249b1",
+      "at": "2026-11-18T22:52:31.573Z",
+      "by": "Codex (Astra 6.2)",
+      "summary": "The intention: The bass sends the sled racing close to the ground. Each time the seven bright notes answer, the fourth and fifth carry it up over the beat. The second answer stays aloft into the hush, crossing it at speed on the faintest touches. The bare drums take the height away in one stroke. When the bass returns it has farther to run before that last little lift."
+    },
+    {
+      "spec": "productions/short_lua_na_praca/variants/sol.ts",
+      "sha256": "fcb2742946db20341a813ce2e832f5345dcd1da1743e6b1f0069e29bbc898d9f",
+      "at": "2026-11-18T22:52:31.699Z",
+      "by": "Codex (Sol 6.2)",
+      "summary": "The intention: Keep the drums racing low. Each bright seven-note answer leans up out of the groove and then tips back into it. When the bass disappears, let the fast ride lift across the empty space and brush the exposed notes. Drop close to the track for the bare drums, then let the bass return in a single strong stride. The last bright answer brings back the earlier lift and carries it away on a soft catch."
+    },
+    {
+      "spec": "productions/short_lua_na_praca/variants/opus.ts",
+      "sha256": "09594d91188b8c75f801bb49c350e425587b5b6dc93d9e8857dd6fac7bd0afbc",
+      "at": "2026-11-18T22:52:31.819Z",
+      "by": "Claude (Opus 5.5)",
+      "summary": "The intention: Run low under the bass, lift on the seven notes, float through the quiet. Wherever the bass pumps, the rider runs fast and close to the line in quick flat skips; on each seven-note contour it lifts into taller hops, as if the melody pulled it up; and when the band drops out it takes one long leap into a high, slower float, every touch nearly weightless, until the drums come back. The drums alone are lighter than before and grow stroke by stroke, so the return of the bass at 34.6 is the clear peak of the song; from there the run is low and fast again to the last answer, which lifts once more as the music lets go."
     }
   ]
 }

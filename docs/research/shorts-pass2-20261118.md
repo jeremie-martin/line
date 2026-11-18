@@ -471,3 +471,7 @@ There is time to hear the short drum before the first word and the space between
 ## Third review · Montagem Tomada super slowed
 
 The voice keeps speaking across the swell before the drums return. I gave its quick ending light catches, brought out the recurring high reply over the drums, and restored the little word just before the late kick. 18.258 s — Follow the stressed vowel into the much lighter tail. 20.557 s — The delayed high reply and the bright accent at the end answer the low drum. 36.422 s — The short word between the upper note and the kick has its own catch. Seed 101 exhausted its construction budget at frame 1310.
+
+## Third review · Passo Bem Solto
+
+The upper answer still leads the middle, with the singer now catching it on the beat and answering more quietly. The bare phrase before the drum return has much lighter touches between its stressed ends. 14.952 s — Listen for the singer just after the upper pickup and the little reply to the next strong beat. 23.357 s — The same exchange returns under the bright line. 27.699 s — The last bare word leans into the returning drum.  Seed 101 reached the end.

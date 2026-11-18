@@ -491,3 +491,13 @@ The opening singer now has light catches on the sustained F and its little repli
 ## Third review · No Batidão slowed
 
 The opening leans on the bare drums, with much smaller touches for the words between them. The last low vowel before the beat returns has its own landing again, as does the phrase ending before the four drum strokes. 0.343 s — The little words sit low between the dry beats. The reply at 3.69 speaks a little louder. 30.912 s — Two vocal catches lead across the returning beat. 39.759 s — The word finishes before the four strokes of the roll.  Seed 101 reached the end.
+
+### Readings retained in the third review
+
+Petrunko keeps the quiet opening ticks, their acceleration through all seven roll strokes, the rest, and the answering drums from the loved build. Tiki Tiki keeps all 77 landings of the preferred reading, including the quiet pulse under the closing voice. I found no stroke omitted for the compiler in either.
+
+On Valhalla the voice at 17.67 and its quicker answer at 30.59 are sung over a continuing groove. The main reading follows their diction and the march follows the kick pairs through the same words. In the march the wider gap before 33.808 contains hats, with no comparable new kick. I found no clear musical reason to fill it or to lighten the verse throughout either reading.
+
+## Third review · Trouble · cycle
+
+I kept the three unequal kick accents and filled in the little drum strokes that answer between them. The exposed five-note phrase has a light reply on either side of the stressed G. The last two words fall away after the drums. 18.518 s — Listen for the small strokes between each pair of kicks. 23.661 s — The little answers return with the three-beat figure. 27.725 s — The quick syllables frame the G before the drop. 41.57 s — The last three kicks keep their rising accents, then the two words answer quietly. Across the third review, nine of fourteen constructions finished. The report above records the five that stopped. Type checking passed, reach found zero unreachable files and all 727 tests passed. Seed 101 reached the end.

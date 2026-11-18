@@ -62,13 +62,20 @@ export function createSpecVideoApi(root = process.cwd()) {
       // the previous ride and any unfinished render are replaced; the previous video stays until the new one is complete
       for (const path of [ride, log, next + '.mp4', next + '.json']) rmSync(path, {recursive: true, force: true});
       mkdirSync(rides, {recursive: true}); mkdirSync(videos, {recursive: true});
-      await step(['scripts/produce/automatic.ts', `--song=${song}`, ...(variant ? [`--variant=${variant}`] : []), '--seed=101', `--out=${ride}`], log);
+      // seed 101, or the next one when its ride stops before the end: whether a ride completes can hang on the seed alone,
+      // and a reading has to be watched (the seed used is in the video's record)
+      let seed = 101;
+      for (;; seed++) {
+        rmSync(ride, {recursive: true, force: true});
+        await step(['scripts/produce/automatic.ts', `--song=${song}`, ...(variant ? [`--variant=${variant}`] : []), `--seed=${seed}`, `--out=${ride}`], log);
+        if (seed === 103 || !JSON.parse(readFileSync(join(ride, 'manifest.json'), 'utf8')).cells[0].failure) break;
+      }
       job.phase = 'rendering';
       await step(['scripts/video.ts', `--study=${ride}`, ...look, '--review', `--out=${next}.mp4`], log);
       const side = JSON.parse(readFileSync(next + '.json', 'utf8'));
       // how the ride stands against the spec, for the owner to see (information, not a goal): its landings, those without an impact
       const cell = JSON.parse(readFileSync(join(ride, 'manifest.json'), 'utf8')).cells[0], account = cell.impactEvaluation?.account;
-      const rideFacts = {valid: !!cell.valid, landings: cell.impactEvaluation?.targets?.length ?? null, missing: account?.missingTargets ?? null};
+      const rideFacts = {seed, valid: !!cell.valid, landings: cell.impactEvaluation?.targets?.length ?? null, missing: account?.missingTargets ?? null};
       renameSync(next + '.mp4', join(videos, name + '.mp4'));
       writeFileSync(join(videos, name + '.json'), JSON.stringify({...side, spec, specSha256, ride: rideFacts, madeAt: new Date().toISOString()}, null, 2) + '\n');
       rmSync(next + '.json');

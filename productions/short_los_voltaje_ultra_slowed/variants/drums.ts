@@ -19,6 +19,8 @@ const answers: [number, number][] = [
 
 export default {
   ...main,
-  contacts: [...main.contacts, ...answers.map(([t, impact]) => ({t, impact}))]
+  // An answer within a tenth of a second of a landing of the main reading is that same stroke, heard once: the main
+  // landing stands for it. The ride cannot land in its first quarter second.
+  contacts: [...main.contacts, ...answers.filter(([t]) => t >= .25 && main.contacts.every(c => Math.abs(c.t - t) >= .1)).map(([t, impact]) => ({t, impact}))]
     .sort((a, b) => a.t - b.t),
 };

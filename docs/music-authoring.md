@@ -145,8 +145,10 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    version: a line under the video (its seed, landings missed, how close the strengths came) and, with Ride on, what
    it delivered at each landing on the impact lane. It is information for him, not a goal for the author (see "A spec
    describes the music, not the compiler" above). "Watch the loop" plays the finished film by itself,
-   with its own sound, looping from a few seconds before its end, so he sees the ending run into the start ("Back to
-   the spec" slaves it again). His notes there start the next revision.
+   with its own sound, looping from a few seconds before its end, so he sees the ending run into the start without a
+   gap, as a platform that loops cleanly plays it (`spec-dashboard/loop-player.js`: the sound looped to the sample on
+   Web Audio, two video elements swapped at the join; a `<video loop>` drops the sound and holds the picture there).
+   "Back to the spec" slaves it again. His notes there start the next revision.
    Beside the spec's title he gives each reading a verdict (Love, Good, Needs work; keys 1 2 3), kept in
    `labels/spec-verdicts.jsonl` with the song's hash at the time: when the song's files change after it, the dashboard
    says "changed since your verdict", and "What changed" beside it opens the author's note on this version (its

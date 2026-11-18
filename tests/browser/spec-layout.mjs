@@ -2,7 +2,8 @@
  * [spec of a song without a drop].
  * The spec dashboard as one screen (no page scroll at 1920×1080 and 1440×900, the timeline spanning its panel, the
  * video whole), and its range: drag to select, drag an edge, loop it (L), note it, Esc. Then notes on earlier versions
- * (the server's, read only: the toggle, hover, the quote, noting again), Watch the loop, and the drop band. Notes, verdicts
+ * (the server's, read only: the toggle, hover, the quote, noting again), Watch the loop (gapless: the sound recorded across
+ * the join, the picture restarting on time), and the drop band. Notes, verdicts
  * and the reading's note are intercepted (kept in this script), so this check cannot change the owner's words. */
 import {chromium} from 'playwright';
 const base = process.argv[2] ?? 'http://127.0.0.1:8767';
@@ -182,23 +183,82 @@ try {
     await open(earlierSpec);
     check(!await page.locator('#toggle-earlier').isChecked(), 'off is remembered too');
 
-    // Watch the loop: the film by itself, with its sound, looping from a few seconds before its end; then slaved again
-    const film = () => page.locator('#video-player').evaluate(v => ({t: v.currentTime, d: v.duration, muted: v.muted, loop: v.loop, paused: v.paused}));
+    // Watch the loop: the film by itself, with its sound, looping from a few seconds before its end, without a gap: the
+    // sound (Web Audio, looping to the sample) is recorded across the join and aligned to the film's own sound; the frames
+    // presented by both video elements show the picture restarting at once. Then slaved again.
+    const film = () => page.evaluate(() => {
+      const shown = [...document.querySelectorAll('.ride-video video')].filter(v => !v.hidden);
+      const v = shown[0] ?? document.querySelector('#video-player');
+      return {t: v.currentTime, d: v.duration, muted: v.muted, loop: v.loop, paused: v.paused, shown: shown.length, id: v.id};
+    });
     await page.waitForFunction(() => document.querySelector('#video-player').readyState >= 1);
-    await page.locator('#watch-loop').click(); await page.waitForTimeout(700);
+    // the loop's sound: every looping buffer source started on the page, tapped by a recorder when it starts
+    await page.evaluate(() => {
+      const taps = window.__loopTaps = [];
+      const start = AudioBufferSourceNode.prototype.start;
+      AudioBufferSourceNode.prototype.start = function (...args) {
+        if (this.loop) {
+          const rec = this.context.createScriptProcessor(1024, 2, 2), sink = this.context.createGain(), chunks = [];
+          sink.gain.value = 0; rec.onaudioprocess = e => chunks.push(Float32Array.from(e.inputBuffer.getChannelData(0)));
+          this.connect(rec); rec.connect(sink); sink.connect(this.context.destination);
+          taps.push({source: this, chunks, sink});
+        }
+        return start.apply(this, args);
+      };
+      const connect = AudioNode.prototype.connect;
+      AudioNode.prototype.connect = function (to, ...rest) {
+        if (this instanceof AudioBufferSourceNode && this.loop && to instanceof GainNode && !window.__loopTaps.some(t => t.sink === to)) window.__loopOut ??= to;
+        return connect.call(this, to, ...rest);
+      };
+      // what is on screen at each animation frame: the element shown and the last frame it presented
+      const last = {}, screen = window.__loopScreen = [];
+      for (const v of document.querySelectorAll('.ride-video video')) {
+        const on = (now, meta) => {last[v.id] = meta.mediaTime; v.requestVideoFrameCallback(on);};
+        v.requestVideoFrameCallback(on);
+      }
+      const tick = () => {const v = [...document.querySelectorAll('.ride-video video')].find(e => !e.hidden); if (v && v.id in last) screen.push({id: v.id, media: last[v.id]}); requestAnimationFrame(tick);};
+      requestAnimationFrame(tick);
+    });
+    await page.locator('#watch-loop').click();
+    await page.waitForFunction(() => window.__loopTaps.length > 0, null, {timeout: 20000}); await page.waitForTimeout(700);
     let f = await film();
-    check(!f.muted && f.loop && !f.paused && f.t > f.d - 6, `the loop plays with its sound, near its end: ${JSON.stringify(f)}`);
+    check(f.muted && !f.loop && !f.paused && f.t > f.d - 6 && f.shown === 1, `the loop plays (muted picture, its sound on Web Audio), near its end, one picture: ${JSON.stringify(f)}`);
     check(await page.locator('#watch-loop').textContent() === 'Back to the spec' && await page.locator('#play').textContent() === 'Pause', 'the mode shows');
     check(Math.abs(await songTime(page) - f.t) < 0.5, 'the cursor follows the film');
+    // past the join
+    await page.waitForFunction(() => {const v = [...document.querySelectorAll('.ride-video video')].find(e => !e.hidden); return v && v.currentTime > 1.5 && v.currentTime < 5;}, null, {timeout: 12000});
+    const seam = await page.evaluate(() => {
+      const {source, chunks} = window.__loopTaps[0], buffer = source.buffer, length = source.loopEnd || buffer.duration;
+      const got = new Float32Array(chunks.reduce((n, c) => n + c.length, 0)); let o = 0; for (const c of chunks) {got.set(c, o); o += c.length;}
+      const ref = buffer.getChannelData(0), end = Math.round(length * buffer.sampleRate), W = 4800;
+      // where a 100 ms piece of the film's sound sits in what was heard (normalised correlation)
+      const find = (from) => {let best = -Infinity, at = -1; for (let lag = 0; lag + W <= got.length; lag++) {let d = 0, e = 0, f = 0; for (let i = 0; i < W; i += 2) {d += got[lag + i] * ref[from + i]; e += got[lag + i] ** 2; f += ref[from + i] ** 2;} const c = d / Math.sqrt(e * f + 1e-12); if (c > best) {best = c; at = lag;}} return {at, c: best};};
+      const before = find(end - W - 480), after = find(480);
+      // the picture: how many animation frames the film's last frame stays on screen before the first frame shows
+      const sh = window.__loopScreen, k = sh.findIndex((x, i) => i && x.media < sh[i - 1].media - 1);
+      let held = 0; if (k > 0) for (let i = k - 1; i >= 0 && sh[i].media === sh[k - 1].media && sh[i].id === sh[k - 1].id; i--) held++;
+      return {gapMs: ((after.at - 480) - (before.at + W + 480)) / buffer.sampleRate * 1000, corr: [before.c, after.c],
+        held, firstMedia: k > 0 ? sh[k].media : null, swapped: k > 0 && sh[k].id !== sh[k - 1].id, screen: k > 0 ? sh.slice(k - 3, k + 4).map(x => x.media.toFixed(3)) : []};
+    });
+    check(seam.corr[0] > 0.99 && seam.corr[1] > 0.99 && Math.abs(seam.gapMs) <= 5, `the sound runs straight through the join: ${JSON.stringify(seam)}`);
+    check(seam.firstMedia !== null && seam.firstMedia < 0.05 && seam.held <= 3, `the picture restarts within a frame or two: ${JSON.stringify(seam)}`);
+    const fits = await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight && [...document.querySelectorAll('.ride-video video')].filter(v => !v.hidden).length === 1);
+    check(fits, 'the page still fits, one picture shown');
+    console.log(`Watch the loop: sound gap ${seam.gapMs.toFixed(2)} ms at the join; the film's last frame on screen for ${seam.held} animation frame(s), then its first${seam.swapped ? ' (the waiting element)' : ''}`);
     await page.locator('#timeline').focus(); await page.keyboard.press(' '); await page.waitForTimeout(150);
-    check((await film()).paused, 'Space pauses the film');
-    await page.keyboard.press(' '); await page.waitForTimeout(150);
+    check((await film()).paused && await page.locator('#play').textContent() === 'Play', 'Space pauses the film');
+    await page.keyboard.press(' '); await page.waitForTimeout(250);
     check(!(await film()).paused, 'Space plays it again');
-    await page.locator('#loop-from-start').click(); await page.waitForTimeout(300);
-    check((await film()).t < 2, 'From the start plays the whole film');
+    await page.locator('#music-volume').evaluate(e => {e.value = '0.3'; e.dispatchEvent(new Event('input', {bubbles: true}));}); await page.waitForTimeout(100);
+    const gain = await page.evaluate(() => window.__loopOut?.gain.value);
+    check(Math.abs(gain - 0.3) < 1e-6 && (await film()).shown === 1, `the volume control sets the loop's sound: ${gain}`);
+    await page.locator('#music-volume').evaluate(e => {e.value = '1'; e.dispatchEvent(new Event('input', {bubbles: true}));});
+    await page.locator('#loop-from-start').click(); await page.waitForTimeout(400);
+    f = await film();
+    check(f.t < 2 && !f.paused, `From the start plays the whole film: ${JSON.stringify(f)}`);
     await page.locator('#watch-loop').click(); await page.waitForTimeout(200);
     f = await film();
-    check(f.muted && !f.loop && f.paused && await page.locator('#watch-loop').textContent() === 'Watch the loop', `Back to the spec mutes and pauses it: ${JSON.stringify(f)}`);
+    check(f.muted && !f.loop && f.paused && f.id === 'video-player' && f.shown === 1 && await page.locator('#watch-loop').textContent() === 'Watch the loop', `Back to the spec mutes and pauses it: ${JSON.stringify(f)}`);
     await page.locator('#timeline').focus(); await page.keyboard.press(' '); await page.waitForTimeout(900);
     f = await film();
     check(!f.paused && f.muted && Math.abs(await songTime(page) - f.t) < 0.3, 'the video follows the dashboard again');

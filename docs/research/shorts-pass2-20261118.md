@@ -459,3 +459,7 @@ The kick under the marked syllable now leads into the next downbeat. The same pi
 ## Third review · Los Voltaje · drums
 
 I hear three smaller drum replies between the low beats. The middle reply often speaks loudest. Later the bright hook already lands the same three strokes. 0.234 s — Light drum strokes answer the opening calls. 15.275 s — The three replies start two seconds before the marked examples. 17.341 s — Follow the middle reply through the marked bars and into the hook. Construction stopped at frame 87. Seed 101 stopped during construction (no_arc).
+
+## Third review · Los Voltaje slowed · drums
+
+The short drum answers now follow the calls and run between the kicks through the hook. The second answer takes more weight when the bass and upper note strike with it. 1.269 s — The drums fill the space between the early calls. 18.382 s — A light pickup starts the three replies. 35.902 s — The second stroke has the clearest accent. 49.033 s — The last group leads back to the exposed words. Construction stopped at frame 505. Seed 101 stopped during construction (no_arc).

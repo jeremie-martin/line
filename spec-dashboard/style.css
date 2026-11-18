@@ -1411,3 +1411,12 @@ textarea {
   .earlier-words { max-height: calc(2.8em + 2px); }
   .earlier-words li { -webkit-line-clamp: 1; }
 }
+
+/* the readings of the song on screen, switched at the same moment */
+.versions { display: flex; gap: 3px; align-items: center; flex: none; }
+.versions button { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; padding: 3px 8px; }
+.versions button.on { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 650; }
+/* with them in the header, the description gives way first and the title never spills over its neighbours */
+.subtitle { flex-shrink: 30; }
+#spec-picker { max-width: min(460px, 100%); }
+#picker-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

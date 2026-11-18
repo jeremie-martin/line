@@ -15,6 +15,7 @@ const NOTE_TAGS = ["mark", "strong", "voice", "sync", "impact", "zoom", "speed",
 
 const refs = {
   picker: document.getElementById("spec-picker"),
+  versions: document.getElementById("versions"),
   pickerMark: document.getElementById("picker-mark"),
   pickerLabel: document.getElementById("picker-label"),
   pickerReading: document.getElementById("picker-reading"),
@@ -248,6 +249,10 @@ function wireEvents() {
   refs.noteAgain.addEventListener("click", () => noteAgain());
   for (const type of ["loadedmetadata", "seeked"]) refs.video.addEventListener(type, () => syncVideo());
   refs.picker.addEventListener("click", () => openPicker(refs.pickerPanel.hidden));
+  refs.versions.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-path]");
+    if (button) switchVersion(button.dataset.path);
+  });
   refs.pickerList.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-path]");
     if (!button) return;
@@ -393,6 +398,11 @@ function wireEvents() {
       if (!event.repeat) setVerdict(verdict);
       return;
     }
+    if (event.key === "[" || event.key === "]") {
+      event.preventDefault();
+      if (!event.repeat) switchVersion(event.key === "]" ? 1 : -1);
+      return;
+    }
     if (key === "n" || key === "p" || key === "u") {
       event.preventDefault();
       if (!event.repeat) goToReading(key === "u" ? "review" : key === "n" ? 1 : -1);
@@ -502,6 +512,7 @@ function openHelp(open) {
 
 function renderReview() {
   const shown = shownReadings(), current = currentReading();
+  renderVersions();
   const reviewed = shown.filter((reading) => reading.verdict && !reading.changed).length;
   const changed = shown.filter((reading) => reading.changed).length;
   refs.reviewSummary.textContent = `${reviewed} of ${shown.length} readings reviewed${changed ? ` · ${changed} changed` : ""}`;
@@ -666,6 +677,42 @@ function goToReading(step) {
   if (target.path !== currentPath()) loadSpec(target.path, true);
 }
 
+/** The readings of the song on screen (its spec and its variants), in the menu's order. */
+function versionsOfSong() {
+  const current = currentReading(), song = (path) => path.split("/").slice(0, 2).join("/");
+  return current ? state.readings.filter((reading) => reading.set === current.set && song(reading.path) === song(current.path)) : [];
+}
+
+/** Another reading of the same song at the same moment: the position, the view and the playing state are kept, so
+ * two readings can be compared on the same bars. `to` is a path, or a step (1 next, -1 previous). */
+async function switchVersion(to) {
+  const versions = versionsOfSong(), at = versions.findIndex((reading) => reading.path === currentPath());
+  const target = typeof to === "string" ? versions.find((reading) => reading.path === to) : versions[(at + to + versions.length) % versions.length];
+  if (!target || target.path === currentPath()) return;
+  const playing = isPlaying() && !state.loopMode;
+  const restore = { cursorT: playing ? specTime() : state.cursorT, viewStart: state.viewStart, viewEnd: state.viewEnd };
+  await loadSpec(target.path, true, restore);
+  if (playing && currentPath() === target.path) {
+    await state.musicLoading;
+    if (currentPath() === target.path && !music.requested) startPlayback(state.cursorT);
+  }
+}
+
+function renderVersions() {
+  const versions = versionsOfSong();
+  refs.versions.hidden = versions.length < 2;
+  refs.versions.replaceChildren(...versions.map((reading) => {
+    const button = document.createElement("button"), mark = document.createElement("span");
+    button.type = "button";
+    button.dataset.path = reading.path;
+    button.classList.toggle("on", reading.path === currentPath());
+    mark.className = `mark ${reading.verdict ?? ""}${reading.changed ? " changed" : ""}`;
+    button.append(mark, reading.reading);
+    button.title = `${readingLabel(reading)}: at the same moment ([ previous, ] next)`;
+    return button;
+  }));
+}
+
 async function loadSpec(specPath, pushUrl, restore = null) {
   await flushPendingNoteSave();
   if (state.loopMode) leaveLoop();
@@ -710,7 +757,7 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   music.clear();
   if (!view.music?.stems?.[state.stem]) state.stem = "mix";
   renderHear();
-  if (musicUrl()) loadMusic(musicUrl());
+  state.musicLoading = musicUrl() ? loadMusic(musicUrl()) : null;
   loadVideoStatus();
   state.analysis = await loadAnalysis(view.music);
   // A beat grid is only a tempo hypothesis; where measured events exist, notes snap to them.

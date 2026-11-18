@@ -1,4 +1,4 @@
-# Five production shorts, second reading · 18 November
+# Production shorts, second reading · 18 November
 
 Times below are seconds from the start of the short. Spread is the population standard deviation of all requested impacts. Pearson r pairs the manifest's target with its matched strike. Completion and the sound of the ride are separate judgements. These are seed-101 measurements. The owner has yet to judge the revised videos.
 
@@ -42,7 +42,7 @@ I kept all 133 times from the praised reading. The opening vowel turns, hangs th
 
 Seed 101 completed, 133/133 matched, asked 0.197–1.000, SD 0.182, r 0.951 (first pass 108/108, SD 0.165, r 0.964). In the trial the 26.053 re-entry delivered 0.60. A lighter last chord, a firmer return, and gathering speed through that chord give 0.19 then 0.69. Watch 11.35–12.98 for the bass ahead of the fill; the 12.434 kick still lands at only 0.42. At 23.87–26.05 listen for the four toms against the small treble answers. At 31.777 and 31.869 the late snare and bass are only 92 ms apart and deliver 0.22 and 0.44. That pair is the closest test of whether both lines read on screen.
 
-## Verification
+## Verification of the first five entries
 
 The five final seed-101 manifests match the current spec, audio and analysis hashes. The replays are [Tiki](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_tiki_tiki-101/manifest.json), [Tomada Extended](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_montagem_tomada_extended-101/manifest.json), [Tomada Super Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_montagem_tomada_super_slowed-101/manifest.json), [Luna Bala Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_luna_bala_slowed-101/manifest.json) and [Luna Bala 44 s](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_luna_bala_44s-101/manifest.json). Typecheck passed, reach found zero unreachable files, and all 721 tests passed.
 
@@ -77,3 +77,30 @@ Subtract 10.222 s. The owner marked Astra “changes” with the same remark as 
 The first pass had the correct lead and the right stress on the first two C/echo pairs. It repeated almost the same pair for the entire passage. The short now carries the opening note into its first renewal, takes the high F-sharp at 6.531 beyond the big drum, and answers low at 8.714. The C starts at 13.602. Its alternating mix rises vary from about 1.2 to 2.4. Two actual A-sharp turns at 19.383 and 23.760 interrupt that pattern. Upper answers and the two short drum pairs fill different gaps in successive bars. The naked call keeps its quieter restatements and its word across the downbeat. The last body includes the short drum pickups and the five independent vocal turns. I kept the final offbeat at 49.546 from the short, after Astra's last primary drum, because it still has a drum attack of 1.88 and a mix rise of 1.68. Both camera lanes and the 30.60 drop still follow the register change and percussion return.
 
 Seed 101 completed with 120/120 matches, asked 0.181–0.984, SD 0.171, r 0.958 (first pass 115/115, SD 0.165, r 0.966). The trial's exceptional drum at 45.425 delivered 0.62 after a 0.59 predecessor. Easing that predecessor and opening the air and speed into the accent gives 0.45 then 0.86. Watch 6.53–8.72 for the 0.50 high answer and the 0.47 low one, 19.08–19.72 and 23.47–24.10 for the two changes of pitch, and 44.87–49.55 for the late accent and the last 0.45 offbeat.
+
+## LUA NA PRAÇA · dj Samir, DJ Zarek, DJ DUDA & LUNxdiE
+
+Subtract 2.309 s. The owner said the current calmer production composition “maps pretty well” and heard “some very good ideas” in guided. That later judgement decides the default. The earlier study's changes and the timeline marks explain the alternative. The calm composition has a short empty phrase gap as well as the famous long one. After the second body it follows four vocal pickups into a single upper stab. Its axes hold the section's character until the next entrance.
+
+The first pass kept the long gap and the two-stage return. In the short gap, the vocal release and the ending it largely took the upper variant's line. I restored the calm composition's body timings, its shortened opening strokes, both exposed vocal groups and the held section settings. The cut is already sounding on its first old drum at 0.071. The first rideable stroke is 0.524. At 5.458 the ride takes the first drum attack instead of its later rise. At 34.611 the bass completes the return, with mix rise 5.47 and drum attack 5.20. Both camera lanes anticipate the two entrances. The drop window begins on the naked drummer and includes the bass re-entry.
+
+In the upper variant, the marked seven-note statements remain complete. The hardest attacks of each are at 12.111 and 19.384. The first pass asked 0.22 at 23.709 despite a stronger rise there than anywhere earlier in the quiet. Now each of the exposed notes has its own weight, with the last three rising together. The short pickups at 33.8 and 41 seconds and the little upper release at 49.506 have their place in this version.
+
+The default keeps all 85 rideable times of the calm composition exactly. I added the upper attack at 48.479 before its final bass at 48.717. Seed 101 completed with 86/86 matches, asked 0.239–0.989, SD 0.133, r 0.912 (first pass 102/102, SD 0.154, r 0.933). In the trial the 7.72-second suspension delivered 35% air against 85% asked. It spent a full 1.00 strike on the bare drum return and 0.89 on the much larger bass arrival. Lowering the requested air in the quiet to 0.28 gives 23% air, no extra strike inside the gap, and entrances of 0.79 and 0.84. The last upper note and bass deliver 0.33 and 0.51.
+
+Upper seed 101 completed with 123/123 matches, asked 0.184–0.989, SD 0.174, r 0.941 (first pass 118/118, SD 0.163, r 0.959). Giving the last pickup less weight weakened the bass entrance from 0.83 to 0.75 in a second trial. Carrying more speed on a lower approach recovered it to 0.79. The bare drum gives 0.72. Watch 10.52–12.79 for the held gap versus the seven-note answer, 18.24–27.34 for the vocal release and long coast versus the upper line, and 33.47–34.62 for how much bigger the returning bass feels. The separation between the two entrances still needs the owner's eye.
+
+## Seed-101 replays for this batch
+
+All five default rides and Lua's upper variant reached the end of their audio. Their final manifests match the spec, audio and analysis file digests. These local replays show the compiled motion. The owner has yet to judge the finished videos. The values below compare the compiler's weighted axis RMS and count of off-beat contacts with the saved first pass. They describe fidelity to each ride's own requests.
+
+| Replay | Weighted axis RMS, first → final | Off-beat contacts, first → final |
+|---|---:|---:|
+| [Luna Bala Original](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_luna_bala_original-101/manifest.json) | 0.0477 → 0.0530 | 9 → 11 |
+| [Passo Bem Solto](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_passo_bem_solto-101/manifest.json) | 0.0459 → 0.0428 | 14 → 8 |
+| [Passo Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_passo_bem_solto_slowed-101/manifest.json) | 0.0424 → 0.0433 | 11 → 9 |
+| [Passo Super Slowed](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_passo_bem_solto_super_slowed-101/manifest.json) | 0.0447 → 0.0468 | 13 → 18 |
+| [Lua calm](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_lua_na_praca-101/manifest.json) | 0.0990 → 0.0530 | 6 → 19 |
+| [Lua upper](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_lua_na_praca-upper-101/manifest.json) | 0.0476 → 0.0554 | 12 → 14 |
+
+Before the Lua commit, typecheck passed, reach reported zero unreachable files, and all 721 tests passed.

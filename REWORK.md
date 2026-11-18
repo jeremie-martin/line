@@ -70,6 +70,18 @@ that he will like the rides. Codex asked for one thing more per passage, the not
 board's `B`. The five `fresh.ts` no longer load (they name note times from before the 23 ms correction); their
 rides and videos stand as the record of the blind round.
 
+**The owner's judgement of it (18 November), which overrides the above where they differ.** He watched the guided
+videos. Tomada slowed: "very good". Luna slowed: potential, the voice's impacts should be lower. Lua: good ideas,
+but the current calmer spec "maps pretty well" and stays. Amor 46 s: he disliked the ride made from his own voice
+marks ("I went way overboard"; the big drums and bass under the voice were not mapped, which "feels very weird").
+So his marks are not ground truth either, the percentages above are a rough hint, and the video is the only
+judge. He rejected the ear board's model: tapping is too imprecise for him, and he does not want an algorithm
+picking notes ("this is why I never said draft or generate. I always said handcraft"). The method is the one that
+worked before: the author handcrafts, he watches the video and notes on the spec dashboard (now with a `strong`
+mark, one stem heard alone and the video beside the spec), the author revises. `ear.html`, `guides.mjs` and
+`tools/music/guide.py` stay on disk, unused; `lines.py` stays as evidence. Cuts for the short set come first,
+chosen on a plain page (`closing/cut.html`); the earlier cuts board was over-engineered for him.
+
 ## November 17: the loop reviewed as one thing (the turn, and the loop point)
 
 The owner asked for a step back on the loop as a whole: camera, sound, band. One test was applied to all three: is

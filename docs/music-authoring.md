@@ -4,10 +4,15 @@ How a song becomes a spec: which moments the rider lands on, how hard, and what 
 
 ## Principles
 
-- **The owner says what to follow; the author makes the ride.** Which of two lines a listener carries through a
-  passage (the voice, a hook, the drums) cannot be read from the analysis: authors who tried were confident and
-  wrong. He says it per passage in a few gestures on the ear board (step 5); the author then decides every landing's
-  strength, the air, the speed and the shape.
+- **The video is the judge, and the owner's eye on it.** Neither the analysis, nor an author's confidence, nor
+  even the owner's own marks placed by ear on a timeline say whether a ride is right: he found marks of his that he
+  disliked once he saw them ridden. Every revision is shown as a video.
+- **A spec is handcrafted.** No script and no recipe maps a song: the author reads the music from the analysis and
+  from what the owner said, and makes choices. Which line a listener carries through a passage (the voice, a hook,
+  the drums, a mix of them) cannot be read from the analysis alone, and it is often not one line.
+- **The owner's direction is a direction.** His notes on the spec dashboard (marks `voice`, `mark`, `strong`, over
+  a moment or a range, with a few examples) say what he wants there; the author extends them with craft and he
+  corrects on the video. He is never asked to mark every note.
 - **Tools measure; nothing chooses landings.** A spec is a list of deliberate decisions, each traceable to a
   measured note.
 - **A stem is a separation, not a role.** A sampled or chopped voice often sits in `other`; one sound can leave a
@@ -16,8 +21,6 @@ How a song becomes a spec: which moments the rider lands on, how hard, and what 
   the mix rises (`heard`) and the stem's attack is sharp. A sound's level or its share of the mix does not tell.
 - **A hierarchy must survive the ride.** Strength is a few big hits, a body and light notes, and it only exists if
   the compiled ride delivers it: check asked against delivered (the manifest), not the spec.
-- **His ear is the check, on the whole cut.** Clicks on every landing, over the music, before any video. An
-  author's own confidence, and its questions, do not find its errors.
 - **No rules from one song or one remark.** What read well on a song is in `docs/research/`, as observations.
 
 ## Setup (once per machine)
@@ -75,33 +78,23 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    mix rises there), `loud` and `share`; and prints a fold of each four bars onto one bar, where a figure that returns
    shows as a row. The bar is a hypothesis (check `repeats`); slot 0 is a beat, not necessarily the first.
    `sung.json` misses most syllables of a fast or chopped voice; use it for pitch, not for where the syllables are.
-5. **Get what to follow from the owner.** `node generated/concept-lab/closing/prepare-ear.mjs`, then the ear board,
-   `/generated/concept-lab/closing/ear.html`: he makes passages, ticks the stems followed in each, sets how sharp a
-   note must be, optionally keeps some bar slots or taps a bar for the page to fit, and marks the few biggest hits.
-   An author may first propose a reading in the same form (`productions/<song>/reading.json`: `{by, summary,
-   passages, big, questions}`), which the board shows for him to correct; propose it from the evidence alone.
-   `node generated/concept-lab/closing/guides.mjs` writes `productions/<song>/guide.json`: his passages with the
-   notes they select. A guide is set by ear in a minute: right about the line, roughly right about the notes.
+5. **Read what the owner said.** His notes on the song (`productions/<song>/notes.json`, from the spec dashboard)
+   and on its earlier videos. For a song he has said nothing about, write a first reading and show its video.
 6. **Write the spec.** In `productions/<song>/music.ts`, list the song's layers as measured times; each
    `variants/<name>.ts` is a whole spec chosen from them; `spec.ts` re-exports the preferred one.
-   - Inside a guide passage, land its notes; leave one out or add one only for a stated reason (a stray note of
-     leakage; the missing member of a figure). Outside, the reading is the author's: say in the header what each
-     passage follows.
+   - Say in the header what each passage follows and what is deliberately left out. More than one variant is
+     welcome where two readings are both good (a calm one, an ambitious one).
    - Land a figure whole, the same in every bar, unless the music changes.
    - Size hits from `heard` and the attack. Where landings come faster than about three a second the rider delivers
      little difference between them: thin around a big hit, or accept an even run and say so.
 7. **Compile and check.** `npm run produce -- --song=<song> [--variant=<name>] --seed=<n> --out=DIR` (add the song to
    `scripts/gallery/repertoire_catalog.ts`; do not edit tracked files while it runs). Then:
-   - `python3 tools/music/guide.py --song=<song> DIR`: guide notes not landed, landings in a guided passage that are
-     not guide notes;
    - asked against delivered strengths in the manifest: the spread asked, and whether the ride delivers it;
    - `node tools/music/coverage.ts --song=<song> [--variant=<name>]` lists strong events not landed. It is a list to
      read, not a form to fill: a written reason does not make a miss right.
-8. **He listens.** On the ear board, the spec's landings as clicks over the music (rebuild its data first), then the
-   video. Where he marked a song by hand (`notes.json`, tags `voice` and `mark`),
-   `python3 tools/music/marks.py --song=<song> DIR` compares a ride with his marks: a check for afterwards. An
-   author never reads a song's marks before writing, and nothing is tuned to them.
-
+8. **He watches.** The video, beside the spec on the dashboard. His notes there start the next revision.
+   `python3 tools/music/marks.py --song=<song> DIR` compares a ride with marks he placed by hand: a rough hint,
+   since his marks are not always what he wants once ridden; nothing is tuned to it.
 
 ## What the rider can do (current compiler, October 2026)
 

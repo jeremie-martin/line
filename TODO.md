@@ -59,13 +59,13 @@ Work that is mine:
   choices in `labels/studies/cuts-2026-11.jsonl`; `tools/music/passage.ts` lists passages that loop. Next, once he
   has chosen: a pilot on three songs (the cut as its own song folder with `tools/music/source.ts`, its spec, a
   video), judged before the rest.
-- **How a spec gets written** (`docs/music-authoring.md`, `REWORK.md` "what the owner's marks showed"): he says
-  what each passage follows on `/generated/concept-lab/closing/ear.html` (stems, sharpness, a few taps, the biggest
-  hits); `guides.mjs` writes the guide; the author makes the ride and its strengths; he hears the landings as clicks
-  on the same page, then the video. Not yet used by him. Open: a chopped voice (Amor na Praia 46 s) is not
-  separated well by anything measured; a fast voice (4 to 6 syllables a second) and big hits compete for the
-  rider; the bar estimate is unverified on new songs; everything rests on five similar marked songs. No rule about
-  his taste goes into the docs from single songs or remarks.
+- **How a spec gets written** (`docs/music-authoring.md`): handcrafted by the author from the analysis and his
+  notes; every revision a video beside the spec on the dashboard; he notes there (voice, mark, strong; moments or
+  ranges; a few examples, never every note). His marks and the measures are hints; the video is the judge.
+  Open: a fast voice and big hits compete for the rider; the bar estimate of `lines.py` is unverified on new songs.
+- **Order of work for the short set:** his cuts first (`/generated/concept-lab/closing/cut.html`; I may move an
+  end by about half a second for the loop), then a spec for each cut adapted by hand from the best existing spec,
+  more than one variant where two readings are good.
 
 ## Waiting for the owner's eye
 

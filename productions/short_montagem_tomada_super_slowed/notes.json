@@ -1,0 +1,1023 @@
+{
+  "specPath": "productions/short_montagem_tomada_super_slowed/spec.ts",
+  "notes": [
+    {
+      "id": "moment:80",
+      "t": 0.08,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.08",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:01.690Z",
+      "updatedAt": "2026-11-18T19:51:01.690Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:380",
+      "t": 0.38,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.38",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:08.841Z",
+      "updatedAt": "2026-11-18T19:51:08.841Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:830",
+      "t": 0.83,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:00.83",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:50:58.898Z",
+      "updatedAt": "2026-11-18T19:50:58.898Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:1310",
+      "t": 1.31,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.31",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:12.294Z",
+      "updatedAt": "2026-11-18T19:51:12.294Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:1620",
+      "t": 1.62,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.62",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:13.417Z",
+      "updatedAt": "2026-11-18T19:51:13.417Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:1920",
+      "t": 1.92,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.92",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:50:56.456Z",
+      "updatedAt": "2026-11-18T19:50:56.456Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:2240",
+      "t": 2.24,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:02.24",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:15.737Z",
+      "updatedAt": "2026-11-18T19:51:15.737Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:2540",
+      "t": 2.54,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:02.54",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:17.628Z",
+      "updatedAt": "2026-11-18T19:51:17.628Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:2850",
+      "t": 2.85,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:02.85",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:19.134Z",
+      "updatedAt": "2026-11-18T19:51:19.134Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:3310",
+      "t": 3.31,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.31",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:20.274Z",
+      "updatedAt": "2026-11-18T19:51:20.274Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:3770",
+      "t": 3.77,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.77",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:21.612Z",
+      "updatedAt": "2026-11-18T19:51:21.612Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:4080",
+      "t": 4.08,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:04.08",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:25.343Z",
+      "updatedAt": "2026-11-18T19:51:25.343Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:4380",
+      "t": 4.38,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:04.38",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:26.171Z",
+      "updatedAt": "2026-11-18T19:51:26.171Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:4700",
+      "t": 4.7,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:04.70",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:27.526Z",
+      "updatedAt": "2026-11-18T19:51:27.526Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:5000",
+      "t": 5,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.00",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:28.778Z",
+      "updatedAt": "2026-11-18T19:51:28.778Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:5310",
+      "t": 5.31,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.31",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:29.719Z",
+      "updatedAt": "2026-11-18T19:51:29.719Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:5770",
+      "t": 5.77,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:05.77",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:31.409Z",
+      "updatedAt": "2026-11-18T19:51:31.409Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:6230",
+      "t": 6.23,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.23",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:33.459Z",
+      "updatedAt": "2026-11-18T19:51:33.459Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:6560",
+      "t": 6.56,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.56",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:45.697Z",
+      "updatedAt": "2026-11-18T19:51:45.697Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:6860",
+      "t": 6.86,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:06.86",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:47.056Z",
+      "updatedAt": "2026-11-18T19:51:47.056Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:7170",
+      "t": 7.17,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.17",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:47.910Z",
+      "updatedAt": "2026-11-18T19:51:47.910Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:7470",
+      "t": 7.47,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.47",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:48.868Z",
+      "updatedAt": "2026-11-18T19:51:48.868Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:7770",
+      "t": 7.77,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:07.77",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:49.916Z",
+      "updatedAt": "2026-11-18T19:51:49.916Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:8240",
+      "t": 8.24,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:08.24",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:50.869Z",
+      "updatedAt": "2026-11-18T19:51:50.869Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:8700",
+      "t": 8.7,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:08.70",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:52.193Z",
+      "updatedAt": "2026-11-18T19:51:52.193Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "range:77:17620",
+      "t": 8.8485,
+      "scope": "range",
+      "index": null,
+      "t0": 0.077,
+      "t1": 17.62,
+      "axis": null,
+      "title": "range 0:00.08 to 0:17.62",
+      "text": "So here I tried to map out all these very distinct sounds that we hear on the other. And we don't have to have the entire beginning of the specification for basically 17 seconds for exactly this, but at least at the beginning, until there's something more, or at least, maybe we should still keep it, or I don't know. We hear this so well at the beginning. I think it makes sense now it would be a bit boring to only have that the entire time. So I don't know. Maybe you can try something cool?",
+      "tags": [],
+      "createdAt": "2026-11-18T19:53:46.808Z",
+      "updatedAt": "2026-11-18T19:53:46.808Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:9020",
+      "t": 9.02,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:09.02",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:51:59.710Z",
+      "updatedAt": "2026-11-18T19:51:59.710Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:9320",
+      "t": 9.32,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:09.32",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:01.121Z",
+      "updatedAt": "2026-11-18T19:52:01.121Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:9620",
+      "t": 9.62,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:09.62",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:01.949Z",
+      "updatedAt": "2026-11-18T19:52:01.949Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:9930",
+      "t": 9.93,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:09.93",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:03.334Z",
+      "updatedAt": "2026-11-18T19:52:03.334Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:10240",
+      "t": 10.24,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:10.24",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:05.566Z",
+      "updatedAt": "2026-11-18T19:52:05.566Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:10700",
+      "t": 10.7,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:10.70",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:07.191Z",
+      "updatedAt": "2026-11-18T19:52:07.191Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:11170",
+      "t": 11.17,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:11.17",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:09.802Z",
+      "updatedAt": "2026-11-18T19:52:09.802Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:11480",
+      "t": 11.48,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:11.48",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:11.644Z",
+      "updatedAt": "2026-11-18T19:52:11.644Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:11780",
+      "t": 11.78,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:11.78",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:13.295Z",
+      "updatedAt": "2026-11-18T19:52:13.295Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:12090",
+      "t": 12.09,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:12.09",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:15.157Z",
+      "updatedAt": "2026-11-18T19:52:15.157Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:12400",
+      "t": 12.4,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:12.40",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:17.630Z",
+      "updatedAt": "2026-11-18T19:52:17.630Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:12710",
+      "t": 12.71,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:12.71",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:18.842Z",
+      "updatedAt": "2026-11-18T19:52:18.842Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:13160",
+      "t": 13.16,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:13.16",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:20.949Z",
+      "updatedAt": "2026-11-18T19:52:20.949Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:13630",
+      "t": 13.63,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:13.63",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:22.286Z",
+      "updatedAt": "2026-11-18T19:52:22.286Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:13940",
+      "t": 13.94,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:13.94",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:29.738Z",
+      "updatedAt": "2026-11-18T19:52:29.738Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:14250",
+      "t": 14.25,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:14.25",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:31.787Z",
+      "updatedAt": "2026-11-18T19:52:31.787Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:14560",
+      "t": 14.56,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:14.56",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:33.565Z",
+      "updatedAt": "2026-11-18T19:52:33.565Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:14870",
+      "t": 14.87,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:14.87",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:34.952Z",
+      "updatedAt": "2026-11-18T19:52:34.952Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:15170",
+      "t": 15.17,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:15.17",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:36.666Z",
+      "updatedAt": "2026-11-18T19:52:36.666Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:15620",
+      "t": 15.62,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:15.62",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:54.387Z",
+      "updatedAt": "2026-11-18T19:52:54.387Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:16090",
+      "t": 16.09,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:16.09",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:44.014Z",
+      "updatedAt": "2026-11-18T19:52:44.014Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:16410",
+      "t": 16.41,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:16.41",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:45.093Z",
+      "updatedAt": "2026-11-18T19:52:45.093Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:16710",
+      "t": 16.71,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:16.71",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:46.352Z",
+      "updatedAt": "2026-11-18T19:52:46.352Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:17030",
+      "t": 17.03,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:17.03",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:47.170Z",
+      "updatedAt": "2026-11-18T19:52:47.170Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    },
+    {
+      "id": "moment:17330",
+      "t": 17.33,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:17.33",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T19:52:48.798Z",
+      "updatedAt": "2026-11-18T19:52:48.798Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
+      }
+    }
+  ]
+}

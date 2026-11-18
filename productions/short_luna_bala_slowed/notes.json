@@ -550,6 +550,24 @@
       "updatedAt": "2026-11-17T21:50:55.533Z"
     },
     {
+      "id": "contact:58",
+      "t": 15.444,
+      "scope": "contact",
+      "index": 58,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #58 at 0:15.44 - impact 0.44",
+      "text": "should be way stronger",
+      "tags": [],
+      "createdAt": "2026-11-18T19:47:23.698Z",
+      "updatedAt": "2026-11-18T19:47:27.552Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "418ea499c2bbc167f8b6cdebc2089fd4d624cd704f35aca617b42c87edd1d0e6"
+      }
+    },
+    {
       "id": "moment:20930",
       "t": 15.453,
       "scope": "moment",

@@ -18,6 +18,42 @@
         "spec": "productions/short_montagem_tomada_extended/spec.ts",
         "sha256": "92c68bcf2f4abf938cea5cad8c58919c2f484bfedbbd94f0d9725e29cfc8ab97"
       }
+    },
+    {
+      "id": "range:7525:8651",
+      "t": 8.088,
+      "scope": "range",
+      "index": null,
+      "t0": 7.525,
+      "t1": 8.651,
+      "axis": null,
+      "title": "range 0:07.53 to 0:08.65",
+      "text": "this corresponds to the \"range 0:16.55 to 0:17.93\" of the SLOWED version, this spec would be god tier if it was mapping the voice like the SLOWED version here",
+      "tags": [],
+      "createdAt": "2026-11-18T19:49:24.379Z",
+      "updatedAt": "2026-11-18T19:49:48.863Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_extended/spec.ts",
+        "sha256": "e221e16a489a955c12bc9e090f0ffe272143a9e779e1bec26353ba413a09728b"
+      }
+    },
+    {
+      "id": "range:37060:38140",
+      "t": 37.6,
+      "scope": "range",
+      "index": null,
+      "t0": 37.06,
+      "t1": 38.14,
+      "axis": null,
+      "title": "range 0:37.06 to 0:38.14",
+      "text": "this corresponds to the \"range 0:16.55 to 0:17.93\" of the SLOWED version, this spec would be god tier if it was mapping the voice like the SLOWED version here",
+      "tags": [],
+      "createdAt": "2026-11-18T19:50:08.221Z",
+      "updatedAt": "2026-11-18T19:50:08.221Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_extended/spec.ts",
+        "sha256": "e221e16a489a955c12bc9e090f0ffe272143a9e779e1bec26353ba413a09728b"
+      }
     }
   ]
 }

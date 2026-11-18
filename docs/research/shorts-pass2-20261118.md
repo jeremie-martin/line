@@ -395,3 +395,9 @@ The 360-pixel-wide vertical films use the plain look and the cut audio, with the
 | Lua na Praça | [Main](http://127.0.0.1:8767/generated/shorts5/films/lua_na_praca.mp4) · [Upper](http://127.0.0.1:8767/generated/shorts5/films/lua_na_praca-upper.mp4) |
 
 All 1,526 requested landings matched on seed 101. Type checking passed, reach reported zero unreachable files, and all 722 tests in 127 files passed before the final commit.
+
+## Compensation removed
+
+Times below are seconds in each short. The values are requests in the specification. Each changed reading reached the end of the cut on its single seed 101 compile.
+
+**Montagem Tomada slowed.** At 17.485 the vocal strength returns from .19 to .23, its value before the drum trial. The 17.625 syllable (.12 → .25) has the sharper vocal attack and larger mix rise of the two. Its own faint answer at 17.729 (absent → .10) completes the pair under the 17.70 mark. The distinct drum follows at 17.857. The 16.61 mark falls on the decay of the 16.533 syllable, with one measured vocal onset across both marks.

@@ -1,7 +1,7 @@
 /**
  * Start with the pickup, A3 opening to A-sharp, the lift to E and the small
  * repeated D syllables. The bass already moves under the C-sharp and A answer;
- * let the singer finish that line. From 4.586 follow the kick and answering
+ * let the three drum attacks interrupt the quiet syllables. From 4.586 follow the kick and answering
  * snare. Keep the words in the rests at 4.795, 10.286 and 15.604. The flam
  * at 17.868 takes one catch. The G4 crossing the groove at 19.424 is the
  * close call here: the drums continue their sentence under that held pitch.
@@ -26,8 +26,9 @@ export const overlayMeta = {title: music.title, artist: 'Billie Eilish', phases:
 ]};
 
 const strikes: [number, number][] = [
-  [0.232,.196], [0.604,.318], [0.894,.298], [1.625,.304], [1.962,.232],
-  [2.264,.342], [2.868,.167], [3.065,.192], [3.378,.225], [3.750,.281],
+  [0.232,.046], [0.604,.077], [0.894,.062], [1.625,.069], [1.962,.045],
+  [2.264,.083], [2.868,.027],
+  [3.251,1], [3.587,1], [3.918,1],
 
   [4.586,.381], [4.795,.235], [5.236,.602], [5.584,.373], [5.909,.524], [6.246,.653],
   [7.245,.458], [7.581,.561], [7.918,.607], [8.255,.504], [8.580,.598], [8.916,.546],
@@ -56,9 +57,9 @@ const spec: Spec = {
   duration: 44.187, preroll: 2, music,
   contacts: strikes.map(([t, impact]) => ({t, impact})),
   axes: {
-    air: curve([[0,.58],[3.065,.46],[3.750,.52],[16.591,.52],[23.591,.54],[24.242,.78],
+    air: curve([[0,.34],[2.868,.82],[3.251,.88],[3.587,.64],[3.918,.72],[4.586,.52],[16.591,.52],[23.591,.54],[24.242,.78],
       [25.252,.56],[36.583,.56],[43.584,.64],[44.187,.61]]),
-    speed: curve([[0,.42],[1.962,.50],[2.264,.68],[2.868,.82],[3.750,.90],[16.591,.90],
+    speed: curve([[0,.42],[1.962,.50],[2.264,.68],[2.868,.82],[3.065,.97],[3.918,.98],[4.586,.90],[16.591,.90],
       [23.591,.80],[24.242,.74],[25.252,.94],[36.583,.88],[43.584,.84],[44.187,.89]]),
   },
 };

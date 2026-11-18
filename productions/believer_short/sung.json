@@ -1230,37 +1230,6 @@
           "vocals"
         ]
       }
-    },
-    {
-      "t": 51.218,
-      "rise_db": 10.6,
-      "peak": 0.006,
-      "share": 0,
-      "flatness": 0.017,
-      "voicing": 0.43,
-      "salience": 0,
-      "pitch": null,
-      "dur": 0.26,
-      "event": null
-    },
-    {
-      "t": 51.473,
-      "rise_db": 33.9,
-      "peak": 0.436,
-      "share": 0.48,
-      "flatness": 0.007,
-      "voicing": 0.82,
-      "salience": 0.48,
-      "pitch": "A♯3",
-      "dur": 0.11,
-      "event": {
-        "t": 51.45,
-        "stems": [
-          "bass",
-          "drums",
-          "vocals"
-        ]
-      }
     }
   ],
   "unpitched": [

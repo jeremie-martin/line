@@ -184,11 +184,6 @@ export function cutWav(file: Buffer, from: number, seconds: number): {wav: Buffe
   return {wav, rate, frames};
 }
 
-/** Seconds of music kept after the owner's end marker: a video's loop point can only come earlier than its audio's end
- * (scripts/video/loop_audio.ts), and he allows the end to move by about half a second either way. */
-export const AFTER = 0.5;
-const roomy = (c: {from: number; to: number}) => ({from: c.from, to: c.to + AFTER});
-
 /** The owner's cut for `clip`: his latest answer in the study file. */
 export function savedCut(lines: string, clip: string): {from: number; to: number} {
   const rows = lines.split('\n').filter(Boolean).map(l => JSON.parse(l)).filter(r => r.clip === clip).sort((a, b) => String(a.at).localeCompare(String(b.at)));
@@ -290,7 +285,7 @@ if (import.meta.main) {
   const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);
   const parent = arg('song'), name = arg('name'), force = process.argv.includes('--force');
   if (!parent || !name || (arg('from') === undefined) !== (arg('to') === undefined)) throw new Error('Usage: node tools/music/cut.ts --song=PARENT --name=NEW [--from=S --to=S] [--force]');
-  const {from, to} = arg('from') !== undefined ? {from: Number(arg('from')), to: Number(arg('to'))} : roomy(savedCut(readFileSync(join(ROOT, STUDY), 'utf8'), parent));
+  const {from, to} = arg('from') !== undefined ? {from: Number(arg('from')), to: Number(arg('to'))} : savedCut(readFileSync(join(ROOT, STUDY), 'utf8'), parent);
   const report = cutSong({parent, name, from, to, force});
   console.log(`${parent} ${from}–${to} s → productions/${name}/, ${report.length} s`);
   for (const f of report.files) console.log(`  ${f.file}${f.kept !== undefined ? `: kept ${f.kept}, dropped ${f.dropped}` : ''}${f.note ? `${f.kept !== undefined ? '; ' : ': '}${f.note}` : ''}`);

@@ -2131,39 +2131,6 @@
           "other"
         ]
       }
-    },
-    {
-      "t": 44.033,
-      "rise_db": 24.4,
-      "peak": 0.003,
-      "share": 0,
-      "flatness": 0.119,
-      "voicing": 0.01,
-      "salience": 0,
-      "event": {
-        "t": 44.01,
-        "stems": [
-          "bass",
-          "drums",
-          "other",
-          "vocals"
-        ]
-      }
-    },
-    {
-      "t": 44.393,
-      "rise_db": 8.7,
-      "peak": 0.001,
-      "share": 0,
-      "flatness": 0.265,
-      "voicing": 0.01,
-      "salience": 0,
-      "event": {
-        "t": 44.358,
-        "stems": [
-          "other"
-        ]
-      }
     }
   ]
 }

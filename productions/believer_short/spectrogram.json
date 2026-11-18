@@ -1,6 +1,6 @@
 {
   "audio_file": "audio.mp3",
-  "duration": 51.58403628117914,
+  "duration": 51.08403628117914,
   "sr": 22050,
   "hop": 512,
   "n_mels": 128,
@@ -8,7 +8,7 @@
   "fmax": 11025.0,
   "db_floor": -70.0,
   "db_top": 0.0,
-  "width": 2222,
+  "width": 2201,
   "height": 128,
   "image": "spectrogram.png",
   "colormap": "magma"

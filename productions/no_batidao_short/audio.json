@@ -1,5 +1,5 @@
 {
-  "duration": 44.488,
+  "duration": 43.988,
   "tempo": {
     "librosa_bpm": 86.1328125
   },
@@ -64,8 +64,7 @@
     41.0375147392,
     41.7341133787,
     42.5468117914,
-    43.3362902494,
-    44.0328888889
+    43.3362902494
   ],
   "method": "librosa beat_track; tempo/grid hypothesis only; no madmom analysis"
 }

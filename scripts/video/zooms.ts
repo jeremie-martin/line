@@ -52,6 +52,7 @@ import shortLetTheWorldBurn from '../../productions/short_let_the_world_burn/zoo
 import shortLosVoltaje from '../../productions/short_los_voltaje/zooms.ts';
 import shortLosVoltajeSlowed from '../../productions/short_los_voltaje_slowed/zooms.ts';
 import shortLosVoltajeUltraSlowed from '../../productions/short_los_voltaje_ultra_slowed/zooms.ts';
+import shortTrouble from '../../productions/short_trouble/zooms.ts';
 import shortMontagemTomadaSlowed from '../../productions/short_montagem_tomada_slowed/zooms.ts';
 import shortBeliever from '../../productions/short_believer/zooms.ts';
 import shortNoBatidao from '../../productions/short_no_batidao/zooms.ts';
@@ -114,6 +115,7 @@ export const ZOOMS: Record<string, ZoomLane[]> = {
   short_los_voltaje: shortLosVoltaje,
   short_los_voltaje_slowed: shortLosVoltajeSlowed,
   short_los_voltaje_ultra_slowed: shortLosVoltajeUltraSlowed,
+  short_trouble: shortTrouble,
   short_montagem_tomada_slowed: shortMontagemTomadaSlowed,
   short_believer: shortBeliever,
   short_no_batidao: shortNoBatidao,

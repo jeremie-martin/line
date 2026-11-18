@@ -145,8 +145,9 @@ function list() {
 async function show(i) {
   halt(); playing = false; at = i; const s = songs[i], row = saved.get(s.song), mine = ++ticket;
   history.replaceState(null, '', `#${s.song}`);
-  cut = {start: row?.answers.start ?? null, end: row?.answers.end ?? null}; from = cut.start ?? 0;
-  $('title').textContent = s.title; $('note').value = row?.note ?? ''; $('status').textContent = '';
+  let draft = null; try {draft = JSON.parse(localStorage.getItem(draftKey(s.song)) ?? 'null');} catch {}
+  clearTimeout(saving); cut = {start: draft?.start ?? row?.answers.start ?? null, end: draft?.end ?? row?.answers.end ?? null}; from = cut.start ?? 0;
+  $('title').textContent = s.title; $('note').value = draft?.note ?? row?.note ?? ''; $('status').textContent = '';
   sound = peaks = null; layerKey = ''; $('loading').textContent = 'loading the song…'; list(); ui();
   const box = $('index').getBoundingClientRect(), r = rows[i].getBoundingClientRect();   // only the list scrolls, never the page
   if (r.top < box.top) $('index').scrollTop -= box.top - r.top; else if (r.bottom > box.bottom) $('index').scrollTop += r.bottom - box.bottom;
@@ -162,12 +163,20 @@ async function save() {
   if (!error) saved.set(s.song, {answers, note});
   report($('status'), error, `${answers.start.toFixed(2)} to ${answers.end.toFixed(2)} s`); list();
 }
-function mark(which) {if (!sound) return; cut[which] = r3(position()); ui(); if (looping) replay();}
+function mark(which) {if (!sound) return; cut[which] = r3(position()); ui(); keep(); if (looping) replay();}
+// Nothing he sets is ever only in the page: every change of a marker or of the note is kept in the browser at once, and
+// saved to the study as soon as both markers stand (Enter and Save do the same, at once).
+const draftKey = song => `cut-2026-11:${song}`;
+let saving = 0;
+function keep() {
+  const s = songs[at]; try {localStorage.setItem(draftKey(s.song), JSON.stringify({...cut, note: $('note').value}));} catch {}
+  clearTimeout(saving); if (valid()) saving = setTimeout(() => void save(), 600);
+}
 function nextOpen() {for (let k = 1; k <= songs.length; k++) {const i = (at + k) % songs.length; if (!saved.has(songs[i].song)) return show(i);}}
 const toggle = () => {if (!sound) return; if (playing) pause(); else play(from >= duration() - 0.01 ? 0 : from);};
 const playCut = () => {if (cut.start !== null) play(cut.start);};
 const toggleLoop = () => {looping = !looping; ui(); replay();};
-$('play').onclick = toggle; $('playCut').onclick = playCut; $('loop').onclick = toggleLoop; $('save').onclick = () => void save();
+$('play').onclick = toggle; $('playCut').onclick = playCut; $('loop').onclick = toggleLoop; $('save').onclick = () => void save(); $('note').addEventListener('input', keep);
 for (const b of $('speeds').children) b.onclick = () => {rate = +b.dataset.rate; ui(); replay();};
 document.addEventListener('mousedown', e => {if (e.target.closest('button')) e.preventDefault();});   // buttons never take the keys
 
@@ -198,7 +207,7 @@ canvas.onpointermove = e => {
   else if (drag.kind === 'head') {if (!playing) from = T(e.offsetX);}
   else {cut[drag.kind] = r3(T(e.offsetX)); ui();}
 };
-canvas.onpointerup = canvas.onpointercancel = () => {if (drag && drag.kind !== 'scroll' && drag.kind !== 'head' && looping) replay(); drag = null;};
+canvas.onpointerup = canvas.onpointercancel = () => {if (drag && drag.kind !== 'scroll' && drag.kind !== 'head') {keep(); if (looping) replay();} drag = null;};
 
 addEventListener('keydown', e => {
   if (e.target === $('note')) {if (e.key === 'Enter') {e.preventDefault(); void save();} else if (e.key === 'Escape') e.target.blur(); return;}

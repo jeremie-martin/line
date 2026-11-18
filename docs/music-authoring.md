@@ -141,7 +141,10 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    speed, seeks). "Make the video" compiles that spec file at seed 101 into `generated/dashboard-rides/` and renders it
    to `generated/videos/dashboard/<song>--<variant>.mp4` (`spec` for `spec.ts`), one job at a time, in the look and
    zoom lane of the song's Astra video when it has one, else those the renderer chooses for the ride. The panel says
-   whether the video was made from the spec file as it is now. "Watch the loop" plays the finished film by itself,
+   whether the video was made from the spec file as it is now. He can also see how that ride stands against this
+   version: a line under the video (its seed, landings missed, how close the strengths came) and, with Ride on, what
+   it delivered at each landing on the impact lane. It is information for him, not a goal for the author (see "A spec
+   describes the music, not the compiler" above). "Watch the loop" plays the finished film by itself,
    with its own sound, looping from a few seconds before its end, so he sees the ending run into the start ("Back to
    the spec" slaves it again). His notes there start the next revision.
    Beside the spec's title he gives each reading a verdict (Love, Good, Needs work; keys 1 2 3), kept in

@@ -4,9 +4,10 @@ export type BatchVideo = {song: string; seed: number; name: string};
 
 /** `--songs=all` or names separated by commas; `--seeds=101,202` or a count (seeds 1 to N). Every song at every seed. */
 export function batchPlan(songs: string, seeds: string, known: readonly string[]): BatchVideo[] {
-  const names = songs === 'all' ? [...known] : songs.split(',').filter(Boolean);
+  // `production`: the production set, the entries cut to the owner's markers (productions/short_*)
+  const names = songs === 'all' ? [...known] : songs === 'production' ? known.filter(n => n.startsWith('short_')) : songs.split(',').filter(Boolean);
   const unknown = names.filter(n => !known.includes(n));
-  if (!names.length || unknown.length) throw new Error(`--songs takes all, or songs of productions/ separated by commas${unknown.length ? ` (unknown: ${unknown.join(', ')})` : ''}`);
+  if (!names.length || unknown.length) throw new Error(`--songs takes production (the production set), all, or songs of productions/ separated by commas${unknown.length ? ` (unknown: ${unknown.join(', ')})` : ''}`);
   const list = seeds.split(',');
   if (!list.every(s => /^\d+$/.test(s)) || (list.length === 1 && +list[0] < 1)) throw new Error('--seeds takes a count (8: seeds 1 to 8) or seeds separated by commas (101,202)');
   const each = list.length === 1 ? Array.from({length: +list[0]}, (_, i) => i + 1) : [...new Set(list.map(Number))];

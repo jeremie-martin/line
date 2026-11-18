@@ -5,6 +5,7 @@ const known = ['a_song', 'b_song', 'c_song'];
 
 it('plans every chosen song at every seed, a count meaning seeds 1 to N', () => {
   expect(batchPlan('all', '2', known).map(v => v.name)).toEqual(['a_song-1', 'a_song-2', 'b_song-1', 'b_song-2', 'c_song-1', 'c_song-2']);
+  expect(batchPlan('production', '1', [...known, 'short_x']).map(v => v.name)).toEqual(['short_x-1']);
   expect(batchPlan('c_song,a_song', '101,202,101', known)).toEqual([
     {song: 'c_song', seed: 101, name: 'c_song-101'}, {song: 'c_song', seed: 202, name: 'c_song-202'},
     {song: 'a_song', seed: 101, name: 'a_song-101'}, {song: 'a_song', seed: 202, name: 'a_song-202'}]);

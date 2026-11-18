@@ -6,7 +6,7 @@ import {existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, openSyn
 import {basename, join, relative, resolve} from 'node:path';
 import {batchPlan, batchStep, type BatchVideo} from './produce/video_batch.ts';
 
-const HELP = `Usage: npm run videos -- --songs=all|SONG,SONG --seeds=N|SEED,SEED --out=DIR [--jobs=6] [video options]
+const HELP = `Usage: npm run videos -- --songs=production|all|SONG,SONG --seeds=N|SEED,SEED --out=DIR [--jobs=6] [video options]
 
 Makes DIR/SONG-SEED.mp4 for every song at every seed (a count N means seeds 1 to N), each with its sidecar and compile
 folder, DIR/SONG-SEED.log, and DIR/report.json. Run again with the same DIR to continue; a video whose earlier attempt

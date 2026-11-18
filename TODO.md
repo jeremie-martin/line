@@ -63,9 +63,14 @@ Work that is mine:
   notes; every revision a video beside the spec on the dashboard; he notes there (voice, mark, strong; moments or
   ranges; a few examples, never every note). His marks and the measures are hints; the video is the judge.
   Open: a fast voice and big hits compete for the rider; the bar estimate of `lines.py` is unverified on new songs.
-- **Order of work for the short set:** his cuts first (`/generated/concept-lab/closing/cut.html`; I may move an
-  end by about half a second for the loop), then a spec for each cut adapted by hand from the best existing spec,
-  more than one variant where two readings are good.
+- **The production set** (`productions/short_*`, 29 entries cut to his markers of 2026-11-18,
+  `labels/studies/cut-2026-11.jsonl`; `docs/music-authoring.md`, "The production set"): each needs its
+  handcrafted spec, zoom lanes and drop, written by Codex on the branch `specs/shorts` (worktree
+  `~/prog/line-shorts`; brief and logs in `generated/codex/shorts/`), then his review as a video beside the spec on
+  the dashboard. Two entries are the same recording (Luna Bala 44 s and Luna Bala slowed) and two more nearly
+  (the two Amor na Praia); he cut both of each. Loops: five entries start at the first second of what we have
+  and can only fade (Amor na Praia 46 s, L'amour de ma vie, Luna Bala 44 s, Tiki, Trouble); eight find no
+  matching point and blend where they end. Mass generation itself (how many, which looks) is for after the specs.
 
 ## Waiting for the owner's eye
 

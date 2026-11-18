@@ -2,6 +2,17 @@
 
 How a song becomes a spec: which moments the rider lands on, how hard, and what air and speed do in between.
 
+## The production set
+
+What is mass-produced is `productions/short_*`: one folder per piece of music, cut by the owner to the start and
+end he wants, registered in `scripts/gallery/repertoire_catalog.ts` with the title a video may show (`source.json`
+also holds the artist and what a recogniser said). Each is independent: its own specification, zoom lanes
+(`zooms.ts`, registered in `scripts/video/zooms.ts`) and drop (`scripts/video/drops.ts`), even when another entry is
+the same song at another speed. A specification covers the whole audio, to its end; the zoom-out, the fade and the
+loop of a video (`docs/visual-system.md`, "The loop") are applied afterwards and are not its concern. The other
+folders of `productions/` are the library the compiler is measured on, and the best of them are models for an
+entry's spec. `npm run videos -- --songs=production …` makes a batch of the set.
+
 ## Principles
 
 - **The video is the judge, and the owner's eye on it.** Neither the analysis, nor an author's confidence, nor
@@ -61,9 +72,10 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
      `--song=<song>` for the recording of an existing song, with `--around=27,38` to keep moments of that song)
      lists passages of 30 to 45 s that start on a strong onset and whose end is in step with what leads into their
      start. It measures; which passage carries the music is the author's choice.
-   - A short made from part of a song: `node tools/music/cut.ts --song=<parent> --name=<new> [--from=S --to=S]` (without
-     them, the owner's saved cut) makes `productions/<new>/` with the parent's audio, source record, stems and evidence cut
-     and shifted, nothing measured again; then write its spec from the parent's and register it. Steps 2 to 4 are done.
+   - An entry of the production set cut from audio already analysed: `node tools/music/cut.ts --song=<song>
+     --name=short_<name> [--from=S --to=S]` (without them, the owner's saved cut:
+     `/generated/concept-lab/closing/cut.html`) makes `productions/short_<name>/` with the audio between his markers
+     and the source record, stems and measurements shifted, nothing measured again. Steps 2 to 4 are then done.
 2. **Separate the instruments.**
    - `~/.venvs/line-stems/bin/python tools/music/stems.py --song=<song>` gives
      drums, bass, vocals and other, each with a loudness envelope and onsets.

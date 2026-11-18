@@ -1,4 +1,4 @@
-/** The singer alone at the start is weightless: the rider floats slowly in high arcs, every catch a whisper.
+/** The singer alone at the start is weightless: the rider floats slowly, long in the air, every catch a whisper.
  * When the drums arrive it comes down to earth, and the climb lifts each arc a little higher than the last,
  * until the long breath before the stab throws it into the biggest loft of the song. From the stab on, with
  * the bass under it, it runs low and fast, close to the line, and the body's strokes fall into a few clear
@@ -8,7 +8,6 @@
  * stab (12.2 s) and when the lower voice takes over (26.9 s).
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
-import {keyframes} from '../../../scripts/v0/core/curves.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
 import {duration, music, strikes} from '../music.ts';
 export {overlayMeta} from '../music.ts';
@@ -44,11 +43,16 @@ const spec: Spec = {
       [0, .44], [4.4, .46], [5.2, .62], [8, .66], [11.5, .80], [12.4, .92], [26.4, .90], [27.4, .68],
       [34.3, .72], [35.0, .95], [41.2, .95], [44, .88],
     ]),
-    amplitude: keyframes([
-      {t: 0, v: .28, ease: 'smooth'}, {t: 4.4, v: .26, ease: 'smooth'}, {t: 5.2, v: .1, ease: 'linear'}, {t: 8, v: .14, ease: 'linear'},
-      {t: 11.2, v: .4, ease: 'hold'}, {t: 11.5, v: .85, ease: 'hold'}, {t: 12.2, v: .06, ease: 'hold'},
-      {t: 26.95, v: .3, ease: 'hold'}, {t: 34.8, v: .08, ease: 'hold'}, {t: 41.5, v: .14, ease: 'hold'},
-    ]),
+    // Height is asked only where the gaps leave room for it: the climb, the loft before the stab, and the flat runs.
+    amplitude: (t: number) => {
+      if (t < 8) return undefined;
+      if (t < 11.47) return .08 + .12 * (t - 8) / 3.47;   // each arc of the climb a little higher
+      if (t < 12.17) return .5;                           // the loft
+      if (t < 26.95) return .05;                          // the bass run hugs the line
+      if (t < 34.8) return .16;                           // the lower singer, rounder
+      if (t < 41.5) return .06;
+      return undefined;
+    },
   },
 };
 export default spec;

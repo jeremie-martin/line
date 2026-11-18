@@ -28,6 +28,31 @@ import passoBemSolto from '../../productions/passo_bem_solto_selection/zooms.ts'
 import passoBemSoltoSlowed from '../../productions/passo_bem_solto_slowed_selection/zooms.ts';
 import passoBemSoltoSuperSlowed from '../../productions/passo_bem_solto_super_slowed_selection/zooms.ts';
 import petrunko from '../../productions/petrunko_selection/zooms.ts';
+import shortMontagemTomadaExtended from '../../productions/short_montagem_tomada_extended/zooms.ts';
+import shortMontagemTomadaSuperSlowed from '../../productions/short_montagem_tomada_super_slowed/zooms.ts';
+import shortPassoBemSoltoSuperSlowed from '../../productions/short_passo_bem_solto_super_slowed/zooms.ts';
+import shortPassoBemSolto from '../../productions/short_passo_bem_solto/zooms.ts';
+import shortPassoBemSoltoSlowed from '../../productions/short_passo_bem_solto_slowed/zooms.ts';
+import shortLunaBalaSlowed from '../../productions/short_luna_bala_slowed/zooms.ts';
+import shortLunaBala44s from '../../productions/short_luna_bala_44s/zooms.ts';
+import shortLunaBalaOriginal from '../../productions/short_luna_bala_original/zooms.ts';
+import shortAmorNaPraia from '../../productions/short_amor_na_praia/zooms.ts';
+import shortAmorNaPraia46s from '../../productions/short_amor_na_praia_46s/zooms.ts';
+import shortLuaNaPraca from '../../productions/short_lua_na_praca/zooms.ts';
+import shortBones from '../../productions/short_bones/zooms.ts';
+import shortMontagemComa from '../../productions/short_montagem_coma/zooms.ts';
+import shortNoBatidaoSlowed from '../../productions/short_no_batidao_slowed/zooms.ts';
+import shortPetrunko from '../../productions/short_petrunko/zooms.ts';
+import shortTikiTiki from '../../productions/short_tiki_tiki/zooms.ts';
+import shortCircusMinimus from '../../productions/short_circus_minimus/zooms.ts';
+import shortAmourDeMaVie from '../../productions/short_amour_de_ma_vie/zooms.ts';
+import shortFunkEstranhoSuperSlowed from '../../productions/short_funk_estranho_super_slowed/zooms.ts';
+import shortFunkDoBounceSuperSlowed from '../../productions/short_funk_do_bounce_super_slowed/zooms.ts';
+import shortLetTheWorldBurn from '../../productions/short_let_the_world_burn/zooms.ts';
+import shortLosVoltaje from '../../productions/short_los_voltaje/zooms.ts';
+import shortLosVoltajeSlowed from '../../productions/short_los_voltaje_slowed/zooms.ts';
+import shortLosVoltajeUltraSlowed from '../../productions/short_los_voltaje_ultra_slowed/zooms.ts';
+import shortTrouble from '../../productions/short_trouble/zooms.ts';
 import shortMontagemTomadaSlowed from '../../productions/short_montagem_tomada_slowed/zooms.ts';
 import shortBeliever from '../../productions/short_believer/zooms.ts';
 import shortNoBatidao from '../../productions/short_no_batidao/zooms.ts';
@@ -66,6 +91,31 @@ export const ZOOMS: Record<string, ZoomLane[]> = {
   passo_bem_solto_slowed_selection: passoBemSoltoSlowed,
   passo_bem_solto_super_slowed_selection: passoBemSoltoSuperSlowed,
   petrunko_selection: petrunko,
+  short_montagem_tomada_extended: shortMontagemTomadaExtended,
+  short_montagem_tomada_super_slowed: shortMontagemTomadaSuperSlowed,
+  short_passo_bem_solto_super_slowed: shortPassoBemSoltoSuperSlowed,
+  short_passo_bem_solto: shortPassoBemSolto,
+  short_passo_bem_solto_slowed: shortPassoBemSoltoSlowed,
+  short_luna_bala_slowed: shortLunaBalaSlowed,
+  short_luna_bala_44s: shortLunaBala44s,
+  short_luna_bala_original: shortLunaBalaOriginal,
+  short_amor_na_praia: shortAmorNaPraia,
+  short_amor_na_praia_46s: shortAmorNaPraia46s,
+  short_lua_na_praca: shortLuaNaPraca,
+  short_bones: shortBones,
+  short_montagem_coma: shortMontagemComa,
+  short_no_batidao_slowed: shortNoBatidaoSlowed,
+  short_petrunko: shortPetrunko,
+  short_tiki_tiki: shortTikiTiki,
+  short_circus_minimus: shortCircusMinimus,
+  short_amour_de_ma_vie: shortAmourDeMaVie,
+  short_funk_estranho_super_slowed: shortFunkEstranhoSuperSlowed,
+  short_funk_do_bounce_super_slowed: shortFunkDoBounceSuperSlowed,
+  short_let_the_world_burn: shortLetTheWorldBurn,
+  short_los_voltaje: shortLosVoltaje,
+  short_los_voltaje_slowed: shortLosVoltajeSlowed,
+  short_los_voltaje_ultra_slowed: shortLosVoltajeUltraSlowed,
+  short_trouble: shortTrouble,
   short_montagem_tomada_slowed: shortMontagemTomadaSlowed,
   short_believer: shortBeliever,
   short_no_batidao: shortNoBatidao,

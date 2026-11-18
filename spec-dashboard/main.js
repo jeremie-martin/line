@@ -60,6 +60,9 @@ const refs = {
   musicVolume: document.getElementById("music-volume"),
   togglePhases: document.getElementById("toggle-phases"),
   toggleNotes: document.getElementById("toggle-notes"),
+  toggleRide: document.getElementById("toggle-ride"),
+  toggleRideLabel: document.getElementById("toggle-ride-label"),
+  rideState: document.getElementById("ride-state"),
   cursorTime: document.getElementById("cursor-time"),
   cursorSummary: document.getElementById("cursor-summary"),
   cursorDetails: document.getElementById("cursor-details"),
@@ -129,6 +132,8 @@ const state = {
   /** The spec's video and the video job, as /api/spec-video reports them. */
   video: null,
   videoJob: null,
+  /** How the video's ride stands against the spec (/api/spec-video's `ride`): information for him, not a goal. */
+  ride: null,
   /** "Watch the loop": the video plays by itself, with its own sound, looping; the dashboard's clock follows it. */
   loopMode: false,
 };
@@ -140,10 +145,11 @@ const music = createMusic(), onScreen = displayTime();
 /** Landing clicks: scheduled oscillators, how far ahead they are scheduled, and their gain. */
 const clicks = { until: -Infinity, pending: new Set(), out: null };
 
-// Listening preferences (clicks on/off, click and music volume, music muted), whether the video is shown and whether
-// notes on earlier versions are shown survive reloads in this browser; storage may be unavailable, and then the defaults apply.
+// Listening preferences (clicks on/off, click and music volume, music muted), whether the video is shown, whether
+// notes on earlier versions are shown and whether the ride is shown on the impact lane survive reloads in this browser;
+// storage may be unavailable, and then the defaults apply.
 const LISTENING_KEY = "spec-dashboard.listening";
-const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false, videoOpen: true, earlierNotes: false };
+const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false, videoOpen: true, earlierNotes: false, ride: false };
 try {
   Object.assign(listening, JSON.parse(localStorage.getItem(LISTENING_KEY) || "{}"));
 } catch { /* defaults */ }
@@ -166,6 +172,7 @@ function renderListening() {
   music.volume = listening.musicMuted ? 0 : listening.musicVolume;
   refs.video.volume = music.volume;
   refs.toggleEarlier.checked = listening.earlierNotes;
+  refs.toggleRide.checked = listening.ride;
   if (clicks.out) clicks.out.gain.value = listening.clicks ? listening.clickVolume : 0;
   if (!listening.clicks) clearClicks();
   refs.video.hidden = !state.video || !listening.videoOpen;
@@ -228,6 +235,11 @@ function wireEvents() {
     setListening({ earlierNotes: refs.toggleEarlier.checked });
     renderNotesList();
     renderTimeline();
+  });
+  refs.toggleRide.addEventListener("change", () => {
+    setListening({ ride: refs.toggleRide.checked });
+    renderTimeline();
+    renderInspector();
   });
   refs.noteAgain.addEventListener("click", () => noteAgain());
   for (const type of ["loadedmetadata", "seeked"]) refs.video.addEventListener(type, () => syncVideo());
@@ -675,6 +687,7 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   refs.rangeBar.hidden = true;
   refs.evidenceWarning.hidden = true;
   state.video = null;
+  state.ride = null;
   refs.video.hidden = true;
   refs.video.removeAttribute("src");
   if (restore?.selectedScope) state.selectedScope = restore.selectedScope;
@@ -956,7 +969,9 @@ function onTimelinePointerDown(event) {
 function onTimelinePointerMove(event) {
   if (!state.timeline) return;
   setHover(state.timeline.xAtClient(event.clientX));
-  showNoteCard(state.pointerDrag ? null : event.target.closest?.("[data-note-index], [data-change-index]"), event);
+  const mark = state.pointerDrag ? null : event.target.closest?.("[data-note-index], [data-change-index]");
+  if (mark || state.pointerDrag) showNoteCard(mark, event);
+  else showLandingCard(landingAtPointer(event), event);
   const drag = state.pointerDrag;
   if (!drag || drag.pointerId !== event.pointerId) return;
   event.preventDefault();
@@ -1462,12 +1477,40 @@ function drawContacts(svg, L, plotW, y, H) {
 function drawImpactLane(svg, L, plotW, y, h) {
   add(svg, "text", { x: 12, y: y + 18, class: "svg-label" }, "impact");
   add(svg, "line", { x1: L, y1: y + h - 8, x2: L + plotW, y2: y + h - 8, class: "svg-rule" });
-  for (const [index, contact] of state.data.contacts.entries()) {
+  state.timeline.impactLane = { y0: y, y1: y + h };
+  const landings = rideLandings(), contacts = state.data.contacts;
+  if (landings && h >= 84) {
+    // the ride's legend, in the margin under the lane's name
+    add(svg, "text", { x: 12, y: y + 32, class: "svg-small svg-ride-legend" }, "ride, off by");
+    [["close", "< 0.1"], ["off", "< 0.25"], ["far", "more"]].forEach(([step, words], i) => {
+      add(svg, "line", { x1: 12, y1: y + 41 + i * 11, x2: 20, y2: y + 41 + i * 11, stroke: RIDE_TONES[step], "stroke-width": 1.6 });
+      add(svg, "text", { x: 24, y: y + 44.5 + i * 11, class: "svg-small svg-ride-legend" }, words);
+    });
+    add(svg, "text", { x: 12.5, y: y + 78, class: "svg-small svg-ride-legend", style: `fill: ${RIDE_TONES.far}` }, "×");
+    add(svg, "text", { x: 24, y: y + 77.5, class: "svg-small svg-ride-legend" }, "missed");
+  }
+  for (const [index, contact] of contacts.entries()) {
     if (!timeVisible(contact.t)) continue;
     const x = state.timeline.xFor(contact.t);
     const v = contact.impact ?? 0;
     const barH = Math.max(contact.impact === null ? 4 : 6, v * (h - 14));
     const active = state.activeNoteId === `contact:${index}`;
+    const landing = landings?.[index];
+    if (landing) {
+      // the delivered strength, under the asked dot (a close one hides behind it), as wide as the neighbours allow
+      const step = rideStep(landing), tone = RIDE_TONES[step];
+      const room = Math.min(...[contacts[index - 1], contacts[index + 1]].filter(Boolean).map((c) => Math.abs(state.timeline.rawXFor(c.t) - x)));
+      const half = clamp(Math.min(4.5 + v * 2.8, room * 0.42), 1.5, 7.5);
+      if (landing.delivered === null) {
+        const cy = y + h - 3.5;
+        add(svg, "path", { d: `M${x - 2.6},${cy - 2.6}L${x + 2.6},${cy + 2.6}M${x - 2.6},${cy + 2.6}L${x + 2.6},${cy - 2.6}`,
+          stroke: tone, "stroke-width": 1.5, class: "svg-ride", "data-ride": "missed", "data-index": index });
+      } else {
+        const ty = y + h - 8 - Math.max(1, clamp(landing.delivered, 0, 1) * (h - 14));
+        add(svg, "line", { x1: x - half, y1: ty, x2: x + half, y2: ty, stroke: tone, "stroke-width": 1.6,
+          opacity: step === "close" ? 0.7 : 0.95, class: "svg-ride", "data-ride": step, "data-index": index });
+      }
+    }
     add(svg, "line", {
       x1: x,
       y1: y + h - 8,
@@ -1695,9 +1738,10 @@ function renderInspector(t = specTime()) {
   refs.cursorTime.textContent = formatTime(t);
   // One line: the nearest contact, its impact, the phase; the rest when opened.
   const impact = contactHit ? contactHit.contact.impact === null ? "untargeted" : fmt(contactHit.contact.impact) : null;
+  const landing = contactHit && rideLandings()?.[contactHit.index];
   refs.cursorSummary.textContent = [
     contactHit ? `contact #${contactHit.index} ${signed(contactHit.contact.t - t)} s` : "no contact",
-    impact && `impact ${impact}`,
+    landing ? rideWords(landing).split(" · ").slice(0, 2).join(" · ") : impact && `impact ${impact}`,
     phase?.name,
   ].filter(Boolean).join(" · ");
   if (!refs.cursorDetails.open) return;
@@ -2121,6 +2165,33 @@ function showNoteCard(mark, event) {
   placeNoteCard(card, event);
 }
 
+/** The landing under the pointer on the impact lane (the nearest within 6 px), while the Ride layer shows; or null. */
+function landingAtPointer(event) {
+  const lane = state.timeline?.impactLane;
+  if (!lane || !rideLandings()) return null;
+  const y = svgPointAtClient(refs.timeline, event.clientX, event.clientY, state.timeline.right, state.timeline.height).y;
+  if (y < lane.y0 || y > lane.y1) return null;
+  const x = state.timeline.xAtClient(event.clientX);
+  let best = null;
+  for (const [index, contact] of state.data.contacts.entries()) {
+    const d = Math.abs(state.timeline.rawXFor(contact.t) - x);
+    if (d <= 6 && (!best || d < best.d)) best = { index, d };
+  }
+  return best?.index ?? null;
+}
+
+/** A landing's card: what the spec asks and what the ride delivered there. */
+function showLandingCard(index, event) {
+  const card = document.getElementById("note-card"), landing = index === null ? null : rideLandings()?.[index];
+  if (!landing) {
+    card.hidden = true;
+    return;
+  }
+  card.innerHTML = `<div class="note-card-head">${escapeHtml(`contact #${index} · ${formatTime(state.data.contacts[index].t)}`)} · <b>the ride</b></div>`
+    + `<div class="note-card-text" data-ride-words>${escapeHtml(rideWords(landing))}</div>`;
+  placeNoteCard(card, event);
+}
+
 function placeNoteCard(card, event) {
   card.hidden = false;
   const wrap = refs.timelineWrap.getBoundingClientRect();
@@ -2202,6 +2273,12 @@ async function loadVideoStatus() {
     }
     state.video = status.video;
     state.videoJob = status.job;
+    const ride = state.ride;
+    state.ride = status.ride ?? null;
+    if (JSON.stringify(ride) !== JSON.stringify(state.ride)) {
+      renderTimeline();
+      renderInspector();
+    }
     renderVideo();
     if (finished && status.job.spec === spec) toast(status.job.phase === "done" ? "Video made" : "Video failed");
     if (finished) loadReadings();
@@ -2213,6 +2290,40 @@ async function loadVideoStatus() {
 }
 
 const isMaking = (job) => job?.phase === "compiling" || job?.phase === "rendering";
+
+/** One quiet line on how the video's ride stands against the spec, or why there is none per landing. */
+function rideLine() {
+  const ride = state.ride;
+  if (!ride) return null;
+  if (!ride.current) return "Its ride is of that earlier version: no landings shown.";
+  if (!ride.summary) return ride.why;
+  const s = ride.summary;
+  return `Ride (seed ${ride.seed}): ${s.landings} landings, ${s.missed} missed`
+    + (s.meanStrengthDifference === null ? "" : `, strength within ${s.meanStrengthDifference.toFixed(2)} on average`)
+    + (s.reachedEnd ? "." : `; stopped at ${s.stoppedAt.toFixed(1)} s.`);
+}
+
+/** The ride's landings, one per contact of the spec, while the Ride layer is on and the ride is of this version. */
+function rideLandings() {
+  const landings = state.ride?.landings;
+  return listening.ride && landings?.length === state.data?.contacts.length ? landings : null;
+}
+
+/** How far a landing's delivered strength is from the asked one: "close" (under 0.1), "off" (under 0.25), "far" (or missed). */
+function rideStep(landing) {
+  if (landing.delivered === null) return "far";
+  const off = Math.abs(landing.delivered - (landing.asked ?? 0));
+  return off < 0.1 ? "close" : off < 0.25 ? "off" : "far";
+}
+const RIDE_TONES = { close: "#6d665b", off: "#b57d1d", far: "#a8442f" };
+
+/** "asked 0.72 · delivered 0.61", with the timing when it is off by a frame or more; "asked 0.72 · missed". */
+function rideWords(landing) {
+  const asked = `asked ${landing.asked === null ? "untargeted" : fmt(landing.asked)}`;
+  if (landing.delivered === null) return `${asked} · missed`;
+  const ms = Math.round(landing.timing * 1000);
+  return `${asked} · delivered ${fmt(landing.delivered)}${ms ? ` · ${Math.abs(ms)} ms ${ms > 0 ? "late" : "early"}` : ""}`;
+}
 
 function renderVideo() {
   const { video, videoJob: job } = state, spec = state.data?.spec.path;
@@ -2227,8 +2338,6 @@ function renderVideo() {
   if (video) {
     const made = new Date(video.madeAt).toLocaleString();
     lines.push(video.current ? `Made from this version, ${made}.` : `The spec changed since this video was made (${made}).`);
-    // how the ride stands against the spec: for him to know, not a goal
-    if (video.ride?.missing) lines.push(`This ride misses ${video.ride.missing} of ${video.ride.landings} landings.`);
     lines.push(`${video.theme}, zoom ${video.zoom ?? "steady"}`);
   } else {
     lines.push("No video of this spec yet.");
@@ -2251,6 +2360,14 @@ function renderVideo() {
   }
   refs.videoState.textContent = lines.join("\n");
   refs.videoState.title = lines.join("\n");
+  // how the ride stands against the spec: for him to know, not a goal
+  const ride = video && !state.loopMode ? rideLine() : null, unasked = state.ride?.summary?.unasked;
+  refs.rideState.hidden = !ride;
+  refs.rideState.textContent = ride ?? "";
+  refs.rideState.title = ride ? ride + (unasked ? ` It also strikes ${unasked} times where no landing is asked.` : "") : "";
+  refs.toggleRideLabel.title = state.ride?.landings
+    ? "On the impact lane: what the video's ride delivered at each landing"
+    : state.ride?.why ?? "No ride to show: this reading has no video yet";
   refs.videoState.classList.toggle("stale", Boolean(video && !video.current));
   refs.videoState.classList.toggle("error", mine?.phase === "error");
 }

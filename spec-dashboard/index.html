@@ -110,6 +110,7 @@
         <label><input type="checkbox" id="toggle-beats" checked> Beats</label>
         <label><input type="checkbox" id="toggle-phases" checked> Phases</label>
         <label><input type="checkbox" id="toggle-notes" checked> Notes</label>
+        <label id="toggle-ride-label" title="On the impact lane: what the video's ride delivered at each landing"><input type="checkbox" id="toggle-ride"> Ride</label>
       </div>
       <span id="evidence-warning" class="evidence-warning" hidden></span>
       <div class="help" id="help">
@@ -135,6 +136,7 @@
           <p class="help-line"><span class="label">View</span> <span id="view-window">0:00.00-0:00.00</span></p>
           <p class="help-line"><span class="label">Drop</span> the band under the times: the song's drop, placed by hand (its times on hover)</p>
           <p class="help-line"><span class="label">Notes</span> filled: on this version; pale, or outlined when Earlier notes is on: on an earlier one (hover to read, click to quote)</p>
+          <p class="help-line"><span class="label">Ride</span> with Ride on, the impact lane also shows what the video's ride delivered at each landing: a short line at its strength, grey when within 0.1 of what is asked, ochre within 0.25, rust beyond; × under a landing it missed. Hover a landing for both. Information only: it is how this ride turned out, not a goal for the spec</p>
           <p class="help-line"><span class="label">Changes</span> the lane under the notes: the places the author's note on this version points to (What changed, beside your verdict); hover to read, click to select</p>
           <p id="vocal-evidence-note" class="evidence-note"></p>
         </div>
@@ -165,6 +167,7 @@
         <button id="make-video" type="button" title="Compile this spec and render its ride (a few minutes)">Make the video</button>
         <button id="toggle-video" type="button" aria-expanded="true">Hide</button>
       </div>
+      <p id="ride-state" class="ride-state" hidden></p>
     </section>
 
     <details class="readout" id="cursor-details">

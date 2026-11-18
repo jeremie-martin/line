@@ -1,5 +1,6 @@
 /** The ride's video beside a spec in the spec dashboard: one video per spec file, made on request, one job at a time.
- *   GET  /api/spec-video?spec=…  → {video: {url, from, madeAt, specSha256, current, theme, zoom} | null, job}
+ *   GET  /api/spec-video?spec=…  → {video: {url, from, madeAt, specSha256, current, theme, zoom, ride} | null,
+ *                                   ride: how its ride stands against the spec (rideStanding) | null, job}
  *   POST /api/spec-video  ← {spec}  → 202 {job}; 409 while another video is being made
  * A job compiles the spec (npm run produce, seed 101) into generated/dashboard-rides/<song>--<variant> and renders it
  * (scripts/video.ts) to generated/videos/dashboard/<song>--<variant>.mp4, `spec` naming spec.ts. Beside the video, its JSON:
@@ -11,6 +12,7 @@ import {spawn, type ChildProcess} from 'node:child_process';
 import {closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync} from 'node:fs';
 import {join, relative} from 'node:path';
 import {listSpecs, specSha256 as sha256} from './spec_api.ts';
+import {FPS} from '../v0/types.ts';
 
 type Job = {spec: string; name: string; phase: 'compiling' | 'rendering' | 'done' | 'error'; startedAt: string; finishedAt?: string;
   look: string; line?: string; error?: string};
@@ -31,6 +33,36 @@ export function savedVideo(root: string, spec: string, sha?: string) {
     current: side.specSha256 === (sha ?? sha256(join(root, spec))), theme: side.partner ? `${side.theme} → ${side.partner}` : side.theme, zoom: side.zoom ?? null,
     ride: side.ride ? {...side.ride, missing: Array.isArray(side.ride.missing) ? side.ride.missing.length : side.ride.missing} : null};
 }
+/** How the ride of a listed spec's video stands against the spec, for the owner to look at (information, not a goal for
+ * the author): null without a video; for a video of an earlier version of the spec only that (`current` false: its
+ * landings are not this version's); otherwise, per landing of the spec in order, the strength asked (null when
+ * untargeted), the strength delivered (null when missed) and the timing error (s, + late), with a summary. Read from the
+ * ride the video was made from (generated/dashboard-rides/<name>/manifest.json, its cell named by the sidecar); `why`
+ * says when that ride is no longer there (being made again). */
+export function rideStanding(root: string, spec: string, sha?: string) {
+  const video = savedVideo(root, spec, sha);
+  if (!video) return null;
+  if (!video.current) return {current: false, why: 'The video is of an earlier version of the spec: its landings are not this version\'s.'};
+  const name = nameOf(spec), side = JSON.parse(readFileSync(join(root, 'generated/videos/dashboard', name + '.json'), 'utf8'));
+  const file = join(root, 'generated/dashboard-rides', name, 'manifest.json');
+  const cell = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')).cells?.[0] : null;
+  const evaluation = cell?.impactEvaluation;
+  if (!evaluation?.account || (side.of?.cellSha256 && side.of.cellSha256 !== cell.sha256))
+    return {current: true, why: 'The ride this video was made from is not on disk any more (it is being made again).'};
+  const r3 = (x: number) => Math.round(x * 1000) / 1000;
+  const matched = new Map<number, {event: number; offset: number}>(evaluation.account.matches.map((m: {target: number; event: number; offset: number}) => [m.target, m]));
+  const landings = evaluation.targets.map((target: {frame: number; impact?: number | null}, i: number) => {
+    const m = matched.get(i), delivered = m ? evaluation.events[m.event]?.strength : undefined;
+    return {t: r3(target.frame / FPS), asked: typeof target.impact === 'number' ? target.impact : null,
+      delivered: typeof delivered === 'number' ? r3(delivered) : null, timing: m ? r3(m.offset / FPS) : null};
+  });
+  const compared = landings.filter((l: {asked: number | null; delivered: number | null}) => l.asked !== null && l.delivered !== null);
+  return {current: true, seed: side.ride?.seed ?? cell.seed ?? null, landings,
+    summary: {landings: landings.length, missed: landings.filter((l: {delivered: number | null}) => l.delivered === null).length,
+      unasked: evaluation.account.unmatchedEvents?.length ?? 0,
+      meanStrengthDifference: compared.length ? r3(compared.reduce((s: number, l: any) => s + Math.abs(l.delivered - l.asked), 0) / compared.length) : null,
+      reachedEnd: !cell.failure, stoppedAt: cell.failure ? r3(cell.failure.frame / FPS) : null}};
+}
 const lastLines = (path: string, n: number) => existsSync(path) ? readFileSync(path, 'utf8').trim().split('\n').filter(Boolean).slice(-n).join('\n') : '';
 /** What a failed step said: the log's first error line (a thrown error, or the renderer's own report), else its last lines. */
 const failure = (path: string) => (existsSync(path) && /^(\w*Error\b.*|Video failed:.*)$/m.exec(readFileSync(path, 'utf8'))?.[0]) || lastLines(path, 3);
@@ -39,7 +71,6 @@ export function createSpecVideoApi(root = process.cwd()) {
   const videos = join(root, 'generated/videos/dashboard'), rides = join(root, 'generated/dashboard-rides');
   let job: Job | null = null, child: ChildProcess | null = null;
   const resolveSpec = (raw: unknown) => typeof raw === 'string' ? listSpecs(root).find(s => s.path === raw)?.path : undefined;
-  const video = (spec: string) => savedVideo(root, spec);
   const status = () => job && {...job, line: job.phase === 'compiling' || job.phase === 'rendering' ? lastLines(join(rides, job.name + '.log'), 1) : undefined};
 
   /** One step of a job, a node script with its output appended to the job's log; rejects with what it said. */
@@ -92,7 +123,8 @@ export function createSpecVideoApi(root = process.cwd()) {
     if (req.method === 'GET') {
       const spec = resolveSpec(u.searchParams.get('spec'));
       if (!spec) {reply(res, {error: 'unknown spec'}, 400); return true;}
-      reply(res, {video: video(spec), job: status()}); return true;
+      const sha = sha256(join(root, spec));
+      reply(res, {video: savedVideo(root, spec, sha), ride: rideStanding(root, spec, sha), job: status()}); return true;
     }
     if (req.method !== 'POST') {reply(res, {error: 'method not allowed'}, 405); return true;}
     if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {reply(res, {error: 'same-origin requests only'}, 403); return true;}

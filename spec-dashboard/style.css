@@ -836,6 +836,19 @@ h2 {
   overflow: hidden;
 }
 
+/* how the video's ride stands against the spec: one quiet line */
+.ride-state {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ride-state[hidden] { display: none; }
+
 .video-state.stale { color: #8a5a12; }
 .video-state.error { color: #a8442f; }
 
@@ -1183,6 +1196,10 @@ textarea {
   stroke-dasharray: 3 2;
   cursor: pointer;
 }
+
+/* the ride on the impact lane: what it delivered, under what is asked */
+.svg-ride { pointer-events: none; fill: none; stroke-linecap: round; }
+.svg-ride-legend { font-size: 9.5px; }
 
 .empty-state {
   padding: 20px;

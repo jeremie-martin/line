@@ -487,3 +487,7 @@ The repeated C has a softer vocal answer in the gaps. The bare call keeps its tw
 ## Third review · No Batidão
 
 The opening singer now has light catches on the sustained F and its little replies. The words that rise above them still lead into the drums. I also filled in the quiet upper answer in the first bass phrase. 0.356 s — Listen for the long F after the first accented syllable. 3.16 s — The lifted notes carry more weight as the drums join the voice. 18.862 s — The hook has one small inner note before it starts again.  Seed 101 reached the end.
+
+## Third review · No Batidão slowed
+
+The opening leans on the bare drums, with much smaller touches for the words between them. The last low vowel before the beat returns has its own landing again, as does the phrase ending before the four drum strokes. 0.343 s — The little words sit low between the dry beats. The reply at 3.69 speaks a little louder. 30.912 s — Two vocal catches lead across the returning beat. 39.759 s — The word finishes before the four strokes of the roll.  Seed 101 reached the end.

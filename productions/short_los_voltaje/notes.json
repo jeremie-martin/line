@@ -1,0 +1,23 @@
+{
+  "specPath": "productions/short_los_voltaje/spec.ts",
+  "notes": [
+    {
+      "id": "range:252:12651",
+      "t": 6.4515,
+      "scope": "range",
+      "index": null,
+      "t0": 0.252,
+      "t1": 12.651,
+      "axis": null,
+      "title": "range 0:00.25 to 0:12.65",
+      "text": "Pretty damn good. Maybe we could just have this sort of crescendo in terms of impact, the strength level. It doesn't have to be perfectly linear or anything like that. Just, I think it would be nice if we could start a bit lower and progressively increase. And by the way, the intense voice section, the red actor, I think it's perfect. There's no need to change it. And for this section that I'm currently highlighting, the end should not be super high. It's just that the beginning should be lower.",
+      "tags": [],
+      "createdAt": "2026-11-18T16:22:34.755Z",
+      "updatedAt": "2026-11-18T16:22:34.755Z",
+      "on": {
+        "spec": "productions/short_los_voltaje/spec.ts",
+        "sha256": "423e50c84c0d608b45935d75cdf5b2fd4df59bc73ae0efbe7fa54bfa6a034959"
+      }
+    }
+  ]
+}

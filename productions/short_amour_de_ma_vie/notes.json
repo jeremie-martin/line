@@ -1,0 +1,119 @@
+{
+  "specPath": "productions/short_amour_de_ma_vie/spec.ts",
+  "notes": [
+    {
+      "id": "range:58:3204",
+      "t": 1.631,
+      "scope": "range",
+      "index": null,
+      "t0": 0.058,
+      "t1": 3.204,
+      "axis": null,
+      "title": "range 0:00.06 to 0:03.20",
+      "text": "should be way smaller, very low",
+      "tags": [],
+      "createdAt": "2026-11-18T16:18:19.610Z",
+      "updatedAt": "2026-11-18T16:18:19.610Z",
+      "on": {
+        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
+      }
+    },
+    {
+      "id": "moment:3250",
+      "t": 3.25,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.25",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T16:18:25.820Z",
+      "updatedAt": "2026-11-18T16:18:25.820Z",
+      "on": {
+        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
+      }
+    },
+    {
+      "id": "moment:3590",
+      "t": 3.59,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.59",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T16:18:27.948Z",
+      "updatedAt": "2026-11-18T16:18:27.948Z",
+      "on": {
+        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
+      }
+    },
+    {
+      "id": "range:3204:3982",
+      "t": 3.593,
+      "scope": "range",
+      "index": null,
+      "t0": 3.204,
+      "t1": 3.982,
+      "axis": null,
+      "title": "range 0:03.20 to 0:03.98",
+      "text": "3 drum should be very strong, and remove the two weird current impact ones",
+      "tags": [],
+      "createdAt": "2026-11-18T16:18:42.738Z",
+      "updatedAt": "2026-11-18T16:19:01.975Z",
+      "on": {
+        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
+      }
+    },
+    {
+      "id": "moment:3920",
+      "t": 3.92,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:03.92",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T16:18:29.401Z",
+      "updatedAt": "2026-11-18T16:18:29.401Z",
+      "on": {
+        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
+      }
+    },
+    {
+      "id": "moment:22290",
+      "t": 22.29,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:22.29",
+      "text": "this music is very chill, the spec is fine here but it should not be a \"drop\" (i should also be able to see the drop start/end from the spec dashboard)",
+      "tags": [],
+      "createdAt": "2026-11-18T16:19:46.768Z",
+      "updatedAt": "2026-11-18T16:20:16.191Z",
+      "on": {
+        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
+      }
+    }
+  ]
+}

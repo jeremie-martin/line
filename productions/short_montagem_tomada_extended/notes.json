@@ -1,0 +1,23 @@
+{
+  "specPath": "productions/short_montagem_tomada_extended/spec.ts",
+  "notes": [
+    {
+      "id": "range:83:8326",
+      "t": 4.2045,
+      "scope": "range",
+      "index": null,
+      "t0": 0.083,
+      "t1": 8.326,
+      "axis": null,
+      "title": "range 0:00.08 to 0:08.33",
+      "text": "Maybe this could be a slight crescendo. Again, when I say crescendo, it's never literal with all the notes flat and so on. It's just maybe this could be ever so slightly, we keep the relative and so on, we keep the same pattern, the same ideas, but just maybe we could start a bit lower.",
+      "tags": [],
+      "createdAt": "2026-11-18T16:52:22.856Z",
+      "updatedAt": "2026-11-18T16:52:22.856Z",
+      "on": {
+        "spec": "productions/short_montagem_tomada_extended/spec.ts",
+        "sha256": "92c68bcf2f4abf938cea5cad8c58919c2f484bfedbbd94f0d9725e29cfc8ab97"
+      }
+    }
+  ]
+}

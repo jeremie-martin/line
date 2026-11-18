@@ -1,0 +1,23 @@
+{
+  "specPath": "productions/short_los_voltaje_slowed/spec.ts",
+  "notes": [
+    {
+      "id": "range:294:13413",
+      "t": 6.8535,
+      "scope": "range",
+      "index": null,
+      "t0": 0.294,
+      "t1": 13.413,
+      "axis": null,
+      "title": "range 0:00.29 to 0:13.41",
+      "text": "same remark as for the other spec",
+      "tags": [],
+      "createdAt": "2026-11-18T16:23:25.603Z",
+      "updatedAt": "2026-11-18T16:23:28.239Z",
+      "on": {
+        "spec": "productions/short_los_voltaje_slowed/spec.ts",
+        "sha256": "632608fd2ff982ab1a142335ca31d04885e895c933f80ceed55c23b1c6317ecb"
+      }
+    }
+  ]
+}

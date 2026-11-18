@@ -1,0 +1,23 @@
+{
+  "specPath": "productions/short_montagem_coma/spec.ts",
+  "notes": [
+    {
+      "id": "range:16233:17951",
+      "t": 17.092,
+      "scope": "range",
+      "index": null,
+      "t0": 16.233,
+      "t1": 17.951,
+      "axis": null,
+      "title": "range 0:16.23 to 0:17.95",
+      "text": "absolutely perfect",
+      "tags": [],
+      "createdAt": "2026-11-18T16:48:34.762Z",
+      "updatedAt": "2026-11-18T16:48:35.823Z",
+      "on": {
+        "spec": "productions/short_montagem_coma/spec.ts",
+        "sha256": "06ca1cd6862e6769132762e34bf3a254afba3d8a2ace2ad0a1c2a07ce04961a8"
+      }
+    }
+  ]
+}

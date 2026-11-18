@@ -1,0 +1,23 @@
+{
+  "specPath": "productions/short_luna_bala_44s/spec.ts",
+  "notes": [
+    {
+      "id": "range:81:8429",
+      "t": 4.255,
+      "scope": "range",
+      "index": null,
+      "t0": 0.081,
+      "t1": 8.429,
+      "axis": null,
+      "title": "range 0:00.08 to 0:08.43",
+      "text": "would greatly benefit from the lovely low-impacts of LUNA BALA (Slowed) (50 s), among other things (i put LOTS of efforts on putting notes on would greatly benefit from the lovely low-impacts (also outside of this narrow range) of LUNA BALA (Slowed) (50 s) ; so let's leverage them, thanks)",
+      "tags": [],
+      "createdAt": "2026-11-18T16:30:54.836Z",
+      "updatedAt": "2026-11-18T16:30:54.836Z",
+      "on": {
+        "spec": "productions/short_luna_bala_44s/spec.ts",
+        "sha256": "51691ced87e34dbbc9b88dba610c924ae4d3fedc546ee2fdf0bf64424bea2775"
+      }
+    }
+  ]
+}

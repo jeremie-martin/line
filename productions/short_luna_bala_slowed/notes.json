@@ -2,6 +2,24 @@
   "specPath": "productions/short_luna_bala_slowed/spec.ts",
   "notes": [
     {
+      "id": "range:0:6713",
+      "t": 3.3565,
+      "scope": "range",
+      "index": null,
+      "t0": 0,
+      "t1": 6.713,
+      "axis": null,
+      "title": "range 0:00.00 to 0:06.71",
+      "text": "could be a creschendo overall in term of impact (not a literal one, we still need the nice relative impact difference, but let's start low and end up not too high)",
+      "tags": [],
+      "createdAt": "2026-11-18T16:31:35.419Z",
+      "updatedAt": "2026-11-18T16:32:16.769Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
+    },
+    {
       "id": "moment:12470",
       "t": 6.993,
       "scope": "moment",
@@ -176,6 +194,24 @@
       ],
       "createdAt": "2026-11-17T21:48:33.220Z",
       "updatedAt": "2026-11-17T21:48:33.220Z"
+    },
+    {
+      "id": "range:6737:15444",
+      "t": 11.0905,
+      "scope": "range",
+      "index": null,
+      "t0": 6.737,
+      "t1": 15.444,
+      "axis": null,
+      "title": "range 0:06.74 to 0:15.44",
+      "text": "perfection",
+      "tags": [],
+      "createdAt": "2026-11-18T16:31:23.889Z",
+      "updatedAt": "2026-11-18T16:31:23.889Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
     },
     {
       "id": "moment:16820",
@@ -578,6 +614,24 @@
       "updatedAt": "2026-11-17T21:54:12.181Z"
     },
     {
+      "id": "moment:17080",
+      "t": 17.08,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:17.08",
+      "text": "i don't understand why this guy (and all the other ones at that level) are so low, they shouldn't be the strongest but still that's weird",
+      "tags": [],
+      "createdAt": "2026-11-18T16:41:46.234Z",
+      "updatedAt": "2026-11-18T16:42:14.565Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
+    },
+    {
       "id": "moment:22570",
       "t": 17.093,
       "scope": "moment",
@@ -656,6 +710,24 @@
       ],
       "createdAt": "2026-11-17T21:53:36.589Z",
       "updatedAt": "2026-11-17T21:53:36.589Z"
+    },
+    {
+      "id": "contact:67",
+      "t": 19.264,
+      "scope": "contact",
+      "index": 67,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #67 at 0:19.26 - impact 0.28",
+      "text": "i don't understand why this guy (and all the other ones at that level) are so low, they shouldn't be the strongest but still that's weird",
+      "tags": [],
+      "createdAt": "2026-11-18T16:42:20.891Z",
+      "updatedAt": "2026-11-18T16:42:20.891Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
     },
     {
       "id": "moment:24760",
@@ -754,6 +826,24 @@
       "updatedAt": "2026-11-17T21:54:48.499Z"
     },
     {
+      "id": "contact:72",
+      "t": 21.447,
+      "scope": "contact",
+      "index": 72,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #72 at 0:21.45 - impact 0.20",
+      "text": "i don't understand why this guy (and all the other ones at that level) are so low, they shouldn't be the strongest but still that's weird\n\n(etc. for the others)",
+      "tags": [],
+      "createdAt": "2026-11-18T16:42:26.643Z",
+      "updatedAt": "2026-11-18T16:42:32.548Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
+    },
+    {
       "id": "moment:27460",
       "t": 21.983,
       "scope": "moment",
@@ -818,6 +908,44 @@
       "updatedAt": "2026-11-17T21:54:58.858Z"
     },
     {
+      "id": "moment:23350",
+      "t": 23.35,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:23.35",
+      "text": "should have a beat there",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T16:43:12.198Z",
+      "updatedAt": "2026-11-18T16:43:17.389Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
+    },
+    {
+      "id": "contact:77",
+      "t": 23.49,
+      "scope": "contact",
+      "index": 77,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "contact #77 at 0:23.49 - impact 0.37",
+      "text": "delete, missing the mark",
+      "tags": [],
+      "createdAt": "2026-11-18T16:42:58.702Z",
+      "updatedAt": "2026-11-18T16:43:05.960Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
+    },
+    {
       "id": "moment:28980",
       "t": 23.503,
       "scope": "moment",
@@ -832,6 +960,24 @@
       ],
       "createdAt": "2026-11-17T21:55:06.162Z",
       "updatedAt": "2026-11-17T21:55:06.162Z"
+    },
+    {
+      "id": "moment:23620",
+      "t": 23.62,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:23.62",
+      "text": "should have a beat there",
+      "tags": [],
+      "createdAt": "2026-11-18T16:43:21.751Z",
+      "updatedAt": "2026-11-18T16:43:21.751Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
     },
     {
       "id": "moment:29400",
@@ -1120,6 +1266,42 @@
       ],
       "createdAt": "2026-11-17T21:56:08.995Z",
       "updatedAt": "2026-11-17T21:56:08.995Z"
+    },
+    {
+      "id": "moment:33990",
+      "t": 33.99,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:33.99",
+      "text": "missing a somewhat strong one",
+      "tags": [],
+      "createdAt": "2026-11-18T16:44:09.890Z",
+      "updatedAt": "2026-11-18T16:44:16.916Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
+    },
+    {
+      "id": "moment:34520",
+      "t": 34.52,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:34.52",
+      "text": "missing a strong one here",
+      "tags": [],
+      "createdAt": "2026-11-18T16:43:57.643Z",
+      "updatedAt": "2026-11-18T16:43:57.643Z",
+      "on": {
+        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
+      }
     }
   ]
 }

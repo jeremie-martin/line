@@ -1,5 +1,5 @@
 {
-  "specPath": "productions/short_lua_na_praca/spec.ts",
+  "specPath": "productions/short_lua_na_praca/variants/upper.ts",
   "notes": [
     {
       "id": "moment:6930",
@@ -48,6 +48,24 @@
       ],
       "createdAt": "2026-11-17T21:43:41.093Z",
       "updatedAt": "2026-11-17T21:43:41.093Z"
+    },
+    {
+      "id": "range:4555:5528",
+      "t": 5.0415,
+      "scope": "range",
+      "index": null,
+      "t0": 4.555,
+      "t1": 5.528,
+      "axis": null,
+      "title": "range 0:04.55 to 0:05.53",
+      "text": "missing a few impact from the previous notes",
+      "tags": [],
+      "createdAt": "2026-11-18T16:26:01.956Z",
+      "updatedAt": "2026-11-18T16:26:10.582Z",
+      "on": {
+        "spec": "productions/short_lua_na_praca/variants/upper.ts",
+        "sha256": "22c25daa6111a0b3db91f21c4acd7344ca0cdc04f4e52fa28aa0a269497ed8a8"
+      }
     },
     {
       "id": "moment:7400",
@@ -336,6 +354,24 @@
       ],
       "createdAt": "2026-11-17T21:44:26.663Z",
       "updatedAt": "2026-11-17T21:44:26.663Z"
+    },
+    {
+      "id": "range:20959:26565",
+      "t": 23.7619,
+      "scope": "range",
+      "index": null,
+      "t0": 20.9588,
+      "t1": 26.565,
+      "axis": null,
+      "title": "range 0:20.96 to 0:26.57",
+      "text": "impacts should be even lower, In general, impacts that are very low look very good to me. So if appropriate, and only if appropriate, let's not hesitate to use this very low impact, very smooth (can apply to many specs, even \"good\" ones)",
+      "tags": [],
+      "createdAt": "2026-11-18T16:26:39.891Z",
+      "updatedAt": "2026-11-18T16:27:12.818Z",
+      "on": {
+        "spec": "productions/short_lua_na_praca/variants/upper.ts",
+        "sha256": "22c25daa6111a0b3db91f21c4acd7344ca0cdc04f4e52fa28aa0a269497ed8a8"
+      }
     },
     {
       "id": "moment:36130",

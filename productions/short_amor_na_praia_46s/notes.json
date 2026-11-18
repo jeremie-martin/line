@@ -114,6 +114,24 @@
       "updatedAt": "2026-11-17T21:36:48.051Z"
     },
     {
+      "id": "range:337:4180",
+      "t": 2.2585,
+      "scope": "range",
+      "index": null,
+      "t0": 0.337,
+      "t1": 4.18,
+      "axis": null,
+      "title": "range 0:00.34 to 0:04.18",
+      "text": "missing lots of voice notes, all should be very small",
+      "tags": [],
+      "createdAt": "2026-11-18T16:07:40.811Z",
+      "updatedAt": "2026-11-18T16:07:58.911Z",
+      "on": {
+        "spec": "productions/short_amor_na_praia_46s/spec.ts",
+        "sha256": "911ca658c4772bfee686401bfb2b981d068ea9fd505d80bdff349aa62926e7ce"
+      }
+    },
+    {
       "id": "range:295:4236",
       "t": 2.2653,
       "scope": "range",

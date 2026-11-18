@@ -1,0 +1,45 @@
+{
+  "specPath": "productions/short_amor_na_praia/spec.ts",
+  "notes": [
+    {
+      "id": "moment:1810",
+      "t": 1.81,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.81",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T16:10:57.976Z",
+      "updatedAt": "2026-11-18T16:10:57.976Z",
+      "on": {
+        "spec": "productions/short_amor_na_praia/spec.ts",
+        "sha256": "012b3afd4c933ca26a82b2d6c66ea45ab5edbf868489f79ef3fe55d8db0b8de9"
+      }
+    },
+    {
+      "id": "moment:1980",
+      "t": 1.98,
+      "scope": "moment",
+      "index": null,
+      "t0": null,
+      "t1": null,
+      "axis": null,
+      "title": "moment 0:01.98",
+      "text": "",
+      "tags": [
+        "mark"
+      ],
+      "createdAt": "2026-11-18T16:11:04.434Z",
+      "updatedAt": "2026-11-18T16:11:04.434Z",
+      "on": {
+        "spec": "productions/short_amor_na_praia/spec.ts",
+        "sha256": "012b3afd4c933ca26a82b2d6c66ea45ab5edbf868489f79ef3fe55d8db0b8de9"
+      }
+    }
+  ]
+}

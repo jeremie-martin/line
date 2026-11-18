@@ -14,7 +14,7 @@ export const overlayMeta = {title: music.title, artist: "Ariis & Yb Wasg'ood", p
 const strikes: [number, number][] = [
   // Cut into the breathy phrase. Its little consonants bunch up before the first kick.
   [.202,.035],[.336,.11],[.597,.039],[.736,.031],[.934,.067],[1.41,.10],
-  [1.526,.039],[1.718,.052],[1.822,.028],[2.019,.057],
+  [1.526,.039],[1.718,.052],[1.822,.028],[2.019,.057],[2.124,.035],
   [2.414,.07],[2.588,.034],[2.757,.083],[2.954,.05],[3.053,.029],[3.227,.043],[3.488,.024],
   // Four longer upper strokes then the short answer. The double at 7.15 cuts the rest short.
   [3.685,.60],[4.04,.43],[4.382,.48],[4.846,.65],[5.079,.53],

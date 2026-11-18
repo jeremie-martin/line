@@ -403,3 +403,5 @@ Times below are seconds in each short. The values are requests in the specificat
 **Montagem Tomada slowed.** At 17.485 the vocal strength returns from .19 to .23, its value before the drum trial. The 17.625 syllable (.12 → .25) has the sharper vocal attack and larger mix rise of the two. Its own faint answer at 17.729 (absent → .10) completes the pair under the 17.70 mark. The distinct drum follows at 17.857. The 16.61 mark falls on the decay of the 16.533 syllable, with one measured vocal onset across both marks.
 
 **Luna Bala slowed.** The drum punctuation at 6.713 (.48 → .553), the leaned vowel at 14.626 (.175 → .125), its small reply at 14.899 (.018 → .048) and the entrance at 15.444 (.49 → .438) restore the reviewed requests. Those four weights changed between the first musical reading and the physical trials. The opening still swells into the punctuation, and the later fifth strokes retain their raised class.
+
+**Luna Bala original.** At 2.124 the continuation returns (absent → .035). It is the quieter second articulation after 2.019 (.057), present in the opening score before the missed-catch trial.

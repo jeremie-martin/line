@@ -118,3 +118,45 @@ This is the whole earlier excerpt. The owner gave *Kick and answer* 9.5/10. His 
 The opening now leans on that stress and the boom's decay. The two answers after kicks two and three change weight with the notes. Hear the bright second answer at 14.907 against the much smaller one at 17.113. The lone hey breaks the pattern at 26.285. The last low catch shares the word at 44.339 and the two following echoes carry to 45.72. The boom lane opens on the dry double stroke and the hey lane on the return. The main drop still spans the full-band phrase.
 
 Seed 101 completed, 120/120 matched, asked 0.128–0.981, SD 0.195, r 0.971. First pass was 121/121, SD 0.152, r 0.921. The trial's double stroke delivered 0.84 and 0.49. Reshaping the air across the pair gives 0.76 and 0.62. The hardest measured stroke of the burst at 5.277 now lands at 0.91. Watch 0–9.2 for whether the voice can still be followed between those drums, and 12–17.4 for the answering pair. Matched mean absolute error fell from 0.069 to 0.044, with 19 extra strikes in both rides. The owner has yet to judge this balance. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_amor_na_praia_46s-101/manifest.json)
+
+## Bones · Imagine Dragons
+
+The older clock is 4.055 s ahead. The owner gave *Draft revisited* 9/10, then marked Astra “take”. He liked the beat on both sides of old 17–20 s, and asked for the beat inside it to be clearer. Revised Astra separates the two bass replies there. The first short did land those replies, but put more weight on the first and kept the stroke at 14.091 light. In later fills it missed the third heavy stroke at 28.824 and made the one at 37.25 among its lightest. Those are audible changes to the drum sentence.
+
+The quiet spoken bridge now reaches the tiny drum at 4.107. Three low entries thread the held words. Four sharpening vocal pickups give way to three drum pickups. At the crash the singer makes room for the drums and bass, then answers between them through the chorus. The four three-stroke fills each keep their own accents. In the last one the closing word and two release strokes lead into the recorded decay. The register lane and crash lane still follow the changes at the entrance and the last fill. The drop spans the chorus.
+
+Seed 101 completed with 128/128 matches, asked 0.113–0.992, SD 0.231, r 0.973. First pass was 121/121, SD 0.162, r 0.943. In the trial the three heavy strokes at 36.452, 36.719 and 37.253 delivered 0.81, 0.57 and 0.83. Lowering the middle arc gave 0.88, 0.62 and 0.87. The middle still reads lighter. Watch 12.5–16.2 for the crash (0.87), the two secondary lows (0.33 and 0.51) and their much heavier preceding drum strokes (0.71 and 0.77). Watch 44.6–46.43 for the last heavy (0.96) and release. Matched mean absolute error fell from 0.050 to 0.044, extra strikes rose from 9 to 16. Whether the first quiet bass answer reads on screen is unverified. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_bones-101/manifest.json)
+
+## Montagem Coma · Andromeda
+
+The owner marked Astra “take”, praised its calm and intense passages and singled out the rap around old 27 s. He asked to follow the voice around old 35–43. Subtract 10.981 s. The first pass had the register change, both burst entrances and the real break in the middle. Its extra offbeats in the burst displaced the half-second drum sentence. It also missed several syllables of the rap and several renewed attacks of the descending voice.
+
+The cut now enters quietly on an upper reply at 0.478. Short vocal replies separate the drum punctuation at 4–8. The full pulse and its double lead to all seven little syllables at 16.616–17.591. The held singer takes over at 22.607. The arc from 25.138 to 26.101 sustains one vowel, while the two drums at 27.843 and 28.098 occupy the real withdrawal. The last burst carries four vocal interjections and a short sung bridge at 39.116, then returns to the same drum scale. Bass at 47.719 and voice at 47.858 both answer the last drum. The existing zoom lanes anticipate the drum return and the rap, and the drop covers the first burst.
+
+Seed 101 completed with 134/134 matches, asked 0.139–0.987, SD 0.224, r 0.963. First pass had 136/136, SD 0.165, r 0.957. In the trial the first burst opened at 0.72. Carrying the 7.85 word into the drum gave 0.84. Changing the air under the short words raised the turn at 29.12 from 0.28 to 0.40. Watch 16.1–18.6 for the seven quick catches (0.24–0.35), 24.36–32.09 for the held voice shortening into the return, and 47.59–48.02 for the final low/high answer (0.32/0.39). Mean absolute error rose from 0.048 to 0.059 and unmatched strikes from 10 to 13. The quick vocal turns still need a viewing at speed. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_montagem_coma-101/manifest.json)
+
+## No Batidão (Slowed) · ZXKAI & slxughter
+
+The owner called Astra “so rythmic, so good”. That row contains a note and no take/current mark. Subtract 1.073 s from the older selection. The first pass recognized the bright signal and the low singer, but added treble offbeats throughout the first full drum passage. In Astra the whole low recovery belongs to the same kick. Restoring that pulse leaves a single deliberate interruption at 13.939, ahead of a drum with a 5.9 mix rise at 14.217. The early words step between the bare drums. At 22.565 the low D/F/G sentence takes the lead and continues through the returning beat. The later instrumental duet sits outside this cut. The short ends on the four-stroke roll. The two modest camera moves suit the change of register; the owner's zoom review explicitly says this slowed version has no big drop.
+
+Seed 101 completed with 106/106 matches. Asked 0.193–0.947, SD 0.193, r 0.940. The first pass was 112/112, SD 0.145, r 0.960. In the trial the drum return at 31.423 and the answering voice at 31.69 delivered 0.70 and 0.42. Carrying the preceding vowel and lifting the approach brought them to 0.73 and 0.60. The earlier signal and low arrival are 0.64 and 0.87. Shortening the arc from the last word into the roll made the first roll stroke 0.09, up from 0.04 but well under its 0.294 request. The other three reach 0.25, 0.35 and 0.46. Watch 4.27–5.9 for the signal, 13.67–14.78 for the pickup and accent, and 38–40.78 for whether the first stroke of the roll reads. Mean absolute error rose from 0.037 to 0.061. Both rides have 15 unmatched strikes. [Seed 101 replay](http://127.0.0.1:8767/motion-gallery/production.html?data=/generated/shorts2/short_no_batidao_slowed-101/manifest.json)
+
+### Seed 101 delivery across these five cuts
+
+Each column compares the first pass with the final ride on its own authored requests. A larger error means the ride followed its requested axis less closely. The production score measures delivery against those requests. The five musical readings await the owner's video review.
+
+| Cut | Air RMS | Speed RMS | Impact RMS | Production score |
+| --- | ---: | ---: | ---: | ---: |
+| Amor 52.351 s | .034 → .037 | .035 → .043 | .047 → .078 | 855 → 800 |
+| Amor 46 s | .039 → .035 | .061 → .043 | .094 → .062 | 760 → 825 |
+| Bones | .034 → .047 | .041 → .045 | .072 → .077 | 813 → 793 |
+| Montagem Coma | .038 → .051 | .052 → .053 | .071 → .085 | 802 → 772 |
+| No Batidão slowed | .035 → .048 | .041 → .050 | .058 → .095 | 834 → 762 |
+
+Before the No Batidão commit, typecheck passed, reach found zero unreachable files, and all 721 tests passed.
+
+### Los Voltaje · original speed
+
+The owner's last Astra note says “very good spec” with no preference box ticked. Subtract 9.048 s. The cut starts inside the quiet calls. The first pass recognized all the foreground changes, including the three final words, but broke the opening answers apart, took 11 of the 19 attacks in the quick voice, and mixed offbeats into the straight drum return. I restored the three-note calls, their answering drums and the gathering percussion before 11 s. At 14.869 the full drum takes over. From 23.553 the upper line plays three distinct replies over each cycle. Their second stroke often has the largest mix rise. The late repeats keep that relationship. Both camera lanes and the registered drop already describe these entrances.
+
+Seed 101 completed, 159/159 requested strikes matched. Asked .216–.977, SD .164, matched Pearson r .928. First pass 139/139, SD .143, r .931. The trial made 22.125 stronger than the return (.94 against .88), and the last two low strokes at 46.424 and 46.947 reached only .46 and .58. I eased the 22.125 request and gave the last pair more air. They now deliver .54 and .64, and the return leads .88 to .71. The treble reply at 38.414 is still slight (.45 for .75). First to final air/speed/impact RMS .034/.046/.073 to .047/.057/.086, score 807 to 769, unmatched strikes 11 to 12. Watch the answering triplets at 0.4–6.35, the quick articulation into 14.87, and the upper-to-low exchange at 37.6–39.7. Video judgment is pending.

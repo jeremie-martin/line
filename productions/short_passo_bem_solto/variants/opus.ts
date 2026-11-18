@@ -3,8 +3,8 @@
  * and kick it off the ground. The high answer rides in the air, the treble dance settles into a springy middle with
  * clear accents and small in-between notes, and the naked call floats on the barest touches, the most airborne
  * stretch of the song and the room before the drums return at 29.35 with the heaviest landing. From there it runs
- * low and fast, a firm beat with light pickups, and loosens as the drum figure frays. The approved reading rode the
- * opening at the height and pace of the rest, with near-equal weights; here the song climbs out of a quiet floor.
+ * low and fast, a firm beat with light pickups, and loosens as the drum figure frays. The approved reading gave the
+ * opening the height of the rest and near-equal weights; here the song climbs out of a quiet floor.
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';

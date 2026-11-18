@@ -3,8 +3,8 @@
  * until the long breath before the stab throws it into the biggest loft of the song. From the stab on, with
  * the bass under it, it runs low and fast, close to the line, and the body's strokes fall into a few clear
  * weights instead of many near-equal ones. The lower singer lifts it off the ground again, slower and rounder,
- * before the full drums send it flat and fast to the last four strokes. The approved reading rode the whole
- * song at much the same height and pace; here the two singers float and the bass runs. Most visible at the
+ * before the full drums send it flat and fast to the last four strokes. The approved reading changed height and
+ * pace only gradually across the song; here the two singers float and the bass runs. Most visible at the
  * stab (12.2 s) and when the lower voice takes over (26.9 s).
  */
 import type {Spec} from '../../../scripts/v0/types.ts';

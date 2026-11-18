@@ -3,7 +3,7 @@
  * phrases leave a long breath, so the uneven rhythm of his speech shows as uneven steps; his stressed syllables land
  * full and the in-between ones fall back. The quick words speed it up, flat and running. The roll launches it, and
  * over the high voice and the renewed groove it soars: fastest, highest, every kick launching a tall arc and the
- * small replies brushed in between, to the cut. The approved reading rode the low verse quicker than the opening and the
+ * small replies brushed in between, to the cut. The approved reading rode the low verse nearly as fast as the opening and the
  * finale no higher than the start; here the song climbs from a trudge to a flight, most of all after 42.5 s.
  */
 import type {Spec} from '../../../scripts/v0/types.ts';

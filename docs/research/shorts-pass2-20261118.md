@@ -407,3 +407,5 @@ Times below are seconds in each short. The values are requests in the specificat
 **Luna Bala original.** At 2.124 the continuation returns (absent → .035). It is the quieter second articulation after 2.019 (.057), present in the opening score before the missed-catch trial.
 
 **Los Voltaje.** Seven strength changes restore the exact stresses of the reviewed quick voice. In time order they are 11.002 (.53 → .462), 11.792 (.62 → .496), 13.359 (.23 → .335), 13.533 (.43 → .369), 13.708 (.36 → .295), 14.427 (.23 → .344) and 14.590 (.25 → .306). The crescendo in the preceding calls ends on the drum answer.
+
+**Los Voltaje slowed.** At 10.859, 11.126 and 11.405 the last three drum weights return from .45/.275/.55 to .42/.26/.52. That gives the answer its initial phrase contour, a lighter penultimate stroke and an accented end. Air at 11.405 returns from .41 to .38, the setting carried across this answer from 10.023. All 19 reviewed voice requests start from the same score as before the trials.

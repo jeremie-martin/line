@@ -34,6 +34,9 @@ try{
  check(await songTime()-faster>.75,'rate changes during playback');
  await page.locator('#play').click();const paused=await songTime();await page.locator('#timeline').focus();await page.keyboard.press('m');await page.waitForTimeout(150);
  check([...notes.values()].some(n=>n.tags.includes('mark')&&Math.abs(n.t-paused)<.03),'paused mark does not use a stale selected anchor');
+ await page.keyboard.press('s');await page.waitForTimeout(150);
+ check([...notes.values()].some(n=>n.tags.includes('strong')&&!n.tags.includes('mark')&&Math.abs(n.t-paused)<.03),'S makes the mark there the strong one');
+ check(await page.locator('[data-note-tag="strong"]').count()===1,'a strong mark is drawn as one');
  const count=notes.size;await page.locator('#note-text').focus();await page.keyboard.type('vim c');check(notes.size===count,'typing is not a shortcut');
  check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='true','typing c does not toggle clicks');await page.locator('#note-text').fill('');await page.waitForTimeout(500);
  // Seeking keys while paused, with focus left on the scrub slider (a slider takes no text).
@@ -64,5 +67,5 @@ try{
  check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='false','clicks off survives reload');
  await page.locator('#toggle-clicks').click();check(await page.locator('#toggle-clicks').getAttribute('aria-pressed')==='true','Clicks button turns them back on');
  await page.setViewportSize({width:390,height:844});check(await page.locator('[data-quick-mark="voice"]').isVisible(),'touch mark control available');
- check(errors.length===0,errors.join("\n"));console.log("PASS: speed, live/paused marking, typing, saved notes, touch controls, transport keys, clicks toggle");
+ check(errors.length===0,errors.join("\n"));console.log("PASS: speed, live/paused marking, strong marks, typing, saved notes, touch controls, transport keys, clicks toggle");
 }finally{await browser.close();}

@@ -712,3 +712,11 @@ textarea {
 .shortcuts .hint { flex-basis:100%; }
 .evidence-note { font-size:12px; line-height:1.5; color:var(--muted, #666); margin:8px 0; max-width:100ch; }
 .evidence-note.error { color:#a8442f; }
+.hear { gap:4px; }
+.hear-label { font-size:13px; color:var(--muted); margin-right:4px; }
+.hear button { height:30px; padding:0 8px; font-size:12px; }
+.ride-video video { display:block; height:min(60vh, 600px); max-width:100%; aspect-ratio:9 / 16; object-fit:contain; margin:12px auto 0; background:#2a251f; border-radius:6px; }
+.video-state { margin:10px 0; font-size:12px; color:var(--muted); white-space:pre-line; overflow-wrap:anywhere; }
+.video-state.stale { color:#8a5a12; }
+.video-state.error { color:#a8442f; }
+.hear[hidden], .ride-video video[hidden] { display:none; }

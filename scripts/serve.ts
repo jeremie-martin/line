@@ -1,5 +1,5 @@
 /** Local review server: static files under the project root (with byte ranges
- * for audio and video) plus the production job, labels, spec and scene APIs.
+ * for audio and video) plus the production job, labels, spec, spec video and scene APIs.
  *
  *   npm run serve            # http://127.0.0.1:8767/  →  production review page
  *   HOST=0.0.0.0 PORT=8767 npm run serve
@@ -12,6 +12,7 @@ import {createRepertoireApi} from './gallery/repertoire_api.ts';
 import {createLabelsApi} from './gallery/labels_api.ts';
 import {createRatingsApi} from './gallery/ratings_api.ts';
 import {createSpecApi} from './gallery/spec_api.ts';
+import {createSpecVideoApi} from './gallery/spec_video_api.ts';
 import {createSceneApi} from './video/scene_api.ts';
 
 // The review player and the concept lab import the renderer bundle (generated/renderer/, scripts/gallery/build_renderer.mjs):
@@ -20,7 +21,7 @@ try {execFileSync(process.execPath, [resolve(import.meta.dirname, 'gallery/build
 catch (error) {console.error(`The renderer bundle could not be built; rides will not play: ${(error as Error).message.split('\n')[0]}`);}
 
 const PORT = Number(process.env.PORT ?? 8767), HOST = process.env.HOST ?? '127.0.0.1';
-const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), ratings = createRatingsApi(), specs = createSpecApi(), scenes = createSceneApi();
+const ROOT = resolve(process.cwd()), api = createRepertoireApi(), labels = createLabelsApi(), ratings = createRatingsApi(), specs = createSpecApi(), specVideos = createSpecVideoApi(), scenes = createSceneApi();
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.mjs': 'text/javascript; charset=utf-8',
   '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.mp4': 'video/mp4', '.webm': 'video/webm',
@@ -61,6 +62,7 @@ const server = createServer(async (req, res) => {
       : url.pathname.startsWith('/api/labels/') ? labels
       : url.pathname === '/api/rate' || url.pathname.startsWith('/api/rate/') ? ratings
       : url.pathname === '/api/scene' ? scenes
+      : url.pathname === '/api/spec-video' ? specVideos
       : url.pathname.startsWith('/api/spec') ? specs : undefined;
     if (handler && await handler(req, res, url)) return;
     if (url.pathname === '/') {res.writeHead(302, {Location: '/motion-gallery/production.html'}).end(); return;}
@@ -77,6 +79,6 @@ const server = createServer(async (req, res) => {
   }
 });
 for (const signal of ['SIGINT', 'SIGTERM'] as const) process.once(signal, () => {
-  api.close(); labels.close(); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 1000).unref();
+  api.close(); labels.close(); specVideos.close(); server.close(() => process.exit(0)); setTimeout(() => process.exit(0), 1000).unref();
 });
 server.listen(PORT, HOST, () => console.log(`review server: http://${HOST}:${PORT}/  (root ${ROOT})`));

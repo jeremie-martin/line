@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Closing: the cut</title>
+<link rel="stylesheet" href="./closing.css">
+<style>
+.player{display:grid;gap:12px;min-width:0}
+#wave{width:100%;height:280px;display:block;border-radius:10px;background:var(--card);border:1px solid var(--line);touch-action:none;cursor:text}
+.read{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 26px;font-size:15px}.read b{font-variant-numeric:tabular-nums;font-size:19px;display:inline-block;min-width:4.6ch;text-align:right}
+.read .amber b{color:var(--open)}.read small{color:var(--soft);font-size:13px}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.row .gap{flex:1}.seg{display:inline-flex;gap:0}.seg .pill{border-radius:0;margin-left:-1px}.seg .pill:first-child{border-radius:999px 0 0 999px}.seg .pill:last-child{border-radius:0 999px 999px 0}
+.pill{min-width:4.5em}#note{flex:1;min-width:220px;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:8px;padding:7px 9px}
+.hint{font-size:13px;color:var(--soft)}
+</style>
+<main>
+<header><h1>Closing: the cut</h1><nav><a href="./decisions.html">Decisions</a><a href="./songs.html">Songs</a><a href="./specs.html">New specs</a><a class="here" href="./cut.html">The cut</a></nav>
+<p>For each song, the 30 to 50 seconds that become its short: from there to there. The end may later move by up to half a second so the loop turns cleanly.
+Keys: <kbd>Space</kbd> play, <kbd>←</kbd> <kbd>→</kbd> 1 s (<kbd>Shift</kbd> 5 s), <kbd>,</kbd> <kbd>.</kbd> 0.05 s, <kbd>S</kbd> <kbd>E</kbd> start and end here, <kbd>P</kbd> play the cut, <kbd>L</kbd> loop it, <kbd>[</kbd> <kbd>]</kbd> to the start and end (<kbd>]</kbd> while paused plays the last 2 s up to the end), <kbd>Enter</kbd> save, <kbd>↑</kbd> <kbd>↓</kbd> songs, <kbd>N</kbd> next song without a cut. Wheel zooms, <kbd>Shift</kbd>+wheel or dragging the ruler scrolls.</p></header>
+<div class="layout"><div class="index" id="index"></div>
+<div class="player">
+<h2 id="title" style="margin:0;font-size:20px"></h2>
+<div class="read"><span>start <b id="start">–</b> s</span><span>end <b id="end">–</b> s</span><span id="lengthBox">length <b id="length">–</b> s</span><span>playhead <b id="pos">0.00</b> s</span><small id="loading"></small></div>
+<canvas id="wave"></canvas>
+<div class="row"><button class="pill" id="play">Play</button><button class="pill" id="playCut">Play the cut</button><button class="pill" id="loop">Loop the cut</button>
+<span class="seg" id="speeds"><button class="pill on" data-rate="1">1×</button><button class="pill" data-rate="0.75">0.75×</button><button class="pill" data-rate="0.5">0.5×</button></span>
+<span class="gap"></span><span class="hint">slower speeds also lower the pitch</span></div>
+<div class="row"><input id="note" placeholder="A note on this song's cut" autocomplete="off"><button class="pill" id="save">Save</button></div>
+<div class="saved" id="status"></div>
+</div></div>
+</main>
+<script type="module" src="./cut.mjs"></script>

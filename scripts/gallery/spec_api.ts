@@ -2,7 +2,8 @@
  * plus the owner's timeline notes, stored beside each spec (they are authoring input).
  *   GET  /api/specs                         → {specs: [{path, name, label, group}]}
  *   GET  /api/spec-view?spec=…&samples=…    → contacts, gaps, sampled axes, keyframes, music
- *                                            (music.eventsUrl: the song's measured events.json, if any)
+ *                                            (music.eventsUrl: the song's measured events.json, if any;
+ *                                            music.stems: the song's separated stems that exist, by name)
  *   GET  /api/spec-notes?spec=…             → {specPath, notesPath, notes}
  *   POST /api/spec-notes  ← {spec, note} upsert (empty text and no tags deletes), {spec, id} delete, {spec, clear}
  * Specs are edited in their source files; the dashboard does not write them. */
@@ -37,18 +38,23 @@ export function validVocalEvidence(root: string, evidencePath: string, audioPath
   } catch { return false; }
 }
 
+/** The specs the dashboard shows: each production's spec.ts, then its variants (productions/<song>/variants/*.ts). */
+export const listSpecs = (root: string): SpecEntry[] => readdirSync(join(root, 'productions'), {withFileTypes: true})
+  .filter(d => d.isDirectory() && existsSync(join(root, 'productions', d.name, 'spec.ts')))
+  .flatMap(d => {
+    const dir = join(root, 'productions', d.name, 'variants');
+    const variants = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.ts')).sort() : [];
+    return [{path: `productions/${d.name}/spec.ts`, name: d.name, label: d.name, group: 'production'},
+      ...variants.map(f => ({path: `productions/${d.name}/variants/${f}`, name: `${d.name}:${f.slice(0, -3)}`,
+        label: `${d.name} · ${f.slice(0, -3)}`, group: 'production'}))];
+  });
+
+/** The separated stems a song has (generated/stems/<song>/<stem>.wav), by stem name. */
+const STEMS = ['vocals', 'other', 'drums', 'bass'];
+
 export function createSpecApi(root = process.cwd()) {
   const url = (abs: string) => '/' + relative(root, abs).split(sep).join('/');
-  // Each production's spec.ts, then its variants (productions/<song>/variants/*.ts).
-  const specs = () => readdirSync(join(root, 'productions'), {withFileTypes: true})
-    .filter(d => d.isDirectory() && existsSync(join(root, 'productions', d.name, 'spec.ts')))
-    .flatMap(d => {
-      const dir = join(root, 'productions', d.name, 'variants');
-      const variants = existsSync(dir) ? readdirSync(dir).filter(f => f.endsWith('.ts')).sort() : [];
-      return [{path: `productions/${d.name}/spec.ts`, name: d.name, label: d.name, group: 'production'},
-        ...variants.map(f => ({path: `productions/${d.name}/variants/${f}`, name: `${d.name}:${f.slice(0, -3)}`,
-          label: `${d.name} · ${f.slice(0, -3)}`, group: 'production'}))];
-    });
+  const specs = () => listSpecs(root);
   /** A production's folder, for a spec.ts or a variant. */
   const songDir = (specPath: string) => specPath.split('/').slice(0, 2).join('/');
   const resolveSpec = (raw: string) => specs().find(s => s.path === raw);
@@ -77,8 +83,10 @@ export function createSpecApi(root = process.cwd()) {
       else vocalEvidenceError = 'Vocal evidence is stale or its source files are missing. Regenerate it before using it.';
     }
     const image = asset(m.spectrogram?.image), meta = asset(m.spectrogram?.metadata);
+    const stemDir = join(root, 'generated/stems', specDir.split('/')[1]);
+    const stems = Object.fromEntries(STEMS.filter(s => existsSync(join(stemDir, s + '.wav'))).map(s => [s, url(join(stemDir, s + '.wav'))]));
     return {title: m.title ?? null, artist: m.artist ?? null, tempo: m.tempo ?? null,
-      audio: m.audio, audioUrl: asset(m.audio)?.url ?? null, beatsUrl: asset(m.beats)?.url ?? null, eventsUrl: events?.url ?? null,
+      audio: m.audio, audioUrl: asset(m.audio)?.url ?? null, beatsUrl: asset(m.beats)?.url ?? null, eventsUrl: events?.url ?? null, stems,
       vocalEvidenceUrl, vocalEvidenceError,
       spectrogram: image || meta ? {imageUrl: image?.url ?? null,
         meta: meta && existsSync(meta.abs) ? JSON.parse(readFileSync(meta.abs, 'utf8')) : null} : null};

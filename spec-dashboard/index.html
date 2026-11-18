@@ -48,6 +48,14 @@
         <button id="toggle-music" type="button" class="on" aria-pressed="true" title="Mute or unmute the music">Music on</button>
         <input id="music-volume" type="range" min="0" max="1" step="0.05" value="1" aria-label="Music volume" title="Music volume">
       </div>
+      <div class="listening-group hear" id="hear" hidden>
+        <span class="hear-label" title="The whole mix, or one separated stem of it">Hear</span>
+        <button type="button" data-hear="mix" class="on">mix</button>
+        <button type="button" data-hear="vocals">voice</button>
+        <button type="button" data-hear="other">other</button>
+        <button type="button" data-hear="drums">drums</button>
+        <button type="button" data-hear="bass">bass</button>
+      </div>
       <div class="listening-group listening-speed">
         <label for="listening-rate" title="Pitch follows speed">Speed</label>
         <input id="listening-rate" type="range" min="0.2" max="2" step="0.05" value="1" list="rate-steps">
@@ -57,6 +65,7 @@
       </div>
       <div class="quick-marks" aria-label="Mark this moment">
         <button type="button" data-quick-mark="mark" title="Mark this moment (M)">Mark <kbd>M</kbd></button>
+        <button type="button" data-quick-mark="strong" title="Mark the strong one here (S)">Strong <kbd>S</kbd></button>
         <button type="button" data-quick-mark="voice" title="Mark a vocal sound (V)">Voice <kbd>V</kbd></button>
         <button type="button" data-quick-mark="impact" title="Request an impact here (I)">Impact <kbd>I</kbd></button>
       </div>
@@ -67,7 +76,7 @@
         <span><kbd>Home</kbd><kbd>End</kbd> start/end</span>
         <span><kbd>&lt;</kbd><kbd>&gt;</kbd> speed</span>
         <span><kbd>C</kbd> clicks</span>
-        <span><kbd>M</kbd><kbd>V</kbd><kbd>I</kbd> mark</span>
+        <span><kbd>M</kbd><kbd>S</kbd><kbd>V</kbd><kbd>I</kbd> mark</span>
         <span class="hint">Click a moment, then mark it, or mark while listening; text and tags in Notes.</span>
       </p>
     </div>
@@ -111,6 +120,20 @@
   </section>
 
   <aside class="inspector">
+    <section class="ride-video">
+      <div class="section-title-row">
+        <h2>Video</h2>
+        <button id="toggle-video" type="button" aria-expanded="true">Hide</button>
+      </div>
+      <div id="video-body">
+        <video id="video-player" muted playsinline preload="auto" hidden></video>
+        <p id="video-state" class="video-state"></p>
+        <div class="button-row">
+          <button id="make-video" type="button" title="Compile this spec and render its ride (a few minutes)">Make the video</button>
+        </div>
+      </div>
+    </section>
+
     <section class="readout">
       <h2>Cursor</h2>
       <div class="time-readout" id="cursor-time">0:00.00</div>

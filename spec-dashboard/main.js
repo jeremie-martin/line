@@ -10,7 +10,7 @@ const AXIS_META = {
   amplitude: { label: "amplitude", color: "#b57d1d" },
   impact: { label: "impact", color: "#a8442f" },
 };
-const NOTE_TAGS = ["mark", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "music", "flat", "too much"];
+const NOTE_TAGS = ["mark", "strong", "voice", "sync", "impact", "zoom", "speed", "air", "amplitude", "music", "flat", "too much"];
 
 const refs = {
   specSelect: document.getElementById("spec-select"),
@@ -55,6 +55,12 @@ const refs = {
   agentJson: document.getElementById("agent-json"),
   copyContext: document.getElementById("copy-context"),
   toast: document.getElementById("toast"),
+  hear: document.getElementById("hear"),
+  toggleVideo: document.getElementById("toggle-video"),
+  videoBody: document.getElementById("video-body"),
+  video: document.getElementById("video-player"),
+  videoState: document.getElementById("video-state"),
+  makeVideo: document.getElementById("make-video"),
 };
 
 const state = {
@@ -80,6 +86,11 @@ const state = {
   pendingNoteSave: null,
   followPlayhead: true,
   followSuspended: false,
+  /** What is heard: "mix" or one of the song's stems (music.stems). */
+  stem: "mix",
+  /** The spec's video and the video job, as /api/spec-video reports them. */
+  video: null,
+  videoJob: null,
 };
 
 // A newer spec's music supersedes an older one still downloading, and a play
@@ -89,10 +100,10 @@ const music = createMusic(), onScreen = displayTime();
 /** Landing clicks: scheduled oscillators, how far ahead they are scheduled, and their gain. */
 const clicks = { until: -Infinity, pending: new Set(), out: null };
 
-// Listening preferences (clicks on/off, click and music volume, music muted) survive
-// reloads in this browser; storage may be unavailable, and then the defaults apply.
+// Listening preferences (clicks on/off, click and music volume, music muted) and whether the
+// video is shown survive reloads in this browser; storage may be unavailable, and then the defaults apply.
 const LISTENING_KEY = "spec-dashboard.listening";
-const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false };
+const listening = { clicks: true, clickVolume: 0.8, musicVolume: 1, musicMuted: false, videoOpen: true };
 try {
   Object.assign(listening, JSON.parse(localStorage.getItem(LISTENING_KEY) || "{}"));
 } catch { /* defaults */ }
@@ -115,6 +126,11 @@ function renderListening() {
   music.volume = listening.musicMuted ? 0 : listening.musicVolume;
   if (clicks.out) clicks.out.gain.value = listening.clicks ? listening.clickVolume : 0;
   if (!listening.clicks) clearClicks();
+  refs.videoBody.hidden = !listening.videoOpen;
+  refs.toggleVideo.textContent = listening.videoOpen ? "Hide" : "Show";
+  refs.toggleVideo.setAttribute("aria-expanded", String(listening.videoOpen));
+  if (!listening.videoOpen) refs.video.pause();
+  else syncVideo();
 }
 const RATE_STEPS = [0.25, 0.5, 0.75, 1, 1.25, 1.5, 2];
 
@@ -151,6 +167,13 @@ function wireEvents() {
   refs.clickVolume.addEventListener("input", () => setListening({ clickVolume: Number(refs.clickVolume.value), clicks: true }));
   refs.toggleMusic.addEventListener("click", () => setListening({ musicMuted: !listening.musicMuted }));
   refs.musicVolume.addEventListener("input", () => setListening({ musicVolume: Number(refs.musicVolume.value), musicMuted: false }));
+  refs.hear.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-hear]");
+    if (button && !button.disabled) hear(button.dataset.hear);
+  });
+  refs.toggleVideo.addEventListener("click", () => setListening({ videoOpen: !listening.videoOpen }));
+  refs.makeVideo.addEventListener("click", () => makeVideo());
+  for (const type of ["loadedmetadata", "seeked"]) refs.video.addEventListener(type, () => syncVideo());
   refs.specSelect.addEventListener("change", () => loadSpec(refs.specSelect.value, true));
   refs.reload.addEventListener("click", () => loadSpec(refs.specSelect.value, false, {
     cursorT: specTime(),
@@ -256,7 +279,7 @@ function wireEvents() {
     const key = event.key.toLowerCase();
     if (isEditableElement(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.defaultPrevented) return;
     // Auto-repeat would add duplicate marks or toggle playback repeatedly; held arrows keep seeking.
-    const mark = {m: "mark", v: "voice", i: "impact"}[key];
+    const mark = {m: "mark", s: "strong", v: "voice", i: "impact"}[key];
     if (mark) {
       event.preventDefault();
       if (!event.repeat) quickMark(mark);
@@ -330,6 +353,9 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.selection = null;
   state.pointerDrag = null;
   state.suppressNextClick = false;
+  state.video = null;
+  refs.video.hidden = true;
+  refs.video.removeAttribute("src");
   if (restore?.selectedScope) state.selectedScope = restore.selectedScope;
 
   const [view, notes] = await Promise.all([
@@ -343,7 +369,10 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.viewStart = clamp(Number(restore?.viewStart ?? 0), 0, view.spec.duration);
   state.viewEnd = clamp(Number(restore?.viewEnd ?? view.spec.duration), state.viewStart + 1e-6, view.spec.duration);
   music.clear();
-  if (view.music?.audioUrl) loadMusic(view.music.audioUrl);
+  if (!view.music?.stems?.[state.stem]) state.stem = "mix";
+  renderHear();
+  if (musicUrl()) loadMusic(musicUrl());
+  loadVideoStatus();
   state.analysis = await loadAnalysis(view.music);
   // A beat grid is only a tempo hypothesis; where measured events exist, notes snap to them.
   if (state.analysis?.onsets.some((event) => event.source) && state.snapMode === "beat") {
@@ -366,6 +395,36 @@ async function loadMusic(url) {
     if (await music.load(url)) updatePlaybackUi();
   } catch {
     refs.musicMeta.textContent = "Audio failed to load";
+  }
+}
+
+/** The recording heard: the mix, or the chosen stem. */
+function musicUrl() {
+  const m = state.data?.music;
+  return state.stem === "mix" ? m?.audioUrl : m?.stems?.[state.stem];
+}
+
+function renderHear() {
+  const stems = state.data?.music?.stems ?? {};
+  refs.hear.hidden = Object.keys(stems).length === 0;
+  for (const button of refs.hear.querySelectorAll("button[data-hear]")) {
+    const name = button.dataset.hear;
+    button.disabled = name !== "mix" && !stems[name];
+    button.classList.toggle("on", name === state.stem);
+    button.setAttribute("aria-pressed", String(name === state.stem));
+  }
+}
+
+/** Swaps the recording heard (the mix or one stem) at the same position, speed and play state. The
+ * previous recording plays on until the new one is decoded. */
+async function hear(stem) {
+  if (!state.data || stem === state.stem) return;
+  state.stem = stem;
+  renderHear();
+  try {
+    if (await music.load(musicUrl()) && music.requested) startPlayback(specTime());
+  } catch {
+    toast(`${stem} failed to load`);
   }
 }
 
@@ -1054,14 +1113,17 @@ function drawNoteLane(svg, L, plotW, y, h) {
     }
     if (!timeVisible(note.t)) continue;
     const x = state.timeline.xFor(note.t);
+    // a strong mark: the same mark, wider, the lane's full height and darker
+    const strong = note.tags?.includes("strong");
     add(svg, "rect", {
-      x: x - 3,
-      y: y + 6,
-      width: 6,
-      height: h - 12,
+      x: x - (strong ? 5 : 3),
+      y: y + (strong ? 2 : 6),
+      width: strong ? 10 : 6,
+      height: h - (strong ? 4 : 12),
       rx: 2,
-      fill: note.id === state.activeNoteId ? "#a8442f" : "#2d5d8f",
-      opacity: 0.88,
+      fill: note.id === state.activeNoteId ? "#a8442f" : strong ? "#173a5e" : "#2d5d8f",
+      opacity: strong ? 1 : 0.88,
+      "data-note-tag": strong ? "strong" : "note",
     });
   }
 }
@@ -1145,6 +1207,7 @@ function updatePlaybackUi(t = specTime()) {
       ph.setAttribute("x2", x);
     }
   }
+  syncVideo(t);
   renderInspector(t);
 }
 
@@ -1307,9 +1370,11 @@ async function quickMark(kind) {
   state.selectedScope = anchor.scope;
   renderScopeTabs();
   setActiveAnchor(anchor);
-  state.activeTags = [...new Set([...state.activeTags, kind])];
+  // mark and strong are two levels of one mark: a moment holds one of them.
+  const other = { mark: "strong", strong: "mark" }[kind];
+  state.activeTags = [...new Set([...state.activeTags.filter((tag) => tag !== other), kind])];
   renderTags();
-  toast(`${kind === "mark" ? "Marked" : kind === "voice" ? "Voice" : "Impact"} at ${formatTime(anchor.t)}`);
+  toast(`${{ mark: "Marked", strong: "Strong", voice: "Voice", impact: "Impact" }[kind]} at ${formatTime(anchor.t)}`);
   await saveActiveNote();
 }
 
@@ -1591,6 +1656,90 @@ function seekTo(t, opts = { select: true }) {
   if (opts.reveal !== false) revealTime(next, { manual: false });
   updatePlaybackUi(next);
   if (opts.select) selectAnchorAtCursor();
+}
+
+// The ride's video: one per spec file, made by the server on request (scripts/gallery/spec_video_api.ts).
+// It is muted and follows the dashboard's own clock: position, speed, seeks and pauses.
+async function loadVideoStatus() {
+  const spec = state.data?.spec.path;
+  if (!spec) return;
+  try {
+    const status = await fetch(`/api/spec-video?spec=${encodeURIComponent(spec)}`, { cache: "no-cache" }).then(readJsonOk);
+    if (spec !== state.data?.spec.path) return;
+    const finished = state.videoJob && isMaking(state.videoJob) && !isMaking(status.job);
+    if (status.video?.url !== state.video?.url || status.video?.madeAt !== state.video?.madeAt) {
+      refs.video.src = status.video ? `${status.video.url}?v=${encodeURIComponent(status.video.madeAt)}` : "";
+      if (!status.video) refs.video.removeAttribute("src");
+    }
+    state.video = status.video;
+    state.videoJob = status.job;
+    renderVideo();
+    if (finished && status.job.spec === spec) toast(status.job.phase === "done" ? "Video made" : "Video failed");
+  } catch (error) {
+    refs.videoState.textContent = `Video status unavailable: ${error.message}`;
+  }
+  clearTimeout(loadVideoStatus.timer);
+  if (isMaking(state.videoJob)) loadVideoStatus.timer = setTimeout(loadVideoStatus, 2000);
+}
+
+const isMaking = (job) => job?.phase === "compiling" || job?.phase === "rendering";
+
+function renderVideo() {
+  const { video, videoJob: job } = state, spec = state.data?.spec.path;
+  const mine = job?.spec === spec ? job : null;
+  refs.video.hidden = !video;
+  refs.makeVideo.disabled = isMaking(job);
+  refs.makeVideo.textContent = isMaking(mine) ? "Making the video" : video ? "Make it again" : "Make the video";
+  refs.makeVideo.title = isMaking(job) && !mine ? `A video is being made for ${job.spec}` : "Compile this spec and render its ride (a few minutes)";
+  const lines = [];
+  if (video) {
+    const made = new Date(video.madeAt).toLocaleString();
+    lines.push(video.current ? `Made from this version, ${made}.` : `The spec changed since this video was made (${made}).`);
+    lines.push(`${video.theme}, zoom ${video.zoom ?? "steady"}`);
+  } else {
+    lines.push("No video of this spec yet.");
+  }
+  if (isMaking(mine)) {
+    const seconds = Math.round((Date.now() - Date.parse(mine.startedAt)) / 1000);
+    lines.push(`${mine.phase === "compiling" ? "Compiling" : "Rendering"}, ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")} so far. Look: ${mine.look}.`);
+    if (mine.line) lines.push(mine.line);
+  } else if (mine?.phase === "error") {
+    lines.push(`The last attempt failed:\n${mine.error}`);
+  }
+  refs.videoState.textContent = lines.join("\n");
+  refs.videoState.classList.toggle("stale", Boolean(video && !video.current));
+  refs.videoState.classList.toggle("error", mine?.phase === "error");
+}
+
+async function makeVideo() {
+  if (!state.data) return;
+  refs.makeVideo.disabled = true;
+  try {
+    const res = await fetch("/api/spec-video", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ spec: state.data.spec.path }),
+    }).then(readJsonOk);
+    state.videoJob = res.job;
+  } catch (error) {
+    toast(String(error.message ?? error));
+  }
+  loadVideoStatus();
+}
+
+/** Puts the video at spec time `t`: playing with the music at its speed, or paused on the frame. */
+function syncVideo(t = specTime()) {
+  const v = refs.video;
+  if (!state.video || !listening.videoOpen || v.readyState < 1) return;
+  const at = clamp(t - state.video.from, 0, v.duration || 0), running = isPlaying() && at < v.duration;
+  if (v.playbackRate !== state.playbackRate) v.playbackRate = state.playbackRate;
+  if (running) {
+    if (!v.seeking && Math.abs(v.currentTime - at) > 0.12) v.currentTime = at;
+    if (v.paused) v.play().catch(() => {});
+  } else {
+    if (!v.paused) v.pause();
+    if (!v.seeking && Math.abs(v.currentTime - at) > 0.005) v.currentTime = at;
+  }
 }
 
 // Each frame shows the cursor at the spec time heard when the frame is on screen.

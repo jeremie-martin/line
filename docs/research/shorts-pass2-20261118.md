@@ -467,3 +467,7 @@ The short drum answers now follow the calls and run between the kicks through th
 ## Third review · Los Voltaje ultra slowed · drums
 
 There is time to hear the short drum before the first word and the space between each of the three later answers. The middle stroke grows where the bass and drum speak together. 0.157 s — The little drum opens the dialogue. 19.447 s — Three strokes answer the broad low beat. 45.976 s — The middle stroke stands out and the third meets the sung reply. 56.587 s — The final group hands the phrase back to the singer. Construction stopped at the opening, frame 1. Seed 101 stopped during construction (no_arc).
+
+## Third review · Montagem Tomada super slowed
+
+The voice keeps speaking across the swell before the drums return. I gave its quick ending light catches, brought out the recurring high reply over the drums, and restored the little word just before the late kick. 18.258 s — Follow the stressed vowel into the much lighter tail. 20.557 s — The delayed high reply and the bright accent at the end answer the low drum. 36.422 s — The short word between the upper note and the kick has its own catch. Seed 101 exhausted its construction budget at frame 1310.

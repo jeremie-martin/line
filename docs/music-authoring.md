@@ -95,8 +95,8 @@ uv pip install --python ~/.venvs/line-adtof/bin/python "tf_keras~=2.21.0"   # ma
    `sung.json` misses most syllables of a fast or chopped voice; use it for pitch, not for where the syllables are.
 5. **Read what the owner said.** His notes on the song (`productions/<song>/notes.json`, from the spec dashboard)
    and on its earlier videos. For a song he has said nothing about, write a first reading and show its video.
-   On the dashboard he slows a passage, hears the mix or one stem alone (Hear: mix, voice, other, drums,
-   bass), and places notes that snap to measured events: M a mark, S the strong one (a mark one level up, relative
+   On the dashboard he slows a passage and loops it (a drag across the timeline selects a range, L loops it),
+   hears the mix or one stem alone (Hear: mix, voice, other, drums, bass), and places notes that snap to measured events: M a mark, S the strong one (a mark one level up, relative
    to the passage; a moment holds one of the two), V a voice, I an impact.
 6. **Write the spec.** In `productions/<song>/music.ts`, list the song's layers as measured times; each
    `variants/<name>.ts` is a whole spec chosen from them; `spec.ts` re-exports the preferred one.

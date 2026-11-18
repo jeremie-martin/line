@@ -9,204 +9,182 @@
 </head>
 <body>
 <header class="app-header">
-  <div class="brand-block">
-    <a href="/motion-gallery/production.html" class="brand">line</a>
-    <span data-lr-nav></span>
-    <div>
-      <h1>Specification Dashboard</h1>
-      <div class="subtitle" id="spec-subtitle">Loading specs</div>
-    </div>
-    <div class="verdict" id="verdict" role="group" aria-label="Your verdict on this reading">
-      <button type="button" data-verdict="love" title="Love (1); click again to clear">Love <kbd>1</kbd></button>
-      <button type="button" data-verdict="good" title="Good (2); click again to clear">Good <kbd>2</kbd></button>
-      <button type="button" data-verdict="needs-work" title="Needs work (3); click again to clear">Needs work <kbd>3</kbd></button>
-      <span class="verdict-changed" id="verdict-changed" hidden
-        title="The spec changed after your verdict: give it again to confirm it">changed since your verdict</span>
-    </div>
-  </div>
-  <div class="header-controls">
-    <span class="review-summary" id="review-summary"></span>
-    <div class="picker">
-      <button id="spec-picker" type="button" aria-haspopup="true" aria-expanded="false"
-        title="Choose a reading: N next, P previous, U next to review"><span class="mark" id="picker-mark"></span><span id="picker-label">Loading</span><span id="picker-reading"></span></button>
-      <div class="picker-panel" id="picker-panel" hidden>
-        <div class="picker-head">
-          <div class="set-switch" id="set-switch">
-            <button type="button" data-set="production">Production set</button>
-            <button type="button" data-set="library">Library</button>
-          </div>
-          <span class="picker-keys"><kbd>N</kbd> next <kbd>P</kbd> previous <kbd>U</kbd> next to review</span>
+  <a href="/motion-gallery/production.html" class="brand" title="Spec dashboard">line</a>
+  <span data-lr-nav></span>
+  <div class="picker">
+    <button id="spec-picker" type="button" aria-haspopup="true" aria-expanded="false"
+      title="Choose a reading: N next, P previous, U next to review"><span class="mark" id="picker-mark"></span><span id="picker-label">Loading</span><span id="picker-reading"></span></button>
+    <div class="picker-panel" id="picker-panel" hidden>
+      <div class="picker-head">
+        <div class="set-switch" id="set-switch">
+          <button type="button" data-set="production">Production set</button>
+          <button type="button" data-set="library">Library</button>
         </div>
-        <ol class="picker-list" id="picker-list"></ol>
-        <p class="picker-legend">
-          <span><span class="mark love"></span>love</span>
-          <span><span class="mark good"></span>good</span>
-          <span><span class="mark needs-work"></span>needs work</span>
-          <span><span class="mark changed good"></span>changed since your verdict</span>
-          <span><span class="mark"></span>not reviewed</span>
-          <span><span class="video-mark current">&#9654;</span>video of this version</span>
-          <span><span class="video-mark old">&#9654;</span>of an earlier one</span>
-        </p>
+        <span class="picker-keys"><kbd>N</kbd> next <kbd>P</kbd> previous <kbd>U</kbd> next to review</span>
       </div>
+      <ol class="picker-list" id="picker-list"></ol>
+      <p class="picker-legend">
+        <span><span class="mark love"></span>love</span>
+        <span><span class="mark good"></span>good</span>
+        <span><span class="mark needs-work"></span>needs work</span>
+        <span><span class="mark changed good"></span>changed since your verdict</span>
+        <span><span class="mark"></span>not reviewed</span>
+        <span><span class="video-mark current">&#9654;</span>video of this version</span>
+        <span><span class="video-mark old">&#9654;</span>of an earlier one</span>
+      </p>
     </div>
-    <button id="reload-spec" type="button">Reload</button>
   </div>
+  <h1 class="subtitle" id="spec-subtitle">Loading specs</h1>
+  <div class="verdict" id="verdict" role="group" aria-label="Your verdict on this reading">
+    <button type="button" data-verdict="love" title="Love (1); click again to clear">Love <kbd>1</kbd></button>
+    <button type="button" data-verdict="good" title="Good (2); click again to clear">Good <kbd>2</kbd></button>
+    <button type="button" data-verdict="needs-work" title="Needs work (3); click again to clear">Needs work <kbd>3</kbd></button>
+    <span class="verdict-changed" id="verdict-changed" hidden
+      title="The spec changed after your verdict: give it again to confirm it">changed since your verdict</span>
+  </div>
+  <span class="review-summary" id="review-summary"></span>
+  <button id="reload-spec" type="button" class="icon" title="Reload this spec from its file (keeps the position and zoom)" aria-label="Reload the spec">&#8635;</button>
 </header>
 
 <main class="workspace">
   <section class="timeline-panel">
-    <div class="transport">
+    <div class="toolbar transport" aria-label="Listening">
       <button id="play" type="button" class="primary" title="Play / pause (Space)">Play</button>
-      <button id="back" type="button" title="Back 5 s (Shift+←)">-5s</button>
-      <button id="forward" type="button" title="Forward 5 s (Shift+→)">+5s</button>
       <div class="transport-time">
         <span id="time-now">0:00.00</span>
         <span id="time-total">/ 0:00.00</span>
       </div>
       <input id="scrub" type="range" min="0" max="1" step="0.001" value="0" aria-label="Position">
-      <div class="music-meta" id="music-meta">No audio linked</div>
-    </div>
-
-    <div class="listening-tools" aria-label="Listening and marking">
-      <div class="listening-group">
+      <div class="group listening-speed">
+        <label for="listening-rate" title="Pitch follows speed (&lt; &gt;)">Speed</label>
+        <input id="listening-rate" type="range" min="0.2" max="2" step="0.05" value="1" list="rate-steps">
+        <datalist id="rate-steps"><option value="0.5"></option><option value="0.75"></option><option value="1"></option><option value="1.25"></option><option value="1.5"></option><option value="2"></option></datalist>
+        <button id="listening-rate-reset" type="button" title="Back to normal speed"><output id="listening-rate-value" for="listening-rate">1×</output></button>
+      </div>
+      <div class="group hear" id="hear" hidden>
+        <span class="group-label" title="The whole mix, or one separated stem of it">Hear</span>
+        <span class="segmented">
+          <button type="button" data-hear="mix" class="on">mix</button><button type="button" data-hear="vocals">voice</button><button type="button" data-hear="other">other</button><button type="button" data-hear="drums">drums</button><button type="button" data-hear="bass">bass</button>
+        </span>
+      </div>
+      <div class="group">
         <button id="toggle-clicks" type="button" class="on" aria-pressed="true"
-          title="A click at every landing, louder for stronger requested impact (C)">Clicks on <kbd>C</kbd></button>
+          title="A click at every landing, louder for stronger requested impact (C)">Clicks on</button>
         <input id="click-volume" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Click volume" title="Click volume">
       </div>
-      <div class="listening-group">
+      <div class="group">
         <button id="toggle-music" type="button" class="on" aria-pressed="true" title="Mute or unmute the music">Music on</button>
         <input id="music-volume" type="range" min="0" max="1" step="0.05" value="1" aria-label="Music volume" title="Music volume">
       </div>
-      <div class="listening-group hear" id="hear" hidden>
-        <span class="hear-label" title="The whole mix, or one separated stem of it">Hear</span>
-        <button type="button" data-hear="mix" class="on">mix</button>
-        <button type="button" data-hear="vocals">voice</button>
-        <button type="button" data-hear="other">other</button>
-        <button type="button" data-hear="drums">drums</button>
-        <button type="button" data-hear="bass">bass</button>
-      </div>
-      <div class="listening-group listening-speed">
-        <label for="listening-rate" title="Pitch follows speed">Speed</label>
-        <input id="listening-rate" type="range" min="0.2" max="2" step="0.05" value="1" list="rate-steps">
-        <datalist id="rate-steps"><option value="0.5"></option><option value="0.75"></option><option value="1"></option><option value="1.25"></option><option value="1.5"></option><option value="2"></option></datalist>
-        <output id="listening-rate-value" for="listening-rate">1×</output>
-        <button id="listening-rate-reset" type="button" title="Normal speed">1×</button>
-      </div>
-      <div class="quick-marks" aria-label="Mark this moment">
+    </div>
+
+    <div class="toolbar tools" aria-label="Marking and timeline">
+      <div class="group quick-marks" aria-label="Mark this moment">
         <button type="button" data-quick-mark="mark" title="Mark this moment (M)">Mark <kbd>M</kbd></button>
         <button type="button" data-quick-mark="strong" title="Mark the strong one here (S)">Strong <kbd>S</kbd></button>
         <button type="button" data-quick-mark="voice" title="Mark a vocal sound (V)">Voice <kbd>V</kbd></button>
         <button type="button" data-quick-mark="impact" title="Request an impact here (I)">Impact <kbd>I</kbd></button>
       </div>
-      <p class="shortcuts" aria-label="Keyboard shortcuts">
-        <span><kbd>Space</kbd> play/pause</span>
-        <span><kbd>←</kbd><kbd>→</kbd> 1 s, with <kbd>Shift</kbd> 5 s</span>
-        <span><kbd>,</kbd><kbd>.</kbd> 0.1 s</span>
-        <span><kbd>Home</kbd><kbd>End</kbd> start/end</span>
-        <span><kbd>&lt;</kbd><kbd>&gt;</kbd> speed</span>
-        <span><kbd>C</kbd> clicks</span>
-        <span><kbd>M</kbd><kbd>S</kbd><kbd>V</kbd><kbd>I</kbd> mark</span>
-        <span class="hint">Click a moment, then mark it, or mark while listening; text and tags in Notes.</span>
-      </p>
+      <span class="spacer"></span>
+      <div class="group zoom-controls">
+        <button id="zoom-out" type="button" title="Zoom out (or the mouse wheel over the timeline)" aria-label="Zoom out">&minus;</button>
+        <button id="zoom-in" type="button" title="Zoom in (or the mouse wheel over the timeline)" aria-label="Zoom in">+</button>
+        <button id="zoom-reset" type="button" title="Show the whole song">Fit</button>
+        <button id="follow-playhead" type="button" class="on" title="Keep the playhead in view while playing">Follow</button>
+      </div>
+      <div class="group snap-controls">
+        <label class="group-label" for="snap-mode" title="What a click and the edges of a range snap to; hold Shift to place freely">Snap</label>
+        <select id="snap-mode">
+          <option value="event">Event</option>
+          <option value="beat" selected>Beat</option>
+          <option value="contact">Contact</option>
+          <option value="keyframe">Keyframe</option>
+          <option value="off">Off</option>
+        </select>
+      </div>
+      <div class="group toggles">
+        <label><input type="checkbox" id="toggle-beats" checked> Beats</label>
+        <label><input type="checkbox" id="toggle-phases" checked> Phases</label>
+        <label><input type="checkbox" id="toggle-notes" checked> Notes</label>
+      </div>
+      <span id="evidence-warning" class="evidence-warning" hidden></span>
+      <div class="help" id="help">
+        <button id="help-toggle" type="button" class="icon" aria-expanded="false" aria-controls="help-panel" title="Keys, figures and what the lanes show">?</button>
+        <div class="help-panel" id="help-panel" hidden>
+          <dl class="shortcuts" aria-label="Keyboard shortcuts">
+            <dt><kbd>Space</kbd></dt><dd>play / pause</dd>
+            <dt><kbd>←</kbd><kbd>→</kbd></dt><dd>1 s, with <kbd>Shift</kbd> 5 s</dd>
+            <dt><kbd>,</kbd><kbd>.</kbd></dt><dd>0.1 s</dd>
+            <dt><kbd>Home</kbd><kbd>End</kbd></dt><dd>start / end</dd>
+            <dt><kbd>&lt;</kbd><kbd>&gt;</kbd></dt><dd>speed</dd>
+            <dt><kbd>C</kbd></dt><dd>clicks on / off</dd>
+            <dt><kbd>M</kbd><kbd>S</kbd><kbd>V</kbd><kbd>I</kbd></dt><dd>mark, strong, voice, impact here</dd>
+            <dt><kbd>L</kbd></dt><dd>loop the selected range</dd>
+            <dt><kbd>Esc</kbd></dt><dd>clear the range</dd>
+            <dt><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd></dt><dd>love, good, needs work</dd>
+            <dt><kbd>N</kbd><kbd>P</kbd><kbd>U</kbd></dt><dd>next, previous, next to review</dd>
+          </dl>
+          <p class="hint">Click the timeline to place the cursor (it snaps; <kbd>Shift</kbd> places freely), then mark it, or mark while listening.
+            Drag across it to select a range; drag the range's edges to adjust it. The wheel zooms, <kbd>Shift</kbd>+wheel scrolls.</p>
+          <div class="metric-row" id="summary-row"></div>
+          <p class="help-line"><span class="label">Music</span> <span id="music-meta">No audio linked</span></p>
+          <p class="help-line"><span class="label">View</span> <span id="view-window">0:00.00-0:00.00</span></p>
+          <p id="vocal-evidence-note" class="evidence-note"></p>
+        </div>
+      </div>
     </div>
 
-    <div class="overview-head">
-      <div>
-        <h2>Timeline</h2>
-        <div class="metric-row" id="summary-row"></div>
-      </div>
-      <div class="overview-actions">
-        <div class="zoom-controls">
-          <button id="zoom-out" type="button">Zoom out</button>
-          <button id="zoom-in" type="button">Zoom in</button>
-          <button id="zoom-selection" type="button">To range</button>
-          <button id="zoom-reset" type="button">Reset</button>
-          <button id="follow-playhead" type="button" class="on">Follow</button>
-          <span id="view-window">0:00.00-0:00.00</span>
-        </div>
-        <div class="snap-controls">
-          <label class="field-label" for="snap-mode">Snap</label>
-          <select id="snap-mode">
-            <option value="event">Event</option>
-            <option value="beat" selected>Beat</option>
-            <option value="contact">Contact</option>
-            <option value="keyframe">Keyframe</option>
-            <option value="off">Off</option>
-          </select>
-          <button id="snap-selection" type="button">Snap range</button>
-        </div>
-        <div class="toggles">
-          <label><input type="checkbox" id="toggle-beats" checked> Beats</label>
-          <label><input type="checkbox" id="toggle-phases" checked> Phases</label>
-          <label><input type="checkbox" id="toggle-notes" checked> Notes</label>
-        </div>
-      </div>
-    </div>
-    <p id="vocal-evidence-note" class="evidence-note"></p>
-    <div class="timeline-wrap">
+    <div class="timeline-wrap" id="timeline-wrap">
       <svg id="timeline" role="img" aria-label="specification timeline" tabindex="0"></svg>
+      <div class="range-bar" id="range-bar" hidden role="toolbar" aria-label="Selected range">
+        <span class="range-length" id="range-length"></span>
+        <button type="button" id="range-loop" title="Play this range again and again (L)">Loop <kbd>L</kbd></button>
+        <button type="button" id="zoom-selection" title="Zoom to this range">Zoom</button>
+        <button type="button" id="snap-selection" title="Snap both edges to the snap targets">Snap</button>
+        <button type="button" id="range-note" title="Write a note on this range">Note</button>
+        <button type="button" id="range-clear" class="icon" title="Clear the range (Esc)" aria-label="Clear the range">&times;</button>
+      </div>
     </div>
   </section>
 
   <aside class="inspector">
     <section class="ride-video">
-      <div class="section-title-row">
-        <h2>Video</h2>
+      <video id="video-player" muted playsinline preload="auto" hidden></video>
+      <div class="video-row" id="video-row">
+        <p id="video-state" class="video-state"></p>
+        <button id="make-video" type="button" title="Compile this spec and render its ride (a few minutes)">Make the video</button>
         <button id="toggle-video" type="button" aria-expanded="true">Hide</button>
       </div>
-      <div id="video-body">
-        <video id="video-player" muted playsinline preload="auto" hidden></video>
-        <p id="video-state" class="video-state"></p>
-        <div class="button-row">
-          <button id="make-video" type="button" title="Compile this spec and render its ride (a few minutes)">Make the video</button>
-        </div>
-      </div>
     </section>
 
-    <section class="readout">
-      <h2>Cursor</h2>
-      <div class="time-readout" id="cursor-time">0:00.00</div>
+    <details class="readout" id="cursor-details">
+      <summary title="Show everything at the cursor"><b class="time-readout" id="cursor-time">0:00.00</b><span id="cursor-summary"></span></summary>
       <div class="detail-grid" id="cursor-grid"></div>
       <div class="axis-readouts" id="axis-readouts"></div>
-    </section>
+    </details>
 
     <section class="reading-note">
-      <h2>On this reading</h2>
-      <textarea id="reading-note" rows="4" placeholder="Anything about this specification as a whole. Saved as you write."></textarea>
+      <label for="reading-note"><h2>On this reading</h2></label>
+      <textarea id="reading-note" rows="2" placeholder="Anything about this specification as a whole. Saved as you write."></textarea>
       <div class="reading-note-state" id="reading-note-state"></div>
     </section>
 
     <section class="notes">
       <div class="section-title-row">
-        <h2>Notes</h2>
-        <div class="scope-tabs" id="scope-tabs">
-          <button type="button" data-scope="moment" class="active">Moment</button>
-          <button type="button" data-scope="contact">Contact</button>
-          <button type="button" data-scope="gap">Gap</button>
-          <button type="button" data-scope="range">Range</button>
-          <button type="button" data-scope="keyframe">Keyframe</button>
+        <h2 id="notes-title">Notes</h2>
+        <div class="scope-tabs segmented" id="scope-tabs">
+          <button type="button" data-scope="moment" class="active">Moment</button><button type="button" data-scope="contact">Contact</button><button type="button" data-scope="gap">Gap</button><button type="button" data-scope="range">Range</button><button type="button" data-scope="keyframe">Keyframe</button>
         </div>
       </div>
       <div class="note-anchor" id="note-anchor">moment</div>
-      <div class="note-path" id="note-path"></div>
-      <textarea id="note-text" placeholder="Feedback for this point"></textarea>
+      <textarea id="note-text" rows="3" placeholder="Feedback for this point"></textarea>
       <div class="tag-row" id="tag-row"></div>
       <div class="save-row">
         <span id="save-state"></span>
-        <div class="button-row">
-          <button id="clear-notes" type="button">Clear notes</button>
-          <button id="delete-note" type="button">Delete</button>
-        </div>
+        <button id="delete-note" type="button">Delete</button>
+        <button id="clear-notes" type="button" title="Delete every note on this song">Clear all</button>
       </div>
       <ol id="notes-list" class="notes-list"></ol>
-    </section>
-
-    <section class="agent-context">
-      <div class="section-title-row">
-        <h2>Agent Context</h2>
-        <button id="copy-context" type="button">Copy</button>
-      </div>
-      <pre id="agent-json">{}</pre>
     </section>
   </aside>
 </main>

@@ -26,14 +26,22 @@ const refs = {
   reload: document.getElementById("reload-spec"),
   subtitle: document.getElementById("spec-subtitle"),
   play: document.getElementById("play"),
-  back: document.getElementById("back"),
-  forward: document.getElementById("forward"),
   timeNow: document.getElementById("time-now"),
   timeTotal: document.getElementById("time-total"),
   scrub: document.getElementById("scrub"),
   musicMeta: document.getElementById("music-meta"),
   summary: document.getElementById("summary-row"),
   timeline: document.getElementById("timeline"),
+  timelineWrap: document.getElementById("timeline-wrap"),
+  rangeBar: document.getElementById("range-bar"),
+  rangeLength: document.getElementById("range-length"),
+  rangeLoop: document.getElementById("range-loop"),
+  rangeNote: document.getElementById("range-note"),
+  rangeClear: document.getElementById("range-clear"),
+  help: document.getElementById("help"),
+  helpToggle: document.getElementById("help-toggle"),
+  helpPanel: document.getElementById("help-panel"),
+  evidenceWarning: document.getElementById("evidence-warning"),
   zoomOut: document.getElementById("zoom-out"),
   zoomIn: document.getElementById("zoom-in"),
   zoomSelection: document.getElementById("zoom-selection"),
@@ -50,23 +58,22 @@ const refs = {
   togglePhases: document.getElementById("toggle-phases"),
   toggleNotes: document.getElementById("toggle-notes"),
   cursorTime: document.getElementById("cursor-time"),
+  cursorSummary: document.getElementById("cursor-summary"),
+  cursorDetails: document.getElementById("cursor-details"),
   cursorGrid: document.getElementById("cursor-grid"),
   axisReadouts: document.getElementById("axis-readouts"),
   scopeTabs: document.getElementById("scope-tabs"),
   noteAnchor: document.getElementById("note-anchor"),
-  notePath: document.getElementById("note-path"),
+  notesTitle: document.getElementById("notes-title"),
   noteText: document.getElementById("note-text"),
   tagRow: document.getElementById("tag-row"),
   saveState: document.getElementById("save-state"),
   deleteNote: document.getElementById("delete-note"),
   clearNotes: document.getElementById("clear-notes"),
   notesList: document.getElementById("notes-list"),
-  agentJson: document.getElementById("agent-json"),
-  copyContext: document.getElementById("copy-context"),
   toast: document.getElementById("toast"),
   hear: document.getElementById("hear"),
   toggleVideo: document.getElementById("toggle-video"),
-  videoBody: document.getElementById("video-body"),
   video: document.getElementById("video-player"),
   videoState: document.getElementById("video-state"),
   makeVideo: document.getElementById("make-video"),
@@ -88,9 +95,11 @@ const state = {
   playbackRate: 1,
   viewStart: 0,
   viewEnd: 0,
+  /** The selected range {t0, t1}, or null. */
   selection: null,
+  /** Playback loops over the selected range. */
+  looping: false,
   pointerDrag: null,
-  suppressNextClick: false,
   snapMode: "beat",
   selectedScope: "moment",
   activeAnchor: null,
@@ -140,7 +149,7 @@ function renderListening() {
   music.volume = listening.musicMuted ? 0 : listening.musicVolume;
   if (clicks.out) clicks.out.gain.value = listening.clicks ? listening.clickVolume : 0;
   if (!listening.clicks) clearClicks();
-  refs.videoBody.hidden = !listening.videoOpen;
+  refs.video.hidden = !state.video || !listening.videoOpen;
   refs.toggleVideo.textContent = listening.videoOpen ? "Hide" : "Show";
   refs.toggleVideo.setAttribute("aria-expanded", String(listening.videoOpen));
   if (!listening.videoOpen) refs.video.pause();
@@ -211,6 +220,7 @@ function wireEvents() {
   });
   document.addEventListener("pointerdown", (event) => {
     if (!refs.pickerPanel.hidden && !event.target.closest(".picker")) openPicker(false);
+    if (!refs.helpPanel.hidden && !event.target.closest(".help")) openHelp(false);
   });
   refs.verdict.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-verdict]");
@@ -228,8 +238,6 @@ function wireEvents() {
     });
   });
   refs.play.addEventListener("click", togglePlayback);
-  refs.back.addEventListener("click", () => seekTo(specTime() - 5));
-  refs.forward.addEventListener("click", () => seekTo(specTime() + 5));
   refs.scrub.addEventListener("input", () => {
     if (!state.data) return;
     seekTo(Number(refs.scrub.value) * state.data.spec.duration);
@@ -255,19 +263,18 @@ function wireEvents() {
   refs.timeline.addEventListener("wheel", onTimelineWheel, { passive: false });
   refs.timeline.addEventListener("selectstart", (event) => event.preventDefault());
   refs.timeline.addEventListener("dragstart", (event) => event.preventDefault());
-  refs.timeline.addEventListener("click", (event) => {
-    if (!state.timeline) return;
-    if (state.suppressNextClick) {
-      state.suppressNextClick = false;
-      return;
-    }
-    clearTransientSelection();
-    const t = event.shiftKey ? state.timeline.tAtClient(event.clientX) : snapTime(state.timeline.tAtClient(event.clientX));
-    seekTo(t);
-  });
   refs.timeline.addEventListener("mouseleave", () => {
     if (!state.pointerDrag) setHover(null);
   });
+  // The timeline is drawn at the size it is shown: redrawn when its space changes.
+  new ResizeObserver(() => {
+    cancelAnimationFrame(renderTimeline.resize);
+    renderTimeline.resize = requestAnimationFrame(() => renderTimeline());
+  }).observe(refs.timelineWrap);
+  refs.rangeLoop.addEventListener("click", () => toggleLoop());
+  refs.rangeNote.addEventListener("click", () => noteSelection());
+  refs.rangeClear.addEventListener("click", () => clearTransientSelection());
+  refs.helpToggle.addEventListener("click", () => openHelp(refs.helpPanel.hidden));
   [refs.toggleBeats, refs.togglePhases, refs.toggleNotes].forEach((input) => {
     input.addEventListener("change", renderTimeline);
   });
@@ -313,14 +320,7 @@ function wireEvents() {
       title: note.title,
     });
   });
-  refs.copyContext.addEventListener("click", async () => {
-    try {
-      await navigator.clipboard.writeText(refs.agentJson.textContent);
-      toast("Copied agent context");
-    } catch {
-      toast("Clipboard unavailable");
-    }
-  });
+  refs.cursorDetails.addEventListener("toggle", () => renderInspector());
   window.addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     if (isEditableElement(document.activeElement) || event.ctrlKey || event.metaKey || event.altKey || event.isComposing || event.defaultPrevented) return;
@@ -346,6 +346,25 @@ function wireEvents() {
     if (event.key === "Escape" && !refs.pickerPanel.hidden) {
       openPicker(false);
       refs.picker.focus();
+      return;
+    }
+    if (event.key === "Escape" && !refs.helpPanel.hidden) {
+      openHelp(false);
+      return;
+    }
+    if (event.key === "Escape" && state.pointerDrag) {
+      event.preventDefault();
+      cancelTimelineDrag(state.pointerDrag);
+      return;
+    }
+    if (event.key === "Escape" && (state.selection || state.looping)) {
+      event.preventDefault();
+      clearTransientSelection();
+      return;
+    }
+    if (key === "l") {
+      event.preventDefault();
+      if (!event.repeat) toggleLoop();
       return;
     }
     // Keys a focused control handles itself (a button's Space, a slider's arrows) are
@@ -413,6 +432,13 @@ function openPicker(open) {
     refs.pickerList.querySelector(".reading.current")?.scrollIntoView({ block: "nearest" });
     loadReadings();
   }
+}
+
+/** The "?" panel: keys, the spec's figures, the music and what the vocal evidence is. */
+function openHelp(open) {
+  refs.helpPanel.hidden = !open;
+  refs.helpToggle.setAttribute("aria-expanded", String(open));
+  refs.helpToggle.classList.toggle("on", open);
 }
 
 function renderReview() {
@@ -535,8 +561,10 @@ async function loadSpec(specPath, pushUrl, restore = null) {
   state.viewStart = 0;
   state.viewEnd = 0;
   state.selection = null;
+  state.looping = false;
   state.pointerDrag = null;
-  state.suppressNextClick = false;
+  refs.rangeBar.hidden = true;
+  refs.evidenceWarning.hidden = true;
   state.video = null;
   refs.video.hidden = true;
   refs.video.removeAttribute("src");
@@ -633,6 +661,9 @@ async function loadAnalysis(music) {
     ? 'Vocal evidence: estimated separated stem, possibly multiple voices or instrument leakage. RMS and spectral change are measurements; dots are unfiltered detector candidates, not words or impact suggestions. Window centers are not exact onset times. Hover for values; zoom to inspect.'
     : 'No continuous vocal evidence generated for this song. Instrument events below retain each source’s own timing.');
   note.classList.toggle('error', Boolean(evidenceError));
+  refs.evidenceWarning.hidden = !evidenceError;
+  refs.evidenceWarning.textContent = evidenceError ? 'Vocal evidence unusable' : '';
+  refs.evidenceWarning.title = evidenceError || '';
   // Keep every instrument at its own time, including quieter overlapping vocals.
   if (measured?.events) {
     analysis.onsets = sourceEvents(measured.events);
@@ -711,6 +742,17 @@ function snapTime(t, mode = state.snapMode) {
   return round(clamp(best, 0, state.data.spec.duration), 4);
 }
 
+/** How close to the pointer, in screen pixels, a snap target pulls the edge of a range being dragged. */
+const EDGE_SNAP_PX = 10;
+
+/** `t` moved to the nearest snap target when that target is within EDGE_SNAP_PX of it on screen, else `t` itself
+ * (always itself with `free`, Shift held): an edge follows the pointer and never jumps to a distant target. */
+function snapEdge(t, free) {
+  if (free || !state.timeline || state.snapMode === "off") return t;
+  const snapped = snapTime(t);
+  return Math.abs(state.timeline.rawXFor(snapped) - state.timeline.rawXFor(t)) <= EDGE_SNAP_PX ? snapped : t;
+}
+
 function snapCurrentSelection() {
   const range = normalizedRange(state.selection);
   if (!range) return;
@@ -724,55 +766,82 @@ function snapCurrentSelection() {
   }
   const snapped = normalizedRange({ t0, t1 });
   if (!snapped || snapped.t1 - snapped.t0 < 0.01) return;
-  state.selection = snapped;
+  applySelection(snapped);
+}
+
+/** Makes `range` the selection and the note's anchor; a paused cursor outside it moves to its start. */
+function applySelection(range) {
+  state.selection = range;
   state.selectedScope = "range";
   renderScopeTabs();
-  seekTo((snapped.t0 + snapped.t1) / 2, { select: false });
-  setActiveAnchor(anchorFor("range", (snapped.t0 + snapped.t1) / 2));
+  const t = specTime();
+  if (!isPlaying() && (t < range.t0 || t > range.t1)) seekTo(range.t0, { select: false, reveal: false });
+  setActiveAnchor(anchorFor("range", range.t0));
 }
 
 function clearTransientSelection() {
   clearNativeSelection();
-  if (!state.selection && state.selectedScope !== "range") return;
+  state.looping = false;
+  if (!state.selection && state.selectedScope !== "range") {
+    drawSelection();
+    return;
+  }
   state.selection = null;
   if (state.selectedScope === "range") {
     state.selectedScope = "moment";
     renderScopeTabs();
   }
   renderTimeline();
-  renderAgentContext();
 }
 
+/** Loops playback over the selected range (L), at the current speed; again stops looping (playback goes on). */
+function toggleLoop() {
+  const range = normalizedRange(state.selection);
+  if (!range) {
+    state.looping = false;
+    toast("Select a range first: drag across the timeline");
+    return;
+  }
+  state.looping = !state.looping;
+  if (state.looping) {
+    const t = specTime();
+    if (!music.requested || t < range.t0 || t >= range.t1) {
+      state.cursorT = range.t0;
+      startPlayback(range.t0);
+    }
+  }
+  drawSelection();
+}
+
+/** The note editor on the selected range, ready to write. */
+function noteSelection() {
+  const range = normalizedRange(state.selection);
+  if (!range) return;
+  state.selectedScope = "range";
+  renderScopeTabs();
+  setActiveAnchor(anchorFor("range", range.t0));
+  refs.noteText.focus();
+}
+
+// The timeline's pointer: a press and release in place sets the cursor (snapped, Shift free) or, on a contact or
+// keyframe, picks it; a press and drag anywhere selects a range; a drag on an edge of the range moves that edge.
 function onTimelinePointerDown(event) {
   if (!state.timeline || event.button !== 0) return;
   refs.timeline.focus?.({ preventScroll: true });
-  const mark = event.target.closest?.("[data-mark-kind]");
-  if (mark) {
-    event.preventDefault();
-    clearNativeSelection();
-    const anchor = anchorForMarkElement(mark);
-    if (!anchor) return;
-    state.selectedScope = anchor.scope;
-    renderScopeTabs();
-    seekTo(anchor.t, { select: false, reveal: true });
-    setActiveAnchor(anchor);
-    state.pointerDrag = { mode: "mark", pointerId: event.pointerId };
-    refs.timeline.setPointerCapture?.(event.pointerId);
-    state.suppressNextClick = true;
-    return;
-  }
   event.preventDefault();
   clearNativeSelection();
-  const rawT = state.timeline.tAtClient(event.clientX);
-  const t = event.shiftKey ? rawT : snapTime(rawT);
-  state.pointerDrag = {
-    mode: "range",
-    pointerId: event.pointerId,
-    clientX: event.clientX,
-    startT: t,
-    moved: false,
-  };
+  const edge = event.target.closest?.("[data-range-edge]");
+  const range = normalizedRange(state.selection);
+  const common = { pointerId: event.pointerId, clientX: event.clientX, moved: false, before: state.selection };
+  if (edge && range) {
+    // the other edge stays where it is
+    state.pointerDrag = { ...common, mode: "edge", fixed: edge.dataset.rangeEdge === "t0" ? range.t1 : range.t0 };
+  } else {
+    const startT = snapEdge(state.timeline.tAtClient(event.clientX), event.shiftKey);
+    state.pointerDrag = { ...common, mode: "press", startT, mark: event.target.closest?.("[data-mark-kind]") ?? null };
+  }
   refs.timeline.setPointerCapture?.(event.pointerId);
+  refs.rangeBar.hidden = true;
 }
 
 function onTimelinePointerMove(event) {
@@ -781,57 +850,58 @@ function onTimelinePointerMove(event) {
   const drag = state.pointerDrag;
   if (!drag || drag.pointerId !== event.pointerId) return;
   event.preventDefault();
-  clearNativeSelection();
-  if (drag.mode === "mark") return;
-  const distance = Math.abs(event.clientX - drag.clientX);
-  if (distance < 4 && !drag.moved) return;
+  if (!drag.moved && Math.abs(event.clientX - drag.clientX) < 4) return;
   drag.moved = true;
-  const rawT = state.timeline.tAtClient(event.clientX);
-  const t = event.shiftKey ? rawT : snapTime(rawT);
-  state.selection = { t0: drag.startT, t1: t };
-  renderTimeline();
+  const t = snapEdge(state.timeline.tAtClient(event.clientX), event.shiftKey);
+  state.selection = { t0: drag.mode === "edge" ? drag.fixed : drag.startT, t1: t };
+  drawSelection();
 }
 
 function onTimelinePointerUp(event) {
-  if (!state.timeline || !state.pointerDrag || state.pointerDrag.pointerId !== event.pointerId) return;
   const drag = state.pointerDrag;
+  if (!state.timeline || !drag || drag.pointerId !== event.pointerId) return;
   refs.timeline.releasePointerCapture?.(event.pointerId);
   state.pointerDrag = null;
   event.preventDefault();
   clearNativeSelection();
-  if (drag.mode === "mark") {
-    state.suppressNextClick = true;
-    setTimeout(() => {
-      state.suppressNextClick = false;
-    }, 0);
+  if (!drag.moved) {
+    if (drag.mark) pickMark(drag.mark);
+    else clickTimeline(state.timeline.tAtClient(event.clientX), event.shiftKey);
     return;
   }
-  if (!drag.moved) return;
-
-  const rawT = state.timeline.tAtClient(event.clientX);
-  const range = normalizedRange({ t0: drag.startT, t1: event.shiftKey ? rawT : snapTime(rawT) });
-  state.suppressNextClick = true;
-  setTimeout(() => {
-    state.suppressNextClick = false;
-  }, 0);
-  if (!range || range.t1 - range.t0 < 0.05) {
-    state.selection = null;
-    renderTimeline();
+  const range = normalizedRange(state.selection);
+  if (!range || range.t1 - range.t0 < 0.02) {
+    state.selection = drag.before;
+    drawSelection();
     return;
   }
-
-  state.selection = range;
-  state.selectedScope = "range";
-  renderScopeTabs();
-  seekTo((range.t0 + range.t1) / 2, { select: false });
-  setActiveAnchor(anchorFor("range", (range.t0 + range.t1) / 2));
+  applySelection(range);
 }
 
 function cancelTimelineDrag(event) {
-  if (state.pointerDrag?.pointerId === event.pointerId) {
-    state.pointerDrag = null;
-    renderTimeline();
-  }
+  const drag = state.pointerDrag;
+  if (drag?.pointerId !== event.pointerId) return;
+  state.pointerDrag = null;
+  if (drag.moved) state.selection = drag.before;
+  drawSelection();
+}
+
+/** A click on the timeline at `rawT`: the cursor goes there (snapped unless `free`); a click outside the range clears it. */
+function clickTimeline(rawT, free) {
+  const range = normalizedRange(state.selection);
+  if (!range || rawT < range.t0 || rawT > range.t1) clearTransientSelection();
+  else drawSelection();
+  seekTo(free ? rawT : snapTime(rawT));
+}
+
+/** A click on a contact's impact or an axis keyframe: the cursor goes to it and the note editor takes it. */
+function pickMark(mark) {
+  const anchor = anchorForMarkElement(mark);
+  if (!anchor) return drawSelection();
+  state.selectedScope = anchor.scope;
+  renderScopeTabs();
+  seekTo(anchor.t, { select: false, reveal: true });
+  setActiveAnchor(anchor);
 }
 
 function anchorForMarkElement(mark) {
@@ -956,9 +1026,6 @@ function resumeFollow() {
 function updateViewUi() {
   if (!state.data) return;
   refs.viewWindow.textContent = `${formatTime(state.viewStart)}-${formatTime(state.viewEnd)}`;
-  const hasRange = Boolean(normalizedRange(state.selection));
-  refs.zoomSelection.disabled = !hasRange;
-  refs.snapSelection.disabled = !hasRange;
   refs.followPlayhead.classList.toggle("on", state.followPlayhead && !state.followSuspended);
 }
 
@@ -975,8 +1042,8 @@ function renderAll() {
 function renderHeader() {
   const { data } = state;
   if (!data) return;
-  const reading = currentReading();
-  refs.subtitle.textContent = `${reading ? readingLabel(reading) : data.spec.label} - ${formatTime(data.spec.duration)} - ${data.summary.contacts} contacts`;
+  refs.subtitle.textContent = `${formatTime(data.spec.duration)} · ${data.summary.contacts} contacts`;
+  refs.subtitle.title = data.spec.path;
   refs.timeTotal.textContent = "/ " + formatTime(data.spec.duration);
   refs.musicMeta.textContent = data.music
     ? [data.music.title, data.music.artist, data.music.tempo].filter(Boolean).join(" - ") || data.music.audio
@@ -997,6 +1064,25 @@ function metric(label, value) {
   return `<span class="metric">${escapeHtml(label)} <b>${escapeHtml(String(value))}</b></span>`;
 }
 
+/** Lane heights (px) filling `room`: each lane between its least and its usual height; room beyond the usual
+ * heights goes to the spectrogram and the impact lane. `lanes` maps a name to [least, usual]. */
+function laneHeights(lanes, room) {
+  const names = Object.keys(lanes);
+  const least = names.reduce((sum, name) => sum + lanes[name][0], 0);
+  const usual = names.reduce((sum, name) => sum + lanes[name][1], 0);
+  const out = {};
+  if (room >= usual) {
+    for (const name of names) out[name] = lanes[name][1];
+    const extra = room - usual;
+    out.spectro += Math.floor(extra * 0.55);
+    out.impact += Math.floor(extra * 0.45);
+  } else {
+    const f = clamp((room - least) / Math.max(1, usual - least), 0, 1);
+    for (const name of names) out[name] = Math.floor(lanes[name][0] + f * (lanes[name][1] - lanes[name][0]));
+  }
+  return out;
+}
+
 function renderTimeline() {
   const { data } = state;
   if (!data) return;
@@ -1004,30 +1090,40 @@ function renderTimeline() {
   svg.innerHTML = "";
 
   const axisNames = AXES.filter((axis) => data.axes[axis]);
-  const W = 1240;
+  // Drawn at the size it is shown, one unit a pixel: it fills its panel.
+  const W = Math.max(320, Math.floor(refs.timelineWrap.clientWidth));
+  const boxH = Math.floor(refs.timelineWrap.clientHeight);
   const L = 72;
-  const R = 24;
+  const R = 14;
   const plotW = W - L - R;
-  const spectroH = 108;
-  const impactH = 66;
-  const axisH = 48;
-  const axisGap = 10;
-  const notesH = refs.toggleNotes.checked ? 34 : 0;
   const top = 20;
   const spectroY = top + 26;
-  const eventsH = state.analysis?.onsets.length ? 104 : 0;
+  const bottom = 40; // the range's bar sits here
+  const hasEvents = Boolean(state.analysis?.onsets.length), hasVocal = Boolean(state.analysis?.vocal);
+  const notesH = refs.toggleNotes.checked ? 34 : 0;
+  const axisGap = 8;
+  const lanes = { spectro: [56, 108], impact: [48, 66] };
+  if (hasEvents) lanes.events = [60, 104];
+  if (hasVocal) lanes.vocal = [120, 164];
+  for (const axis of axisNames) lanes[axis] = [30, 48];
+  const fixed = spectroY + 10 + (hasEvents ? 10 : 0) + 18 + 18 + axisNames.length * axisGap + notesH + bottom;
+  const h = laneHeights(lanes, boxH - fixed);
+  const spectroH = h.spectro;
+  const eventsH = h.events ?? 0;
   const eventsY = spectroY + spectroH + 10;
-  const vocalH = state.analysis?.vocal ? 164 : 0;
-  const vocalY = eventsY + eventsH + 10;
+  const vocalH = h.vocal ?? 0;
+  const vocalY = eventsY + eventsH + (hasEvents ? 10 : 0);
+  const impactH = h.impact;
   const impactY = vocalY + vocalH + 18;
   const axesY = impactY + impactH + 18;
-  const H = axesY + axisNames.length * (axisH + axisGap) + notesH + 42;
+  const H = Math.max(boxH, axesY + axisNames.reduce((sum, axis) => sum + h[axis] + axisGap, 0) + notesH + bottom);
   const viewStart = clamp(state.viewStart, 0, data.spec.duration);
   const viewEnd = clamp(state.viewEnd || data.spec.duration, viewStart + 1e-6, data.spec.duration);
   const visibleSpan = Math.max(1e-6, viewEnd - viewStart);
 
   svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-  svg.style.height = `${H}px`;
+  svg.setAttribute("width", W);
+  svg.setAttribute("height", H);
   state.timeline = {
     left: L,
     right: W - R,
@@ -1056,22 +1152,22 @@ function renderTimeline() {
   drawSpectrogram(svg, L, plotW, spectroY, spectroH);
   drawBeatLayer(svg, L, plotW, spectroY, spectroH, H);
   if (eventsH) drawEventLane(svg, L, plotW, eventsY, eventsH);
-  if (vocalH) drawVocalEvidence(svg, L, plotW, vocalY);
+  if (vocalH) drawVocalEvidence(svg, L, plotW, vocalY, vocalH);
   drawContacts(svg, L, plotW, spectroY, H);
   drawImpactLane(svg, L, plotW, impactY, impactH);
 
   let y = axesY;
   for (const axis of axisNames) {
-    drawAxisLane(svg, axis, L, plotW, y, axisH);
-    y += axisH + axisGap;
+    drawAxisLane(svg, axis, L, plotW, y, h[axis]);
+    y += h[axis] + axisGap;
   }
   if (refs.toggleNotes.checked) drawNoteLane(svg, L, plotW, y, notesH);
-  drawSelection(svg, L, plotW, H);
+  state.timeline.selectionLayer = add(svg, "g", { id: "selection-layer" });
 
   const playX = state.timeline.xFor(specTime());
   add(svg, "line", { id: "playhead", class: "svg-playhead", x1: playX, y1: 0, x2: playX, y2: H });
   add(svg, "line", { id: "hoverhead", class: "svg-hover", x1: -10, y1: 0, x2: -10, y2: H, opacity: 0 });
-  updateViewUi();
+  drawSelection();
 }
 
 function drawPhases(svg, L, plotW, H) {
@@ -1105,7 +1201,7 @@ function drawTimeRuler(svg, L, plotW, y, H) {
   for (let t = first; t <= state.timeline.viewEnd + 1e-6; t += step) {
     const x = state.timeline.xFor(t);
     add(svg, "line", { x1: x, y1: y - 5, x2: x, y2: H - 12, stroke: "#efe5d2", "stroke-width": 1 });
-    add(svg, "text", { x: x + 3, y: y - 8, class: "svg-small" }, formatTime(t));
+    if (x + 44 <= state.timeline.right + 14) add(svg, "text", { x: x + 3, y: y - 8, class: "svg-small" }, formatTime(t));
   }
 }
 
@@ -1179,12 +1275,15 @@ function drawEventLane(svg, L, plotW, y, h) {
   }
 }
 
-function drawVocalEvidence(svg, L, plotW, y) {
+function drawVocalEvidence(svg, L, plotW, y, h) {
   const e = state.analysis.vocal, dt = e.hopSamples / e.sampleRate;
   const first = Math.max(0, Math.floor(state.viewStart / dt));
   const last = Math.min(e.rms.length - 1, Math.ceil(state.viewEnd / dt));
+  // two traces, then three rows of candidate dots
+  const dotStep = clamp(h * 0.1, 12, 17), dotsY = y + h - 3 * dotStep + 4;
+  const rowH = (dotsY - y - 8) / 2, traceH = rowH - 10;
   for (const [row, field, label, color] of [[0, 'rms', 'vocal RMS', '#a86820'], [1, 'spectralChange', 'change', '#77529c']]) {
-    const top = y + row * 48, height = 38;
+    const top = y + row * rowH, height = traceH;
     const ceiling = e.ceilings[field];
     add(svg, 'text', {x: 3, y: top + 16, class: 'svg-small'}, label);
     add(svg, 'text', {x: 3, y: top + 30, class: 'svg-small'}, `0–${ceiling.toFixed(2)}`);
@@ -1199,10 +1298,10 @@ function drawVocalEvidence(svg, L, plotW, y) {
     add(svg, 'path', {d:path,fill:'none',stroke:color,'stroke-width':1.2,'data-evidence-series':field});
   }
   const kinds = ['spectral-onset', 'pitched-estimate', 'unpitched-estimate'];
-  ['onset est.', 'tonal est.', 'noisy est.'].forEach((label, i) => add(svg,'text',{x:3,y:y+108+i*17,class:'svg-small'},label));
+  ['onset est.', 'tonal est.', 'noisy est.'].forEach((label, i) => add(svg,'text',{x:3,y:dotsY+4+i*dotStep,class:'svg-small'},label));
   for (const c of e.candidates) {
     if (!timeVisible(c.t)) continue;
-    const dot = add(svg,'circle',{cx:state.timeline.xFor(c.t),cy:y+104+kinds.indexOf(c.kind)*17,r:2.8,fill:'#6b737b','data-vocal-candidate':c.kind});
+    const dot = add(svg,'circle',{cx:state.timeline.xFor(c.t),cy:dotsY+kinds.indexOf(c.kind)*dotStep,r:2.8,fill:'#6b737b','data-vocal-candidate':c.kind});
     const landmarks = c.landmarks;
     const timing = landmarks ? ` · RMS minimum ${landmarks.precedingMinimumT.toFixed(3)} s${landmarks.minimumAtClipStart ? ' (clip-start fallback)' : ''} · steepest rise ${landmarks.steepestRiseT === null ? 'unavailable' : landmarks.steepestRiseT.toFixed(3) + ' s'}; measurement landmarks, not onset bounds` : '';
     if (landmarks) dot.dataset.acousticLandmarks = 'true';
@@ -1314,18 +1413,41 @@ function drawNoteLane(svg, L, plotW, y, h) {
   }
 }
 
-function drawSelection(svg, L, plotW, H) {
+/** Redraws only the selected range (its band, its two edges with their handles) and places its bar. */
+function drawSelection() {
+  const tl = state.timeline, layer = tl?.selectionLayer;
+  if (!layer) return;
+  layer.replaceChildren();
   const range = normalizedRange(state.selection);
-  if (!range || !timeIntersects(range.t0, range.t1)) return;
-  const x0 = state.timeline.xFor(Math.max(range.t0, state.timeline.viewStart));
-  const x1 = state.timeline.xFor(Math.min(range.t1, state.timeline.viewEnd));
-  add(svg, "rect", {
-    x: x0,
-    y: 0,
-    width: Math.max(2, x1 - x0),
-    height: H,
-    class: "svg-selection",
-  });
+  const shown = Boolean(range && timeIntersects(range.t0, range.t1));
+  if (shown) {
+    const x0 = tl.rawXFor(range.t0), x1 = tl.rawXFor(range.t1);
+    const left = clamp(x0, tl.left, tl.right), right = clamp(x1, tl.left, tl.right);
+    add(layer, "rect", { x: left, y: 0, width: Math.max(1, right - left), height: tl.height, class: `svg-selection${state.looping ? " looping" : ""}` });
+    for (const [edge, x] of [["t0", x0], ["t1", x1]]) {
+      if (x < tl.left - 0.5 || x > tl.right + 0.5) continue;
+      add(layer, "line", { x1: x, y1: 0, x2: x, y2: tl.height, class: "svg-range-edge" });
+      add(layer, "rect", { x: x - 4, y: 22, width: 8, height: 20, rx: 2, class: "svg-range-grip" });
+      add(layer, "rect", { x: x - 6, y: 0, width: 12, height: tl.height, class: "svg-range-handle", "data-range-edge": edge });
+    }
+  }
+  placeRangeBar(shown && !state.pointerDrag ? range : null);
+  updateViewUi();
+}
+
+/** The range's bar (loop, zoom, snap, note, clear) under the middle of the range's visible part. */
+function placeRangeBar(range) {
+  const bar = refs.rangeBar;
+  bar.hidden = !range;
+  refs.rangeLoop.classList.toggle("on", state.looping);
+  refs.rangeLoop.setAttribute("aria-pressed", String(state.looping));
+  if (!range) return;
+  refs.rangeLength.textContent = `${formatTime(range.t0)}–${formatTime(range.t1)} · ${(range.t1 - range.t0).toFixed(2)} s`;
+  const tl = state.timeline;
+  const mid = (tl.xFor(range.t0) + tl.xFor(range.t1)) / 2;
+  const half = bar.offsetWidth / 2, room = refs.timelineWrap.clientWidth;
+  bar.style.left = `${clamp(mid - half, 4, Math.max(4, room - 2 * half - 4))}px`;
+  bar.style.top = `${refs.timelineWrap.scrollTop + Math.min(tl.height, refs.timelineWrap.clientHeight) - bar.offsetHeight - 6}px`;
 }
 
 function drawAxisKeyframes(svg, axis, y, h, color) {
@@ -1405,6 +1527,14 @@ function renderInspector(t = specTime()) {
   const phase = currentPhase(t);
   const keyframeHit = nearestKeyframe(t);
   refs.cursorTime.textContent = formatTime(t);
+  // One line: the nearest contact, its impact, the phase; the rest when opened.
+  const impact = contactHit ? contactHit.contact.impact === null ? "untargeted" : fmt(contactHit.contact.impact) : null;
+  refs.cursorSummary.textContent = [
+    contactHit ? `contact #${contactHit.index} ${signed(contactHit.contact.t - t)} s` : "no contact",
+    impact && `impact ${impact}`,
+    phase?.name,
+  ].filter(Boolean).join(" · ");
+  if (!refs.cursorDetails.open) return;
   const vocal = vocalFrame(state.analysis?.vocal, t);
   // One assignment per call: this runs on every animation frame during playback.
   refs.cursorGrid.innerHTML = [
@@ -1430,7 +1560,6 @@ function renderInspector(t = specTime()) {
       <div class="value">${value === null ? "-" : fmt(value)}</div>`;
     refs.axisReadouts.appendChild(row);
   }
-  renderAgentContext();
 }
 
 function detail(label, value) {
@@ -1451,7 +1580,6 @@ function setActiveAnchor(anchor) {
   renderTags();
   renderNotesList();
   renderTimeline();
-  renderAgentContext();
 }
 
 function anchorFor(scope, t) {
@@ -1573,7 +1701,6 @@ function saveActiveNoteDebounced() {
   upsertLocalNote(note);
   renderNotesList();
   renderTimeline();
-  renderAgentContext();
   state.saveTimer = setTimeout(() => saveNoteSnapshot(note), 450);
 }
 
@@ -1600,7 +1727,6 @@ async function saveNoteSnapshot(note) {
   upsertLocalNote(note);
   renderNotesList();
   renderTimeline();
-  renderAgentContext();
   try {
     const res = await fetch("/api/spec-notes", {
       method: "POST",
@@ -1632,7 +1758,6 @@ async function deleteActiveNote() {
   renderTags();
   renderNotesList();
   renderTimeline();
-  renderAgentContext();
   try {
     const res = await fetch("/api/spec-notes", {
       method: "POST",
@@ -1658,7 +1783,6 @@ async function clearAllNotes() {
   renderTags();
   renderNotesList();
   renderTimeline();
-  renderAgentContext();
   try {
     const res = await fetch("/api/spec-notes", {
       method: "POST",
@@ -1697,7 +1821,7 @@ function upsertLocalNote(note) {
 }
 
 function renderNotesList() {
-  refs.notePath.textContent = state.notesPath || "";
+  refs.notesTitle.title = state.notesPath ? `Kept in ${state.notesPath}` : "";
   refs.notesList.innerHTML = "";
   for (const note of state.notes) {
     const li = document.createElement("li");
@@ -1709,84 +1833,13 @@ function renderNotesList() {
       ? `${formatTime(note.t0)}-${formatTime(note.t1)}`
       : formatTime(note.t);
     const scopeLabel = note.scope === "keyframe" && note.axis ? `${note.axis} keyframe` : note.scope;
-    button.innerHTML = `
-      <div class="note-line"><span>${escapeHtml(timeLabel)}</span><span>${escapeHtml(scopeLabel)}</span></div>
-      <div class="note-text">${escapeHtml(note.text || note.tags.join(", "))}</div>`;
+    button.title = `${timeLabel} · ${scopeLabel}\n${note.text || ""}${note.tags.length ? `\n${note.tags.join(", ")}` : ""}`;
+    button.innerHTML = `<span class="note-time">${escapeHtml(timeLabel)}</span>`
+      + `<span class="note-text">${escapeHtml(note.text || note.tags.join(", "))}</span>`
+      + `<span class="note-scope">${escapeHtml(scopeLabel)}</span>`;
     li.appendChild(button);
     refs.notesList.appendChild(li);
   }
-}
-
-let lastAgentContextMs = 0;
-function renderAgentContext() {
-  if (!state.data) return;
-  // This pane is a pretty-printed JSON debug dump. renderInspector calls it every
-  // animation frame during playback; rebuilding the context and JSON.stringify-ing it
-  // 60×/sec pins a core on dense specs and nobody reads it mid-scrub. Throttle to ~7Hz
-  // while playing; paused/discrete updates always render immediately.
-  if (isPlaying()) {
-    const now = performance.now();
-    if (now - lastAgentContextMs < 140) return;
-    lastAgentContextMs = now;
-  }
-  const t = specTime();
-  const keyframeHit = nearestKeyframe(t);
-  const selection = normalizedRange(state.selection);
-  const activeNote = state.notes.find((note) => note.id === state.activeNoteId) || (state.activeAnchor ? {
-    ...state.activeAnchor,
-    text: refs.noteText.value,
-    tags: state.activeTags,
-  } : null);
-  const ctx = {
-    spec: state.data.spec.path,
-    at: {
-      t: round(t, 3),
-      time: formatTime(t),
-      music: state.data.music ? {
-        audioTime: hasAudio() ? round(t, 3) : null,
-        clock: isPlaying() ? "audio" : "paused",
-      } : null,
-      phase: currentPhase(t)?.name ?? null,
-      contact: nearestContact(t)?.index ?? null,
-      gap: currentGap(t)?.i ?? null,
-      keyframe: keyframeHit ? {
-        axis: keyframeHit.point.axis,
-        index: keyframeHit.point.index,
-        t: keyframeHit.point.t,
-        value: keyframeHit.point.v,
-        ease: keyframeHit.point.ease,
-        dt: round(keyframeHit.point.t - t, 3),
-      } : null,
-      axes: Object.fromEntries(state.data.summary.activeAxes.map((axis) => [axis, axisAt(axis, t)])),
-    },
-    view: {
-      t0: round(state.viewStart, 3),
-      t1: round(state.viewEnd, 3),
-      duration: round(state.viewEnd - state.viewStart, 3),
-    },
-    snap: {
-      mode: state.snapMode,
-    },
-    selection: selection ? {
-      t0: selection.t0,
-      t1: selection.t1,
-      duration: round(selection.t1 - selection.t0, 3),
-    } : null,
-    note: activeNote,
-    evidence: {
-      url: state.data.music?.vocalEvidenceUrl ?? null,
-      error: state.data.music?.vocalEvidenceError ?? null,
-      meaning: 'Measurements and detector estimates, not words or impact requests. Spec time is audio time: every time here is in seconds of the recording.',
-      vocalWindow: vocalFrame(state.analysis?.vocal, t),
-      nearbySources: (state.analysis?.onsets ?? []).filter(event => Math.abs(event.t - t) <= .25),
-      nearbyVocalCandidates: (state.analysis?.vocal?.candidates ?? []).filter(c => Math.abs(c.t - t) <= .25),
-    },
-    nearbyContacts: state.data.contacts
-      .map((contact, index) => ({ index, t: contact.t, dt: round(contact.t - t, 3), impact: contact.impact }))
-      .filter((contact) => Math.abs(contact.dt) <= 2)
-      .slice(0, 10),
-  };
-  refs.agentJson.textContent = JSON.stringify(ctx, null, 2);
 }
 
 // The music and the cursor share one clock, the audio hardware's (shared/playback.js):
@@ -1815,10 +1868,6 @@ function isPlaying() {
   return music.playing;
 }
 
-
-function hasAudio() {
-  return Boolean(music.duration);
-}
 
 function audioDurationForMusic(spec = state.data?.music) {
   if (music.duration) return music.duration;
@@ -1874,7 +1923,8 @@ const isMaking = (job) => job?.phase === "compiling" || job?.phase === "renderin
 function renderVideo() {
   const { video, videoJob: job } = state, spec = state.data?.spec.path;
   const mine = job?.spec === spec ? job : null;
-  refs.video.hidden = !video;
+  refs.video.hidden = !video || !listening.videoOpen;
+  refs.toggleVideo.hidden = !video;
   refs.makeVideo.disabled = isMaking(job);
   refs.makeVideo.textContent = isMaking(mine) ? "Making the video" : video ? "Make it again" : "Make the video";
   refs.makeVideo.title = isMaking(job) && !mine ? `A video is being made for ${job.spec}` : "Compile this spec and render its ride (a few minutes)";
@@ -1894,6 +1944,7 @@ function renderVideo() {
     lines.push(`The last attempt failed:\n${mine.error}`);
   }
   refs.videoState.textContent = lines.join("\n");
+  refs.videoState.title = lines.join("\n");
   refs.videoState.classList.toggle("stale", Boolean(video && !video.current));
   refs.videoState.classList.toggle("error", mine?.phase === "error");
 }
@@ -1931,7 +1982,13 @@ function syncVideo(t = specTime()) {
 
 // Each frame shows the cursor at the spec time heard when the frame is on screen.
 function tick(ts) {
-  if (state.data && isPlaying()) {
+  const loop = state.data && isPlaying() && state.looping && normalizedRange(state.selection);
+  // Looping: back to the range's start as soon as its end is rendered (or when playback is well before it).
+  if (loop && (music.rendered() >= loop.t1 || music.rendered() < loop.t0 - 0.5)) {
+    state.cursorT = loop.t0;
+    startPlayback(loop.t0);
+    updatePlaybackUi(loop.t0);
+  } else if (state.data && isPlaying()) {
     const t = specTime(onScreen(ts));
     if (t >= state.data.spec.duration) {
       state.cursorT = state.data.spec.duration;
@@ -1964,7 +2021,9 @@ function scheduleClicks() {
     clicks.out.gain.value = listening.clickVolume;
     clicks.out.connect(ctx.destination);
   }
-  const now = music.rendered(), horizon = now + 0.15 * state.playbackRate;
+  // no click past a loop's end: the loop starts over there
+  const loop = state.looping && normalizedRange(state.selection);
+  const now = music.rendered(), horizon = Math.min(now + 0.15 * state.playbackRate, loop ? loop.t1 - 1e-4 : Infinity);
   if (!(clicks.until >= now - 0.05 && clicks.until <= horizon)) clicks.until = now; // after a seek
   for (const contact of state.data.contacts) {
     if (contact.t <= clicks.until || contact.t > horizon) continue;

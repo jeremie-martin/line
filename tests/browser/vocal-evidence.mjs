@@ -27,8 +27,12 @@ try {
     const count = evidence.candidates.filter(c => inRange(c.t)).length;
     check(await page.locator('[data-vocal-candidate]').count() === count, `${song}: all candidate types preserved`);
     check(await page.locator('[data-acoustic-landmarks]').count() === count, `${song}: candidate landmarks available`);
-    const context = JSON.parse(await page.locator('#agent-json').textContent());
-    check(context.evidence.vocalWindow.bandFlux.length === 3, `${song}: band measurements available to author`);
+    if (!await page.locator('#cursor-details').evaluate(e => e.open)) {
+      await page.locator('#cursor-details summary').click();
+      await page.waitForTimeout(100);
+    }
+    const bands = (await page.locator('#cursor-grid').textContent()).match(/Hz:/g) ?? [];
+    check(bands.length === 3, `${song}: band measurements shown at the cursor`);
     console.log(`PASS ${song}: sources preserved, ${count} candidates visible, two measurement traces`);
     if (song === songs[0]) {
       await page.screenshot({path: '/tmp/vocal-evidence-desktop.png', fullPage: true});

@@ -395,3 +395,47 @@ The 360-pixel-wide vertical films use the plain look and the cut audio, with the
 | Lua na Praça | [Main](http://127.0.0.1:8767/generated/shorts5/films/lua_na_praca.mp4) · [Upper](http://127.0.0.1:8767/generated/shorts5/films/lua_na_praca-upper.mp4) |
 
 All 1,526 requested landings matched on seed 101. Type checking passed, reach reported zero unreachable files, and all 722 tests in 127 files passed before the final commit.
+
+## Compensation removed
+
+Times below are seconds in each short. The values are requests in the specification. Each changed reading reached the end of the cut on its single seed 101 compile.
+
+**Montagem Tomada slowed.** At 17.485 the vocal strength returns from .19 to .23, its value before the drum trial. The 17.625 syllable (.12 → .25) has the sharper vocal attack and larger mix rise of the two. Its own faint answer at 17.729 (absent → .10) completes the pair under the 17.70 mark. The distinct drum follows at 17.857. The 16.61 mark falls on the decay of the 16.533 syllable, with one measured vocal onset across both marks.
+
+**Luna Bala slowed.** The drum punctuation at 6.713 (.48 → .553), the leaned vowel at 14.626 (.175 → .125), its small reply at 14.899 (.018 → .048) and the entrance at 15.444 (.49 → .438) restore the reviewed requests. Those four weights changed between the first musical reading and the physical trials. The opening still swells into the punctuation, and the later fifth strokes retain their raised class.
+
+**Luna Bala original.** At 2.124 the continuation returns (absent → .035). It is the quieter second articulation after 2.019 (.057), present in the opening score before the missed-catch trial.
+
+**Los Voltaje.** Seven strength changes restore the exact stresses of the reviewed quick voice. In time order they are 11.002 (.53 → .462), 11.792 (.62 → .496), 13.359 (.23 → .335), 13.533 (.43 → .369), 13.708 (.36 → .295), 14.427 (.23 → .344) and 14.590 (.25 → .306). The crescendo in the preceding calls ends on the drum answer.
+
+**Los Voltaje slowed.** At 10.859, 11.126 and 11.405 the last three drum weights return from .45/.275/.55 to .42/.26/.52. That gives the answer its initial phrase contour, a lighter penultimate stroke and an accented end. Air at 11.405 returns from .41 to .38, the setting carried across this answer from 10.023. All 19 reviewed voice requests start from the same score as before the trials.
+
+**Los Voltaje ultra slowed.** The five drums at 9.671/9.985/10.321/10.658/10.995 return from .22/.34/.30/.17/.42 to .21/.32/.28/.16/.40. These were the five weights written for the crescendo before the group was lifted to influence the following voice. The fourth is the small reply, the fifth the accent.
+
+**L’Amour de ma vie.** The last vocal tail at 3.065 returns (absent → .035). At 3.251/3.587/3.918 the three strengths move from 1/1/1 to .97/.97/.97. I used the initial request for the first drum as the common weight for the three very strong strokes the owner marked. Air at 2.868 returns from .82 to .27 for the whispered words. The .88/.64/.72/.52 air points at 3.251/3.587/3.918/4.586 give way to the earlier .52 plateau starting at 3.750. Speed resumes its approach from .82 at 2.868 to .90 at 3.750, replacing the .97/.98/.90 points at 3.065/3.918/4.586. The three drum attacks interrupt a chill backbeat.
+
+**Lua na Praça, upper.** Air at 19.85 returns from .47 to .76. The points at 21.21 (.25), 25.87 (.29) and 26.205 (.36) give way to the reviewed smooth arc from .76 to .58 at 27.34. The bare upper notes hang in the space left by the drums. Their very light strengths and the owner's higher speed run through the suspension.
+
+**Lua na Praça, main.** Nothing was tuned for delivery. The higher speed throughout the cut was the owner's request.
+
+**Circus Minimus.** The hook had carried its inner beats and word endings across single arcs to give the low strokes room. Each of the following was absent. The inner beat comes back at 19.088 (.34), 22.281 (.32), 25.485 (.34) and 28.690 (.33). The quieter end of the word returns at 19.669 (.23), 22.850 (.23), 26.066 (.22) and 29.317 (.24). The short intervening reply returns at 20.516 (.27), 23.721 (.28) and 26.913 (.27). In the full groove the marked answer at 34.495 (.31) has its own catch before the 34.727 low. The weights place these attacks among the other light answers to the recurring bass.
+
+**Amor Na Praia, longer cut.** Across the two discreet pickups, the air points at 1.790 (.32) and 1.981 (.72) drop out and 2.231 returns from .74 to .48. The opening now travels from .47 to .48 across the whole upper pickup into the isolated drum. At 32.127 the bass entrance returns from .90 to .83, its initial weight beneath the preceding .96 accent. Air at 30.908 (.67), 31.517 (.82) and 32.127 (.72) returns to the broader rise from .62 at 30.548 to .76 at 32.127. Speed at 30.908 (.96) and 31.517 (.99) returns to .95 at 30.548 and .72 at 31.523. The phrase eases before the bass answers shift half a beat from the pulse.
+
+**Amor Na Praia, 46 seconds.** The shared drum and word at .337 return from .86 to .747, the reviewed weight before the new syllables were added. The little voice continues through its decay and the eight dry strokes retain their reviewed requests.
+
+| Passage | Axis | Previous points (seconds, request) | Restored points (seconds, request) | Musical reason |
+|---|---|---|---|---|
+| Boom and vocal chops | Air | (0, .63), (.337, .63), (.614, .19), (2.548, .18), (3.767, .16), (3.895, .46), (4.174, .67) | (0, .50), (.337, .57), (2.548, .38), (3.895, .34), (4.174, .79) | The boom opens out, then the words settle across its decay. The last pickup opens into the exposed low stroke. |
+| Opening pace | Speed | (.337, .37), (.614, .20), (2.548, .19), (3.611, .20), (3.895, .58), (4.174, .98) | (2.548, .24), (3.895, .25), (4.174, .80) | From .37 at the start the short settles into the voice. The change of pace belongs to the end of the vocal phrase. |
+| End of the dry drums | Air | (7.755, .91), (8.684, .85) | (7.755, .58), (8.684, .74) | The last dry stroke releases into the breath before the full band. |
+
+The 46-second ride reached the end on seed 101. Its separate impact validation flag was false.
+
+**Bones.** Nothing was tuned for delivery. The pickups recur with the drum sentence. The stronger 22.230 stroke and its lighter 22.520 answer express the owner's requested order of accents.
+
+**Luna Bala, 44 seconds.** Nothing was tuned for delivery. The light opening articulation and the five-stroke reply are the reading written for this cut.
+
+**Montagem Tomada extended.** Nothing was tuned for delivery. The opening weights match the initial slight crescendo through the four phrases, with each long-note accent in place.
+
+All eleven changed readings reached `endOfSpec` in `generated/shorts6/`. The four protected passages match their reviewed times and requested strengths exactly. Type checking, reachability and the full test suite passed before the last commit.

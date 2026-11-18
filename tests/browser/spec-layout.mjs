@@ -1,7 +1,9 @@
-/** Run against a local review server: node tests/browser/spec-layout.mjs [URL] [spec].
+/** Run against a local review server: node tests/browser/spec-layout.mjs [URL] [spec] [spec with earlier notes and a video]
+ * [spec of a song without a drop].
  * The spec dashboard as one screen (no page scroll at 1920×1080 and 1440×900, the timeline spanning its panel, the
- * video whole), and its range: drag to select, drag an edge, loop it (L), note it, Esc. Notes, verdicts and the
- * reading's note are intercepted (kept in this script), so this check cannot change the owner's words. */
+ * video whole), and its range: drag to select, drag an edge, loop it (L), note it, Esc. Then notes on earlier versions
+ * (the server's, read only: the toggle, hover, the quote, noting again), Watch the loop, and the drop band. Notes, verdicts
+ * and the reading's note are intercepted (kept in this script), so this check cannot change the owner's words. */
 import {chromium} from 'playwright';
 const base = process.argv[2] ?? 'http://127.0.0.1:8767';
 const specPath = process.argv[3] ?? 'productions/short_montagem_tomada_slowed/spec.ts';
@@ -123,8 +125,95 @@ try {
     check(await page.locator('#cursor-grid .detail').count() >= 5, 'the cursor details open');
     await page.close();
   }
+  // Notes on earlier versions: the server's own notes are read; what the page writes is kept in this script.
+  {
+    const page = await context.newPage({viewport: {width: 1920, height: 1080}});
+    page.on('pageerror', e => errors.push(e.message));
+    page.on('console', m => {if (m.type() === 'error') errors.push(m.text());});
+    const posted = new Map(), deleted = [];
+    await page.route('**/api/spec-notes**', async route => {
+      const request = route.request();
+      if (request.method() !== 'POST') {
+        const real = await (await context.request.get(request.url())).json();
+        return route.fulfill({json: {...real, notes: [...real.notes, ...[...posted.values()].map(n => ({...n, current: true}))]}});
+      }
+      const body = request.postDataJSON();
+      if (body.note) posted.set(body.note.id, body.note); else deleted.push(body);
+      return route.fulfill({json: {ok: true, note: body.note ? {...body.note, current: true} : null, notesPath: 'test-only'}});
+    });
+    const open = async (spec) => {
+      await page.goto(`${base}/spec-dashboard/?spec=${spec}`);
+      await page.waitForFunction(() => !document.querySelector('#spec-subtitle').textContent.startsWith('Loading') && document.querySelector('#timeline').children.length > 0);
+      await page.waitForTimeout(500);
+    };
+    const earlierSpec = process.argv[4] ?? 'productions/short_circus_minimus/spec.ts';
+    await open(earlierSpec);
+    await page.evaluate(() => localStorage.removeItem('spec-dashboard.listening'));
+    await open(earlierSpec);
+    const label = await page.locator('#earlier-toggle').textContent(), count = Number(/\((\d+)\)/.exec(label)?.[1]);
+    check(await page.locator('#earlier-toggle').isVisible() && count > 0, `the Notes panel offers its earlier notes: "${label.trim()}"`);
+    check(!await page.locator('#toggle-earlier').isChecked() && await page.locator('#notes-list li.earlier').count() === 0, 'earlier notes are off by default');
+    // off: hovering one shows its words; clicking it quotes it, read only
+    const mark = page.locator('.svg-note-earlier').nth(3);
+    await mark.hover();
+    const card = await page.locator('#note-card').evaluate(e => e.hidden ? '' : e.textContent);
+    check(card.includes('earlier version'), `hovering an earlier note shows it: "${card}"`);
+    await mark.click();
+    check(await page.locator('#earlier-ref').isVisible() && await page.locator('#note-text').isHidden() && await page.locator('#delete-note').isHidden(),
+      'clicking an earlier note quotes it, with no editor');
+    check((await page.locator('#earlier-head').textContent()).startsWith('Written ') && (await page.locator('#earlier-text').textContent()).length > 0, 'the quote has its date and words');
+    // on: drawn outlined, all listed with their dates, remembered
+    await page.locator('#toggle-earlier').check();
+    check(await page.locator('#notes-list li.earlier').count() === count, `all ${count} earlier notes are listed`);
+    check(await page.locator('.svg-note-earlier').first().getAttribute('stroke-dasharray') === '3 2', 'earlier notes are outlined on the timeline');
+    check(/· \d+ \w+|· \w+ \d+/.test(await page.locator('#notes-list li.earlier .note-scope').first().textContent()), 'each listed earlier note has its date');
+    await open(earlierSpec);
+    check(await page.locator('#toggle-earlier').isChecked(), 'the choice is remembered');
+    // "Note this again": a current note at the same place with the words; the earlier one stays
+    const worded = page.locator('#notes-list li.earlier button').filter({hasText: /[a-z]{4,} [a-z]{3,}/}).first();
+    await worded.click();
+    const words = (await page.locator('#earlier-text').textContent()).trim();
+    await page.locator('#note-again').click(); await page.waitForTimeout(400);
+    check([...posted.values()].some(n => n.text.includes(words)), `noting again posts a current note with "${words}"`);
+    check(deleted.length === 0, 'noting again deletes nothing');
+    check(await page.locator('#notes-list li.earlier').count() === count, 'the earlier note stays');
+    check(await page.locator('#note-text').isVisible() && (await page.locator('#note-text').inputValue()).includes(words), 'the new note is in the editor');
+    await page.locator('#toggle-earlier').uncheck();
+    await open(earlierSpec);
+    check(!await page.locator('#toggle-earlier').isChecked(), 'off is remembered too');
+
+    // Watch the loop: the film by itself, with its sound, looping from a few seconds before its end; then slaved again
+    const film = () => page.locator('#video-player').evaluate(v => ({t: v.currentTime, d: v.duration, muted: v.muted, loop: v.loop, paused: v.paused}));
+    await page.waitForFunction(() => document.querySelector('#video-player').readyState >= 1);
+    await page.locator('#watch-loop').click(); await page.waitForTimeout(700);
+    let f = await film();
+    check(!f.muted && f.loop && !f.paused && f.t > f.d - 6, `the loop plays with its sound, near its end: ${JSON.stringify(f)}`);
+    check(await page.locator('#watch-loop').textContent() === 'Back to the spec' && await page.locator('#play').textContent() === 'Pause', 'the mode shows');
+    check(Math.abs(await songTime(page) - f.t) < 0.5, 'the cursor follows the film');
+    await page.locator('#timeline').focus(); await page.keyboard.press(' '); await page.waitForTimeout(150);
+    check((await film()).paused, 'Space pauses the film');
+    await page.keyboard.press(' '); await page.waitForTimeout(150);
+    check(!(await film()).paused, 'Space plays it again');
+    await page.locator('#loop-from-start').click(); await page.waitForTimeout(300);
+    check((await film()).t < 2, 'From the start plays the whole film');
+    await page.locator('#watch-loop').click(); await page.waitForTimeout(200);
+    f = await film();
+    check(f.muted && !f.loop && f.paused && await page.locator('#watch-loop').textContent() === 'Watch the loop', `Back to the spec mutes and pauses it: ${JSON.stringify(f)}`);
+    await page.locator('#timeline').focus(); await page.keyboard.press(' '); await page.waitForTimeout(900);
+    f = await film();
+    check(!f.paused && f.muted && Math.abs(await songTime(page) - f.t) < 0.3, 'the video follows the dashboard again');
+    await page.keyboard.press(' ');
+
+    // the drop, on the timeline: shown for a song with one, absent for one without
+    await open('productions/short_amour_de_ma_vie/spec.ts');
+    check((await page.locator('[data-drop] title').textContent()).startsWith('drop 25.25–36.58 s'), 'the drop shows, its times on hover');
+    await open(process.argv[5] ?? 'productions/bones_selection/spec.ts');
+    check(await page.locator('[data-drop]').count() === 0, 'no drop band for a song without one');
+    await page.close();
+  }
   check(errors.length === 0, `no page errors: ${errors.join('; ')}`);
-  console.log('spec layout: one screen at 1920×1080 and 1440×900; range drag, edge, loop, note, Esc; marks, verdicts, stem, reading note');
+  console.log('spec layout: one screen at 1920×1080 and 1440×900; range drag, edge, loop, note, Esc; marks, verdicts, stem, reading note; '
+    + 'earlier notes (toggle, hover, quote, note again); Watch the loop; the drop');
 } finally {
   await browser.close();
 }

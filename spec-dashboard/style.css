@@ -995,6 +995,7 @@ textarea {
 }
 
 .note-anchor {
+  flex: none;
   margin-top: 6px;
   color: var(--muted);
   font-size: 12px;
@@ -1247,5 +1248,65 @@ textarea {
 .notes-marks { margin-top: 6px; font-size: 11px; color: var(--muted); }
 .notes-marks:empty { display: none; }
 
-.notes-list li.earlier { opacity: 0.6; border-style: dashed; }
-.notes-earlier { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-decoration: underline; cursor: pointer; }
+.notes [hidden] { display: none !important; }
+
+/* notes on earlier versions: off by default; on, outlined on the timeline and listed, each with its date */
+.notes-marks { display: flex; align-items: baseline; gap: 8px; }
+.notes-marks > span { flex: 1; min-width: 0; }
+.earlier-toggle { flex: none; display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-size: 12px; font-weight: 600; cursor: pointer; }
+.earlier-toggle input { margin: 0; accent-color: var(--blue); }
+.notes-list li.earlier { border-style: dashed; background: transparent; }
+/* listed, they share the column with the editor */
+.notes.earlier-on #note-text { flex: 1 1 32px; min-height: 32px; }
+.notes.earlier-on .notes-list { flex: 1 1 0; max-height: none; min-height: 34px; }
+.notes-list li.earlier .note-text { color: var(--muted); }
+.notes-list li.earlier.active { border-style: solid; }
+
+/* an earlier note, quoted: read, not edited */
+.earlier-ref {
+  flex: 2 1 72px;
+  min-height: 72px;
+  display: flex;
+  flex-direction: column;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 6px;
+}
+.earlier-head { margin: 0; font-size: 11px; color: var(--muted); }
+.earlier-ref blockquote {
+  margin: 4px 0 6px;
+  padding-left: 8px;
+  border-left: 3px solid var(--line-strong);
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  flex: 0 1 auto;
+  min-height: 1.4em;
+  overflow: auto;
+}
+.earlier-ref button { flex: none; align-self: flex-start; height: 24px; padding: 0 8px; font-size: 12px; }
+
+/* the words of a note under the pointer on the timeline */
+.note-card {
+  position: absolute;
+  z-index: 6;
+  max-width: 340px;
+  padding: 6px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+}
+.note-card[hidden] { display: none; }
+.note-card-head, .note-card-tags, .note-card-hint { color: var(--muted); font-size: 11px; }
+.note-card-head b { color: var(--ink); font-weight: 600; }
+.note-card-text { margin-top: 2px; white-space: pre-wrap; display: -webkit-box; -webkit-line-clamp: 8; -webkit-box-orient: vertical; overflow: hidden; }
+.svg-note-earlier { cursor: pointer; }
+
+/* the song's drop, under the times */
+.svg-drop { fill: var(--rust); fill-opacity: 0.14; stroke: var(--rust); stroke-opacity: 0.45; stroke-width: 1; }
+.svg-drop-label { fill: var(--rust); font-size: 10px; font-weight: 600; letter-spacing: 0; pointer-events: none; }

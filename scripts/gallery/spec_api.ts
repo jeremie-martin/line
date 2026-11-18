@@ -3,7 +3,8 @@
  *   GET  /api/specs                         → {specs: [{path, name, label, group}]}
  *   GET  /api/spec-view?spec=…&samples=…    → contacts, gaps, sampled axes, keyframes, music
  *                                            (music.eventsUrl: the song's measured events.json, if any;
- *                                            music.stems: the song's separated stems that exist, by name)
+ *                                            music.stems: the song's separated stems that exist, by name;
+ *                                            drop: the song's drop [start, end] s, scripts/video/drops.ts, or null)
  *   GET  /api/spec-notes?spec=…             → {specPath, notesPath, notes}
  *   POST /api/spec-notes  ← {spec, note} upsert (empty text and no tags deletes), {spec, id} delete, {spec, clear}
  * A note records what it was written on: `on` = {spec, sha256} (the reading and specSha256 at the time). While the reading
@@ -18,6 +19,7 @@ import {pathToFileURL} from 'node:url';
 import {Worker, isMainThread, parentPort, workerData} from 'node:worker_threads';
 import {createHash} from 'node:crypto';
 import {AXES, type Spec, type SpecMusic} from '../v0/types.ts';
+import {DROP_TIMES} from '../video/drops.ts';
 
 type SpecEntry = {path: string; name: string; label: string; group: string};
 type Note = {id: string; t: number; scope: string; index: number | null; t0: number | null; t1: number | null;
@@ -142,6 +144,7 @@ export function createSpecApi(root = process.cwd()) {
         shortestGap: durations.length ? Math.min(...durations) : null, longestGap: durations.length ? Math.max(...durations) : null},
       contacts, gaps, axes, keyframes,
       overlayMeta: mod.overlayMeta ?? null, music: music(spec.music, songDir(entry.path)),
+      drop: DROP_TIMES[entry.path.split('/')[1]] ?? null,
     };
   }
 

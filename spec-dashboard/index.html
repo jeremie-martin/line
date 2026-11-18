@@ -129,6 +129,8 @@
           <div class="metric-row" id="summary-row"></div>
           <p class="help-line"><span class="label">Music</span> <span id="music-meta">No audio linked</span></p>
           <p class="help-line"><span class="label">View</span> <span id="view-window">0:00.00-0:00.00</span></p>
+          <p class="help-line"><span class="label">Drop</span> the band under the times: the song's drop, placed by hand (its times on hover)</p>
+          <p class="help-line"><span class="label">Notes</span> filled: on this version; pale, or outlined when Earlier notes is on: on an earlier one (hover to read, click to quote)</p>
           <p id="vocal-evidence-note" class="evidence-note"></p>
         </div>
       </div>
@@ -136,6 +138,7 @@
 
     <div class="timeline-wrap" id="timeline-wrap">
       <svg id="timeline" role="img" aria-label="specification timeline" tabindex="0"></svg>
+      <div class="note-card" id="note-card" hidden></div>
       <div class="range-bar" id="range-bar" hidden role="toolbar" aria-label="Selected range">
         <span class="range-length" id="range-length"></span>
         <button type="button" id="range-loop" title="Play this range again and again (L)">Loop <kbd>L</kbd></button>
@@ -152,6 +155,8 @@
       <video id="video-player" muted playsinline preload="auto" hidden></video>
       <div class="video-row" id="video-row">
         <p id="video-state" class="video-state"></p>
+        <button id="watch-loop" type="button" hidden title="Play the finished film by itself, with its own sound, looping: its ending runs into its start">Watch the loop</button>
+        <button id="loop-from-start" type="button" hidden title="Play the whole film, looping">From the start</button>
         <button id="make-video" type="button" title="Compile this spec and render its ride (a few minutes)">Make the video</button>
         <button id="toggle-video" type="button" aria-expanded="true">Hide</button>
       </div>
@@ -178,13 +183,22 @@
       </div>
       <div class="note-anchor" id="note-anchor">moment</div>
       <textarea id="note-text" rows="3" placeholder="Feedback for this point"></textarea>
+      <div class="earlier-ref" id="earlier-ref" hidden>
+        <p class="earlier-head" id="earlier-head"></p>
+        <blockquote id="earlier-text"></blockquote>
+        <button id="note-again" type="button" title="Start a note on this version at the same place, with these words copied; the earlier note stays as it is">Note this again on this version</button>
+      </div>
       <div class="tag-row" id="tag-row"></div>
       <div class="save-row">
         <span id="save-state"></span>
         <button id="delete-note" type="button">Delete</button>
         <button id="clear-notes" type="button" title="Delete your notes on this version; notes on earlier versions are kept">Clear</button>
       </div>
-      <div class="notes-marks" id="notes-marks"></div>
+      <div class="notes-marks">
+        <span id="notes-marks"></span>
+        <label class="earlier-toggle" id="earlier-toggle" hidden title="Show the notes written on earlier versions of this reading: on the timeline (outlined) and in the list">
+          <input type="checkbox" id="toggle-earlier"> <span id="earlier-label">Earlier notes</span></label>
+      </div>
       <ol id="notes-list" class="notes-list"></ol>
     </section>
   </aside>

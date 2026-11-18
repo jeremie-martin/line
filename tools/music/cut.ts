@@ -22,7 +22,7 @@ import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {existsSync, mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, symlinkSync} from 'node:fs';
 import {homedir} from 'node:os';
-import {join, resolve} from 'node:path';
+import {join, resolve, relative} from 'node:path';
 
 const ROOT = resolve(import.meta.dirname, '../..'), STUDY = 'labels/studies/cut-2026-11.jsonl', STEMS = ['drums', 'bass', 'other', 'vocals'];
 /** The files a cut writes, in its song folder and its stems folder; nothing else is touched. */
@@ -260,6 +260,15 @@ export function cutSong(o: {root?: string; parent: string; name: string; from: n
     if (!existsSync(link)) symlinkSync(join(src, 'audio.mp3'), link);
   }
   files.push({file: `productions/${o.name}/source.json`, note: record.sourceStartSeconds === undefined ? 'cutOf only' : `${record.file} from ${record.sourceStartSeconds} s`});
+
+  // the vocal evidence names what it was measured on (the dashboard refuses it otherwise): now the cut's own audio and voice
+  const evidencePath = join(dst, 'vocal-evidence.json');
+  if (existsSync(evidencePath)) {
+    const evidence = JSON.parse(readFileSync(evidencePath, 'utf8')), voice = join(stemDst, 'vocals.wav');
+    evidence.cutOf = {song: o.parent, from: o.from, inputs: evidence.inputs};
+    evidence.inputs = [audioPath, ...(existsSync(voice) ? [voice] : [])].map(path => ({path: relative(root, path), sha256: sha(readFileSync(path))}));
+    writeFileSync(evidencePath, JSON.stringify(evidence));
+  }
 
   // a cut owns these files and no others: one the parent no longer has is removed, the rest of the folder is left alone
   for (const [folder, names] of [[dst, OWNED.song], [stemDst, OWNED.stems]] as const)

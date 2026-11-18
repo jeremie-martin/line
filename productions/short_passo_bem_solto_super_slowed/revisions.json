@@ -47,6 +47,35 @@
           "text": "The strong pair, as in the slowed entry."
         }
       ]
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "sha256": "b4d7ec55772a0d361398603b7bdd2ff8836519f27d58a187703b9016af270869",
+      "at": "2026-11-18T20:52:51.962Z",
+      "by": "Claude",
+      "summary": "From your five marks: they are all the same drum, the third beat of the bar, which had no landing in any bar from 13 to 28 s. It is now landed in every one of those bars (seven strokes; you marked five). Three more strong drums in the same passage (15.23, 19.62, 24.02 s) had only a light landing a tenth of a second late: the landing is now on the drum and strong. From 30.6 s the same drum beat is still not landed, since your range stops at 28.2 s; say if it should continue.",
+      "points": [
+        {
+          "from": 14.136,
+          "to": 27.307,
+          "text": "The third-beat drum, every bar."
+        },
+        {
+          "from": 15.233,
+          "to": null,
+          "text": "On the drum, strong."
+        },
+        {
+          "from": 19.621,
+          "to": null,
+          "text": "On the drum, strong."
+        },
+        {
+          "from": 24.016,
+          "to": null,
+          "text": "On the drum, strong."
+        }
+      ]
     }
   ]
 }

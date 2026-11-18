@@ -52,6 +52,20 @@
           "text": "Its last bar rises into the swell."
         }
       ]
+    },
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+      "sha256": "30ed953ef0b720107e5f1f80212054f71bfbc3ba8541fd595a33d698b40b64f4",
+      "at": "2026-11-18T20:52:52.024Z",
+      "by": "Claude",
+      "summary": "From your note: the quick voice before the second drum return is now followed syllable by syllable, light and rising into the drum, as before the first return (18.6–20.1 s).",
+      "points": [
+        {
+          "from": 28.61,
+          "to": 29.95,
+          "text": "Seven light syllables rising into the drum."
+        }
+      ]
     }
   ]
 }

@@ -6,7 +6,13 @@ const $ = (id) => document.getElementById(id);
 const ORDER = ["main", "astra", "sol", "opus", "blend"];
 const BY = { main: "The approved reading", astra: "Astra", sol: "Sol", opus: "Opus", blend: "Blend: from the four" };
 const LANES = [["air", "air time", "--teal"], ["speed", "speed", "--blue"], ["amplitude", "height", "--violet"]];
-const state = { held: [], loading: 0, songs: [], picks: {}, s: 0, v: 0, views: new Map(), films: new Map(), ghost: false, from: 0, to: 1, token: 0, dirty: null };
+// Zoom lanes: films of one reading (the blend) under each of the song's camera lanes, listed in an index written when they
+// are rendered. `state.zoom[song]` is the lane on screen for that reading; with none, the reading's own film.
+const ZOOM_OF = "blend", ZOOM_INDEX = "/generated/videos/lanes/index.json";
+const lanesOf = (s = song()) => state.lanes[s?.dir.split("/")[1]] ?? [];
+const laneOn = () => reading()?.reading === ZOOM_OF ? lanesOf().find((l) => l.id === state.zoom[song().dir]) ?? lanesOf()[0] ?? null : null;
+const filmKey = () => { const lane = laneOn(); return lane ? `${reading().path}#${lane.id}` : reading()?.path; };
+const state = { lanes: {}, zoom: {}, held: [], loading: 0, songs: [], picks: {}, s: 0, v: 0, views: new Map(), films: new Map(), ghost: false, from: 0, to: 1, token: 0, dirty: null };
 const audio = $("audio"), canvas = $("timeline"), ctx = canvas.getContext("2d");
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const json = async (res) => { const body = await res.json(); if (!res.ok) throw Error(body.error ?? res.statusText); return body; };
@@ -19,6 +25,7 @@ const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
 async function start() {
   const body = await fetch("/api/spec-review", { cache: "no-cache" }).then(json);
   state.picks = body.picks ?? {};
+  state.lanes = await fetch(ZOOM_INDEX, { cache: "no-cache" }).then((res) => res.ok ? res.json() : {}).catch(() => ({}));
   const by = new Map();
   for (const r of body.readings.filter((r) => r.set === "production")) {
     const dir = r.path.split("/").slice(0, 2).join("/");
@@ -76,14 +83,27 @@ async function openSong(index, readingName = null) {
     state.films.set(r.path, el); $("stage").append(el); show();
   }));
   if (token !== state.token) return;
-  state.loading = 0;
+  const blend = s.versions.find((r) => r.reading === ZOOM_OF);
+  if (blend) { state.loading = lanesOf(s).length; await Promise.all(lanesOf(s).map(async (lane) => {
+    const src = await whole(`${lane.url}?v=${encodeURIComponent(lane.madeAt)}`).catch(() => null);
+    if (token !== state.token) return;
+    state.loading--;
+    if (!src) return;
+    const el = document.createElement("video");
+    Object.assign(el, { muted: true, playsInline: true, preload: "auto", src });
+    el.from = 0; el.dataset.reading = `${ZOOM_OF}#${lane.id}`;
+    el.addEventListener("loadedmetadata", () => place(el, true), { once: true });
+    state.films.set(`${blend.path}#${lane.id}`, el); $("stage").append(el); show();
+  })); }
+  if (token !== state.token) return;
+  state.loading = 0; show();
   history.replaceState(null, "", `?song=${s.dir.split("/")[1]}&reading=${reading().reading}`);
   renderSide(); show(); draw();
 }
 
 /** Which film is seen. Every film keeps running under the one on top, so nothing has to load or seek at the change. */
 function show() {
-  const path = reading()?.path;
+  const wanted = filmKey(), path = state.films.has(wanted) ? wanted : reading()?.path;
   for (const [p, el] of state.films) el.classList.toggle("on", p === path);
   let none = $("stage").querySelector(".none");
   if (!state.films.has(path)) { if (!none) { none = document.createElement("div"); none.className = "none"; $("stage").append(none); } none.textContent = state.loading ? "Loading the film…" : "No video of this reading yet"; }
@@ -97,7 +117,7 @@ async function setVersion(i) {
   state.v = i;
   history.replaceState(null, "", `?song=${song().dir.split("/")[1]}&reading=${reading().reading}`);
   show(); renderSide(); draw();
-  const shown = state.films.get(reading().path);
+  const shown = shownFilm();
   if (shown && audio.paused) place(shown, true);
 }
 
@@ -121,8 +141,25 @@ function renderSide() {
   $("by").textContent = BY[r.reading] ?? r.reading;
   $("intention").textContent = r.reading === "main" ? "The reading you reviewed and approved. The others keep its landings and change how the rider moves between them: air time, speed, height, and how hard each landing is."
     : (last?.summary ?? "").replace(/^The intention:\s*/, "") || "No intention written.";
+  const lane = laneOn();
+  $("zoom").hidden = !lane;
+  if (lane) {
+    $("zooms").replaceChildren(...lanesOf().map((l) => { const b = document.createElement("button"); b.textContent = l.name; b.classList.toggle("on", l === lane); b.onclick = () => setZoom(l.id); b.title = l.about; return b; }));
+    $("zoom-about").textContent = lane.about;
+  }
   if (document.activeElement !== $("words")) $("words").value = r.note ?? "";
   $("saved").textContent = "";
+}
+
+/** Another camera lane for the blend: `to` a lane id, or a step. */
+function setZoom(to) {
+  const lanes = lanesOf(), now = laneOn();
+  if (!now || lanes.length < 2) return;
+  const next = typeof to === "string" ? lanes.find((l) => l.id === to) : lanes[(lanes.indexOf(now) + to + lanes.length) % lanes.length];
+  if (!next || next === now) return;
+  state.zoom[song().dir] = next.id;
+  show(); renderSide(); draw();
+  const shown = shownFilm(); if (shown && audio.paused) place(shown, true);
 }
 
 async function vote(verdict) {
@@ -155,16 +192,17 @@ async function flushWords() {
 // faster or slower. While the clock is being dragged only the film on top follows; the others are placed once it rests.
 const GUTTER = 52;
 let settle = 0, starting = false;
+const shownFilm = () => state.films.get(filmKey()) ?? state.films.get(reading()?.path);
 const filmTime = (el, t = audio.currentTime) => clamp(t - el.from, 0, Math.max(0, (el.duration || 0) - 0.03));
 function place(el, exact = false) {
   const at = filmTime(el);
   if (el.readyState < 1 || el.seeking && !exact) return;
   if (Math.abs(el.currentTime - at) > 0.02) el.currentTime = at;
 }
-const placeOthers = () => { for (const [path, el] of state.films) if (path !== reading()?.path) place(el, true); };
+const placeOthers = () => { const shown = shownFilm(); for (const el of state.films.values()) if (el !== shown) place(el, true); };
 function seek(t) {
   audio.currentTime = clamp(t, 0, duration() - 0.01);
-  const shown = state.films.get(reading()?.path);
+  const shown = shownFilm();
   if (shown) place(shown);
   clearTimeout(settle);
   if (audio.paused) settle = setTimeout(placeOthers, 220); else placeOthers();
@@ -180,7 +218,7 @@ async function toggle() {
   if (audio.currentTime >= duration() - 0.05) audio.currentTime = 0;
   starting = true; clearTimeout(settle);
   for (const el of state.films.values()) place(el, true);
-  const shown = state.films.get(reading()?.path);
+  const shown = shownFilm();
   if (shown) await ready(shown);
   starting = false;
   await audio.play().catch(() => {});
@@ -233,7 +271,7 @@ function draw() {
   if (v.drop) { ctx.fillStyle = rust; ctx.globalAlpha = 0.06; ctx.fillRect(x(v.drop[0]), top, x(v.drop[1]) - x(v.drop[0]), H - top); ctx.globalAlpha = 1; }
   ctx.restore();
   // landings: one stem each, as tall as the landing is hard
-  const laneH = Math.max(30, Math.round((H - top - 16) * 0.2)), impactH = H - top - 16 - LANES.length * (laneH + 8), y0 = top + impactH;
+  const laneCount = LANES.length + (laneOn() ? 1 : 0), laneH = Math.max(30, Math.round((H - top - 16) * (laneOn() ? 0.16 : 0.2))), impactH = H - top - 16 - laneCount * (laneH + 8), y0 = top + impactH;
   // one scale per curve for all the readings of the song, so that two readings are compared on the same ruler
   const scale = (axis) => { let lo = 1, hi = 0; for (const r of song().versions) for (const p of view(r)?.axes?.[axis]?.points ?? []) if (p[1] != null) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }
     const pad = Math.max(0.03, (hi - lo) * 0.12); return hi > lo ? [Math.max(0, lo - pad), Math.min(1, hi + pad)] : [0, 1]; };
@@ -253,8 +291,10 @@ function draw() {
   }
   ctx.restore(); ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
   // the curves between the landings
-  LANES.forEach(([axis, label, colour], k) => {
-    const y1 = y0 + 8 + k * (laneH + 8) + laneH, pts = v.axes?.[axis]?.points, c = css(colour), [lo, hi] = scale(axis);
+  const zoomLane = laneOn(), drawn = zoomLane ? [...LANES, ["zoom", "zoom (wide)", "--gold"]] : LANES;
+  drawn.forEach(([axis, label, colour], k) => {
+    const zoomPts = axis === "zoom" ? [[0, zoomLane.keyframes[0].wide], ...zoomLane.keyframes.map((p) => [p.t, p.wide]), [duration(), zoomLane.keyframes.at(-1).wide]] : null;
+    const y1 = y0 + 8 + k * (laneH + 8) + laneH, pts = zoomPts ?? v.axes?.[axis]?.points, c = css(colour), [lo, hi] = zoomPts ? [0, 1] : scale(axis);
     const y = (val) => y1 - (val - lo) / (hi - lo) * (laneH - 4);
     const path = (points) => { let pen = false; ctx.beginPath(); for (const [t, val] of points) { if (val == null) { pen = false; continue; } const X = x(t), Y = y(val); pen ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); pen = true; } };
     ctx.restore();
@@ -267,7 +307,7 @@ function draw() {
       ctx.fillStyle = c; ctx.globalAlpha = 0.18; ctx.fill(); ctx.globalAlpha = 1;
       path(pts); ctx.strokeStyle = c; ctx.lineWidth = 1.8; ctx.stroke();
     }
-    const basePts = base.axes?.[axis]?.points;
+    const basePts = zoomPts ? null : base.axes?.[axis]?.points;
     if (ghost && basePts?.length) { path(basePts); ctx.setLineDash([4, 3]); ctx.strokeStyle = ink; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }
     if (!pts?.length) { ctx.fillStyle = muted; ctx.fillText("not written in this reading", GUTTER + 8, y1 - laneH / 2); }
     if (hover != null) { const val = at(pts, hover), was = ghost ? at(basePts, hover) : null;
@@ -327,6 +367,7 @@ addEventListener("keydown", (e) => {
     : key === "]" ? () => setVersion((state.v + 1) % song().versions.length) : key === "[" ? () => setVersion((state.v - 1 + song().versions.length) % song().versions.length)
     : key === "b" ? pick : key === "l" ? () => vote("love") : key === "g" ? () => vote("good") : key === "x" ? () => vote("needs-work")
     : key === "m" ? () => { state.ghost = !state.ghost; $("ghost").checked = state.ghost; }
+    : key === "z" ? () => setZoom(e.shiftKey ? -1 : 1)
     : key === "c" ? () => $("words").focus() : key === "home" ? () => seek(0) : null;
   if (!act) return;
   e.preventDefault();

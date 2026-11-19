@@ -13,6 +13,7 @@ import {closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, rm
 import {join, relative} from 'node:path';
 import {isVersion, listSpecs, specSha256 as sha256} from './spec_api.ts';
 import {FPS} from '../v0/types.ts';
+import {ZOOMS} from '../video/zooms.ts';
 
 type Job = {spec: string; name: string; phase: 'compiling' | 'rendering' | 'done' | 'error'; startedAt: string; finishedAt?: string;
   look: string; line?: string; error?: string};
@@ -89,8 +90,10 @@ export function createSpecVideoApi(root = process.cwd()) {
     job = {spec, name, phase: 'compiling', startedAt: new Date().toISOString(), look: 'chosen for the ride'};
     try {
       const specSha256 = sha256(join(root, spec)), chosen = existsSync(astra) ? JSON.parse(readFileSync(astra, 'utf8')) : null;
-      const look = chosen ? [`--look=${chosen.theme}`, `--zoom=${chosen.zoom || 'steady'}`] : [];
-      if (chosen) job.look = `${chosen.theme}, zoom ${chosen.zoom || 'steady'} (the song's Astra video)`;
+      // the lane of that video, while the song still has it (lanes are rewritten; then the renderer chooses one)
+      const lane = chosen && (!chosen.zoom || ZOOMS[song]?.some(z => z.id === chosen.zoom));
+      const look = chosen ? [`--look=${chosen.theme}`, ...(lane ? [`--zoom=${chosen.zoom || 'steady'}`] : [])] : [];
+      if (chosen) job.look = lane ? `${chosen.theme}, zoom ${chosen.zoom || 'steady'} (the song's Astra video)` : `${chosen.theme} (the song's Astra video); its zoom lane is gone, one is chosen for the ride`;
       // the previous ride and any unfinished render are replaced; the previous video stays until the new one is complete
       for (const path of [ride, log, next + '.mp4', next + '.json']) rmSync(path, {recursive: true, force: true});
       mkdirSync(rides, {recursive: true}); mkdirSync(videos, {recursive: true});

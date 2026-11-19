@@ -1,9 +1,12 @@
 import {expect, it} from 'vitest';
-import {RANGE, zoomOfWide, wideAt, laneScale} from '../scripts/video/zoom.js';
+import {RANGE, ZOOM, zoomOfWide, wideAt, laneScale} from '../scripts/video/zoom.js';
 import {createFraming, rideSignals, BASE} from '../scripts/video/camera.js';
 
-it('the scale is fixed, whatever the lane: against the base zoom the closest shows 7.5 % more than 1/√1.4 and the widest 5 % more than √1.4', () => {
-  expect(zoomOfWide(0)).toBeCloseTo(Math.sqrt(1.4) / 1.075); expect(zoomOfWide(1)).toBeCloseTo(1 / (Math.sqrt(1.4) * 1.05));
+it('the scale is fixed, whatever the lane: its two ends are ZOOM, the magnification at the closest and at the widest', () => {
+  expect(ZOOM).toEqual({closest: 1.075, widest: 0.79});
+  expect(zoomOfWide(0)).toBe(ZOOM.closest); expect(zoomOfWide(1)).toBeCloseTo(ZOOM.widest, 10);
+  // other ends can be tried without changing the scale's
+  expect(zoomOfWide(0, {closest: 1.2, widest: 0.7})).toBe(1.2); expect(laneScale([{t: 0, wide: 1}], 3, 0, {closest: 1.2, widest: 0.7})[0]).toBeCloseTo(0.7, 10);
   expect(zoomOfWide(0.5)).toBeCloseTo(Math.sqrt(zoomOfWide(0) * zoomOfWide(1)));
   expect(zoomOfWide(0) / zoomOfWide(1)).toBeCloseTo(RANGE);
   expect(zoomOfWide(-3)).toBe(zoomOfWide(0)); expect(zoomOfWide(7)).toBe(zoomOfWide(1));

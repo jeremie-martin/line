@@ -2,6 +2,7 @@
 // node tools/music/lane_films.mjs [jobs=3]   (run from the repository root; resumable: a written film is kept)
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
+import {ZOOM} from '../../scripts/video/zoom.js';  // a film is made with the scale's ends: other ends, a new film
 import {existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync} from 'node:fs';
 const out = 'generated/videos/lanes', jobs = Number(process.argv[2] ?? 3);
 mkdirSync(out, {recursive: true});
@@ -13,7 +14,7 @@ for (const song of readdirSync('productions').filter(d => d.startsWith('short_')
   const rideHash = JSON.parse(readFileSync(`${ride}/manifest.json`, 'utf8')).cells[0].trackHash;  // a film is of one ride: a new ride, a new film
   index[song] = [];
   for (const lane of lanes) {
-    const name = `${song}--blend--${lane.id}-${createHash('sha256').update(JSON.stringify(lane.keyframes) + theme + rideHash).digest('hex').slice(0, 8)}`;
+    const name = `${song}--blend--${lane.id}-${createHash('sha256').update(JSON.stringify(lane.keyframes) + theme + rideHash + JSON.stringify(ZOOM)).digest('hex').slice(0, 8)}`;
     index[song].push({...lane, file: name});
     if (!existsSync(`${out}/${name}.mp4`)) todo.push({song, lane: lane.id, name, args: ['scripts/video.ts', `--study=${ride}`, `--look=${theme}`, `--zoom=${lane.id}`, '--review', `--out=${out}/${name}.mp4`]});
   }

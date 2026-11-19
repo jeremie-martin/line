@@ -5,7 +5,7 @@
 // refuses a ride that misses a landing: another seed is drawn then. The video goes to the uploader's inbox on the host as one
 // bundle (the uploader's PROJECT_UPLOAD_CONTRACT.md): copied into a hidden staging folder, then renamed into place, so the
 // uploader never sees half of it. Titles, description, tags and cadence are the uploader's (its projects/line.toml); the bundle
-// gives the values they use: the song, its artist, how many times the rider lands.
+// gives the values they use: the song, its artist, which of the rotating tag sets.
 // What was sent is in labels/published.jsonl (one row per video); a song and seed are never sent twice.
 import {spawn, execFileSync} from 'node:child_process';
 import {appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync} from 'node:fs';
@@ -39,7 +39,7 @@ async function one(song) {
     if (made.code !== 0) {console.log(`  ${song} seed ${seed}: no video (${made.err.trim().split('\n').at(-1)?.slice(0, 120)}); another seed`); continue;}
     const side = JSON.parse(readFileSync(video.replace(/\.mp4$/, '.json'), 'utf8')), now = new Date();
     const bundle = `line/${now.getUTCFullYear()}/${String(now.getUTCMonth() + 1).padStart(2, '0')}/${String(now.getUTCDate()).padStart(2, '0')}/${id}`, staging = `${inbox}/.staging-${id}`;
-    const upload = {project: 'line', video: 'video.mp4', created_at: now.toISOString(), values: {song: title, artist: artist ?? '', landings: spec.contacts.length},
+    const upload = {project: 'line', video: 'video.mp4', created_at: now.toISOString(), values: {song: title, artist: artist ?? '', set: Math.floor(Math.random() * 3)},
       meta: {song_id: song, seed, theme: side.theme, partner: side.partner ?? null, zoom: side.zoom ?? null, line_commit: commit, seconds: Number((side.to - side.from).toFixed(2))},
       ...(privacy ? {overrides: {privacy}} : {})};
     const sidecar = join(OUT, `${id}.upload.json`); writeFileSync(sidecar, JSON.stringify(upload, null, 2) + '\n');

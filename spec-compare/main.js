@@ -6,7 +6,7 @@ const $ = (id) => document.getElementById(id);
 const ORDER = ["main", "astra", "sol", "opus", "blend"];
 const BY = { main: "The approved reading", astra: "Astra", sol: "Sol", opus: "Opus", blend: "Blend: from the four" };
 const LANES = [["air", "air time", "--teal"], ["speed", "speed", "--blue"], ["amplitude", "height", "--violet"]];
-const state = { songs: [], picks: {}, s: 0, v: 0, views: new Map(), films: new Map(), ghost: false, from: 0, to: 1, token: 0, dirty: null };
+const state = { held: [], loading: 0, songs: [], picks: {}, s: 0, v: 0, views: new Map(), films: new Map(), ghost: false, from: 0, to: 1, token: 0, dirty: null };
 const audio = $("audio"), canvas = $("timeline"), ctx = canvas.getContext("2d");
 const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 const json = async (res) => { const body = await res.json(); if (!res.ok) throw Error(body.error ?? res.statusText); return body; };
@@ -43,22 +43,40 @@ async function openSong(index, readingName = null) {
   state.v = Math.max(0, s.versions.findIndex((r) => r.reading === name));
   $("songs").value = state.s;
   $("stage").replaceChildren(); state.films.clear();
+  for (const url of state.held.splice(0)) URL.revokeObjectURL(url);
+  audio.removeAttribute("src"); audio.load();
   renderSide();
   const loaded = await Promise.all(s.versions.map(async (r) => [r,
     state.views.get(r.path) ?? await fetch(`/api/spec-view?spec=${encodeURIComponent(r.path)}&samples=900`).then(json),
     await fetch(`/api/spec-video?spec=${encodeURIComponent(r.path)}`).then(json).catch(() => ({}))]));
   if (token !== state.token) return;
-  for (const [r, v, film] of loaded) {
-    state.views.set(r.path, v);
-    if (!film.video) continue;
+  // The sound and every film are fetched whole and played from memory. Streamed, five films and the sound each hold a
+  // connection to the server for as long as they play, which is all a browser allows to one server: the sound can then
+  // starve and stop while the films run on, and a vote cannot be sent.
+  const whole = async (url) => { const blob = await fetch(url).then((res) => res.ok ? res.blob() : Promise.reject(Error(res.statusText))); const held = URL.createObjectURL(blob); state.held.push(held); return held; };
+  for (const [r, v] of loaded) state.views.set(r.path, v);
+  state.from = 0; state.to = duration(); state.loading = loaded.filter((x) => x[2].video).length + 1;
+  renderSide(); draw();
+  const sound = await whole(view(s.versions[0]).music.audioUrl).catch(() => null);
+  if (token !== state.token) return;
+  if (sound) { audio.src = sound; audio.currentTime = 0; }
+  state.loading--;
+  // the reading on screen first, then the others
+  const order = [...loaded].sort((a, b) => (b[0] === reading()) - (a[0] === reading()));
+  await Promise.all(order.map(async ([r, , film]) => {
+    if (!film.video) return;
+    const src = await whole(`${film.video.url}?v=${encodeURIComponent(film.video.madeAt)}`).catch(() => null);
+    if (token !== state.token) return;
+    state.loading--;
+    if (!src) return;
     const el = document.createElement("video");
-    Object.assign(el, { muted: true, playsInline: true, preload: "auto", src: `${film.video.url}?v=${encodeURIComponent(film.video.madeAt)}` });
-    el.from = film.video.from ?? 0; el.stale = !film.video.current;
-    state.films.set(r.path, el); $("stage").append(el);
-  }
-  const music = view(s.versions[0]).music;
-  audio.src = music.audioUrl; audio.currentTime = 0;
-  state.from = 0; state.to = duration();
+    Object.assign(el, { muted: true, playsInline: true, preload: "auto", src });
+    el.from = film.video.from ?? 0; el.dataset.reading = r.reading;
+    el.addEventListener("loadedmetadata", () => place(el, true), { once: true });
+    state.films.set(r.path, el); $("stage").append(el); show();
+  }));
+  if (token !== state.token) return;
+  state.loading = 0;
   history.replaceState(null, "", `?song=${s.dir.split("/")[1]}&reading=${reading().reading}`);
   renderSide(); show(); draw();
 }
@@ -68,7 +86,7 @@ function show() {
   const path = reading()?.path;
   for (const [p, el] of state.films) el.classList.toggle("on", p === path);
   let none = $("stage").querySelector(".none");
-  if (!state.films.has(path)) { if (!none) { none = document.createElement("div"); none.className = "none"; none.textContent = "No video of this reading yet"; $("stage").append(none); } }
+  if (!state.films.has(path)) { if (!none) { none = document.createElement("div"); none.className = "none"; $("stage").append(none); } none.textContent = state.loading ? "Loading the film…" : "No video of this reading yet"; }
   else none?.remove();
 }
 
@@ -167,9 +185,16 @@ async function toggle() {
   starting = false;
   await audio.play().catch(() => {});
 }
-function tick() {
-  const t = audio.currentTime, playing = !audio.paused;
-  if (playing) for (const el of state.films.values()) {
+// The sound can stop by itself (its end, a device, a starved download). The films then wait for it where it is, instead of
+// running on and being pulled back again and again.
+let lastT = -1, lastMove = 0;
+function tick(now = performance.now()) {
+  const t = audio.currentTime, playing = !audio.paused && !audio.ended;
+  if (t !== lastT) { lastT = t; lastMove = now; }
+  const waiting = playing && now - lastMove > 350;
+  if (!playing || waiting) { for (const el of state.films.values()) if (!el.paused) el.pause(); }
+  if (waiting && now - lastMove > 3000 && audio.readyState < 3) { lastMove = now; const at = t; audio.load(); audio.currentTime = at; audio.play().catch(() => {}); }
+  if (playing && !waiting) for (const el of state.films.values()) {
     if (el.readyState < 2) continue;
     const at = filmTime(el, t), over = t - el.from >= (el.duration || 0) - 0.03;
     if (over) { if (!el.paused) el.pause(); continue; }
@@ -180,7 +205,7 @@ function tick() {
     if (el.paused) el.play().catch(() => {});
   }
   $("play").textContent = playing || starting ? "Pause" : "Play";
-  $("clock").textContent = `${fmt(t)} / ${fmt(duration())}`;
+  $("clock").textContent = `${fmt(t)} / ${fmt(duration())}${state.loading ? ` · loading ${state.loading}` : waiting ? " · waiting for the sound" : ""}`;
   draw();
   requestAnimationFrame(tick);
 }

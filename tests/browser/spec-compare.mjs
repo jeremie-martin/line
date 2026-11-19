@@ -18,7 +18,7 @@ try {
     const page = await context.newPage(); await page.setViewportSize({width, height});
     page.on('pageerror', e => errors.push(e.message));
     await page.goto(`${base}/spec-compare/?song=${song}`);
-    await page.waitForFunction(() => document.querySelectorAll('#stage video').length >= 2 && [...document.querySelectorAll('#stage video')].every(v => v.readyState >= 2), null, {timeout: 60000});
+    await page.waitForFunction(() => document.querySelectorAll('#stage video').length >= 4 && [...document.querySelectorAll('#stage video')].every(v => v.readyState >= 2 && v.src.startsWith('blob:')) && document.getElementById('audio').src.startsWith('blob:'), null, {timeout: 60000});
     const names = await page.$$eval('#versions button', bs => bs.map(b => b.textContent.replace(/^\d/, '').replace('★', '').trim()));
     check(names[0] === 'main' && names.length >= 4, `readings: ${names}`);
     check(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight && document.documentElement.scrollWidth <= innerWidth), `one screen at ${width}×${height}`);
@@ -27,9 +27,9 @@ try {
     const before = await page.evaluate(() => document.getElementById('audio').currentTime);
     check(before > 1.5, `the sound plays: ${before}`);
     await page.keyboard.press('3');
-    const state = await page.evaluate(() => ({on: [...document.querySelectorAll('#stage video')].findIndex(v => v.classList.contains('on')), t: document.getElementById('audio').currentTime,
+    const state = await page.evaluate(() => ({on: document.querySelector('#stage video.on').dataset.reading, t: document.getElementById('audio').currentTime,
       v: document.querySelector('#stage video.on').currentTime, playing: !document.querySelector('#stage video.on').paused, name: document.querySelector('#versions button.on').textContent}));
-    check(state.on === 2 && state.name.includes(names[2]), `3 shows the third reading: ${JSON.stringify(state)}`);
+    check(state.on === names[2] && state.name.includes(names[2]), `3 shows the third reading: ${JSON.stringify(state)}`);
     check(state.t - before < 0.5 && Math.abs(state.v - state.t) < 0.3 && state.playing, `the change is at the same instant, the film already there: ${JSON.stringify(state)} from ${before}`);
     check(/\w/.test(await page.textContent('#intention')), 'the intention is shown');
     await page.keyboard.press('b'); await page.keyboard.press('l');
@@ -41,6 +41,12 @@ try {
     await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1500);
     const after = await page.evaluate(() => { const v = document.querySelector('#stage video.on'); return {drift: v.currentTime - document.getElementById('audio').currentTime, paused: v.paused, seeking: v.seeking}; });
     check(Math.abs(after.drift) < 0.12 && !after.paused && !after.seeking, `after a jump the film is with the sound: ${JSON.stringify(after)}`);
+    // the sound stops by itself: the films wait where it is
+    await page.evaluate(() => { const a = document.getElementById('audio'); a.currentTime = a.duration - 0.4; });
+    await page.waitForTimeout(1600);
+    const ended = await page.evaluate(() => ({films: [...document.querySelectorAll('#stage video')].filter(v => !v.paused).length, button: document.getElementById('play').textContent}));
+    check(ended.films === 0 && ended.button === 'Play', `at the end of the sound every film stops: ${JSON.stringify(ended)}`);
+    await page.keyboard.press('Home'); await page.keyboard.press('Space'); await page.waitForTimeout(800);
     await page.keyboard.press('m'); await page.keyboard.press('Space');
     await page.mouse.move(1200, 700); await page.waitForTimeout(200);
     check(await page.evaluate(() => document.getElementById('ghost').checked), 'M puts the approved reading behind');

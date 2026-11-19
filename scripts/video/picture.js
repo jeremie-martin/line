@@ -82,6 +82,12 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.filter = `saturate(${1 + 0.3 * a}) contrast(${1 + 0.25 * a})`; ctx.drawImage(boostCanvas, 0, 0); ctx.restore();
   }
 
+  // What the YouTube Shorts player on an iPhone leaves of the frame (measured on the owner's phone, 2026-11-19): the video is
+  // scaled to fill the screen's height, so about 5 % is cut off each side; the top 13 % lies under the clock, the back arrow and
+  // the search and menu buttons; the bottom 18 % under the channel, the title and the share bar; the right 17 % under the like,
+  // share and comment buttons from 57 % of the height down. Words that must be read stay inside: `top` and `side` are where they
+  // may start, as fractions of the frame.
+  const PHONE = {top: 0.15, side: 0.09};
   // ── drawing ──────────────────────────────────────────────────────────────
   // The top of the frame, behind the ride. The sun is a mass, not a line: it stays colour on a phone; its size follows the ride's
   // intensity at this frame.
@@ -95,8 +101,10 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
       ctx.font = font(92); const wd = a => ctx.measureText(a.join(' ')).width;
       let rows = [words]; for (let i = 1; i < words.length; i++) {const c = [words.slice(0, i), words.slice(i)]; if (Math.max(...c.map(wd)) < Math.max(...rows.map(wd))) rows = c;}
       const px = Math.min(92, 92 * 0.62 * W / Math.max(...rows.map(wd)));
-      ctx.fillStyle = colours.ink; ctx.font = font(px); ctx.textBaseline = 'top'; rows.forEach((l, i) => ctx.fillText(l.join(' '), 0.07 * W, 0.04 * H + i * 1.02 * px));
-      box = [0.07 * W - 4, 0.04 * H - 4, Math.max(...rows.map(l => ctx.measureText(l.join(' ')).width)) + 8, rows.length * 1.02 * px + 8];
+      // inside what a phone shows of a short (PHONE below): under the clock and the player's buttons, clear of the cropped side
+      const x = PHONE.side * W, y = PHONE.top * H;
+      ctx.fillStyle = colours.ink; ctx.font = font(px); ctx.textBaseline = 'top'; rows.forEach((l, i) => ctx.fillText(l.join(' '), x, y + i * 1.02 * px));
+      box = [x - 4, y - 4, Math.max(...rows.map(l => ctx.measureText(l.join(' ')).width)) + 8, rows.length * 1.02 * px + 8];
     }
     ctx.restore();
     return box;

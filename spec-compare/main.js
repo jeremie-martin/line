@@ -145,7 +145,7 @@ function renderSide() {
   $("zoom").hidden = !lane;
   if (lane) {
     $("zooms").replaceChildren(...lanesOf().map((l) => { const b = document.createElement("button"); b.textContent = l.name; b.classList.toggle("on", l === lane); b.onclick = () => setZoom(l.id); b.title = l.about; return b; }));
-    $("zoom-about").textContent = lane.about;
+    $("zoom-about").textContent = lane.about; $("zoom-about").title = lane.about;
   }
   if (document.activeElement !== $("words")) $("words").value = r.note ?? "";
   $("saved").textContent = "";
@@ -302,9 +302,11 @@ function draw() {
     ctx.save(); ctx.translate(9, y1 - laneH / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = "center"; ctx.fillStyle = c; ctx.fillText(label, 0, 0); ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
     if (pts?.length) {
-      const known = pts.filter((p) => p[1] != null);
-      ctx.beginPath(); ctx.moveTo(x(known[0][0]), y1); for (const [t, val] of known) ctx.lineTo(x(t), y(val)); ctx.lineTo(x(known.at(-1)[0]), y1); ctx.closePath();
-      ctx.fillStyle = c; ctx.globalAlpha = 0.18; ctx.fill(); ctx.globalAlpha = 1;
+      // filled under each stretch where the curve is written; a stretch it leaves open stays empty
+      ctx.fillStyle = c; ctx.globalAlpha = 0.18;
+      for (let i = 0; i < pts.length;) { if (pts[i][1] == null) { i++; continue; } let j = i; while (j + 1 < pts.length && pts[j + 1][1] != null) j++;
+        ctx.beginPath(); ctx.moveTo(x(pts[i][0]), y1); for (let k = i; k <= j; k++) ctx.lineTo(x(pts[k][0]), y(pts[k][1])); ctx.lineTo(x(pts[j][0]), y1); ctx.closePath(); ctx.fill(); i = j + 1; }
+      ctx.globalAlpha = 1;
       path(pts); ctx.strokeStyle = c; ctx.lineWidth = 1.8; ctx.stroke();
     }
     const basePts = zoomPts ? null : base.axes?.[axis]?.points;

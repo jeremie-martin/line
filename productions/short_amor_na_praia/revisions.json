@@ -44,6 +44,13 @@
       "at": "2026-11-18T22:52:26.534Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: The song as a swell on the beach. Every groove bar is one wave: the rider rises over the long step into each downbeat and skims low across the quick steps between them, the same in every bar. The dry drums at the start are slower stepping stones; the run-up stays low and fast, then hangs high over the breath so the full band lands from above. The quick words run lower and quicker with lighter fills; the broad bass answers lift into big, slower swells; the reprise returns to the first wave, and the last vowel is one long high glide that slows to the end. Differs from the approved reading mostly in height and in how each passage moves; strengths keep their order, only the fills of the quick-words passage are lighter."
+    },
+    {
+      "spec": "productions/short_amor_na_praia/variants/blend.ts",
+      "sha256": "92cc3768e329c0d2be8d8aded1e518de9bc031909817c37f3d67189aabd66b7f",
+      "at": "2026-11-19T14:46:28.469Z",
+      "by": "Claude (Opus 5.5), from the four",
+      "summary": "The intention: The approved reading is the shore; the bass answers are the tide coming in. Up to the quick words it is the approved ride: the light opening taps, the dry drums, the kicks. The quick words keep their pace right into the big stroke at 31.5 (no slowing before it), so the last hit of the hook and the first bass answer land as one breaking wave. Then, as in Astra, the rider hangs back: slower, longer in the air, and, as in Opus, it rises over each long step of the bass and stays low on the short ones. The reprise returns to the approved ride. From Opus also the lighter fills under the quick words and the softer weak tails of the bass, so that the downbeats stand clear. The closing vowel is the approved easy coast."
     }
   ]
 }

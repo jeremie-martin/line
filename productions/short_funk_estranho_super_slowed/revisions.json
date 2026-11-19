@@ -20,6 +20,13 @@
       "at": "2026-11-18T22:52:29.606Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A machine winding up. The faint clock is a slow pendulum: every tick the same small swing, and the calls swing a little wider. The four-note figure and the words and drum replies stay close and quick. Then the low motor takes over for half a minute, and the whole passage is one gesture: it starts as tall, slow, heavy piston strokes and, stroke by stroke, runs lower and faster, until by the cut it is a fast flat hum along the line. The one hollow stroke is a hiccup: the rider rolls through it instead of bouncing, then picks the rhythm up again. The approved reading rides the motor at one constant pace and height; this one gives it a direction. Strengths as approved."
+    },
+    {
+      "spec": "productions/short_funk_estranho_super_slowed/variants/blend.ts",
+      "sha256": "54ca613a23a6f530f806c48e851a676eabd802e1ae4a4983b91f02e9ec7ab15e",
+      "at": "2026-11-19T14:46:29.809Z",
+      "by": "Claude (Opus 5.5), from the four",
+      "summary": "The intention: A machine that stalls once and winds itself back up. From Opus: the faint clock is a slow pendulum, every tick the same small swing, and the calls swing a little wider; the four-note figure and the words with their drum replies stay close and quick. From Sol: the motor's first stroke is the hardest landing of the film. From the approved reading: the low motor ridden as one even run of high, fast strokes, which its ride shows cleanly (lower and flatter versions of the motor picked up stray touches). Its own: the hollow stroke halfway is a stall. As in Sol the rider lifts over it and loses its pace; then the motor restarts in slow, tall strokes and winds back up, a little faster and flatter each bar, until it is back at full speed for the last third of the ride. Strengths as approved otherwise."
     }
   ]
 }

@@ -67,6 +67,13 @@
       "at": "2026-11-18T22:52:31.819Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Run low under the bass, lift on the seven notes, float through the quiet. Wherever the bass pumps, the rider runs fast and close to the line in quick flat skips; on each seven-note contour it lifts into taller hops, as if the melody pulled it up; and when the band drops out it takes one long leap into a high, slower float, every touch nearly weightless, until the drums come back. The drums alone are lighter than before and grow stroke by stroke, so the return of the bass at 34.6 is the clear peak of the song; from there the run is low and fast again to the last answer, which lifts once more as the music lets go."
+    },
+    {
+      "spec": "productions/short_lua_na_praca/variants/blend.ts",
+      "sha256": "01391525835cd4585e3ad9f5f9fbe1b1c06681dddbf4d13871a6a120298419e9",
+      "at": "2026-11-19T14:46:30.776Z",
+      "by": "Claude (Opus 5.5), from the four",
+      "summary": "The intention: Run low under the bass, rise on the seven notes, glide through the quiet. Wherever the bass pumps the rider runs fast and close to the line; on each seven-note contour it lifts, as if the melody pulled it up (an idea all three new readings share, and their rides show it clearly). The quiet middle keeps the approved float, with the touches lighter still, as you asked there. The drums alone start lighter and gather stroke by stroke, so the return of the bass is the clear peak of the song (Opus: its ride is the only one where that return truly lands hardest). From there the run is low and fast again, and the last answer lifts once more as the music lets go. My own part is how much: the low run is lower than approved but not flat, the lifts as high as in the quiet, and the whole song keeps the approved high pace."
     }
   ]
 }

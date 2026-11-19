@@ -44,6 +44,13 @@
       "at": "2026-11-18T22:52:27.442Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A slow dance. This song is chill, and the approved reading rides it at full pace; here the rider sways. After the near-still opening words and the three hard drums, it settles to an unhurried speed: low through the steps of each bar, and a soft lift over every bar's long rest, the same in every bar. The held voice gets the one tall flight of the film. When the backbeat returns the rider is heavier, quicker and closer to the line for those bars; as the groove eases it slows again and the lifts grow, floating out to the cut. The body of the strokes is a little softer in the swaying passages, so the three drums and the return stand clear; the order of the strengths is unchanged."
+    },
+    {
+      "spec": "productions/short_amour_de_ma_vie/variants/blend.ts",
+      "sha256": "64362a97a4b1a04438cd23578261e4729f8d80a987b2f2232b110f7cf171aa8b",
+      "at": "2026-11-19T14:46:28.842Z",
+      "by": "Claude (Opus 5.5), from the four",
+      "summary": "The intention: A slow dance that never turns into a drop. This song is chill; the rider sways instead of running. From Sol: the first words even smaller, with one small bow over the melody, then a quick low run into the three hard drums so that they land as sharp as they can. From Opus: after them an unhurried pace, low through the steps of each bar and a soft lift over every bar's long rest, the same in every bar; the held voice is the one tall flight; the body is touched gently. Its own: the returning backbeat has its weight for four bars only, quicker and closer to the line, and then lets go gradually, slowing and lifting more each bar, so the easing groove floats out to the cut without a step between the two. Strengths keep the approved order."
     }
   ]
 }

@@ -49,6 +49,13 @@
       "at": "2026-11-18T22:52:34.475Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Every bar is a dive. The upper figure counts six close strokes and then a delayed seventh, and the strokes grow toward it; the rider rides each bar as one gesture: it starts the bar floating, then each close stroke comes lower and faster, skimming down the staircase, and the delay before the seventh is one tall arc that drops onto it. The same dive runs through the opening figure and through the drum bars, so the two halves of the song rhyme. In the second half of the opening, where the figure loses weight, the dive is gentler and slower; the voice across the swell is ridden as approved; with the drum the dives are deepest and fastest."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_slowed/variants/blend.ts",
+      "sha256": "a1c11aeaea8d45c4530570d5670598e3ae518ef7850f73f06ce51107e140d562",
+      "at": "2026-11-19T14:46:31.962Z",
+      "by": "Claude (Opus 5.5), from the four",
+      "summary": "The intention: Every bar is a dive (Opus, whose ride is also the only one that lands the returning drum at 17.86 with its weight). The upper figure counts six close strokes and a delayed seventh: the rider starts each bar floating, skims lower and faster down the close strokes, and the delay before the seventh is one tall arc that drops onto it. The same dive runs through the opening figure and through the drum bars, so the two halves rhyme, and the missing strokes after 25.5 become its longest leap. From Astra and Sol: the lift before the seventh grows bar by bar through the opening, and the second half of the opening loses weight before the swell (Astra). The voice across the swell is ridden as approved. My own ending: after the last double the dives stop and the rider coasts out slowly on the three replies."
     }
   ]
 }

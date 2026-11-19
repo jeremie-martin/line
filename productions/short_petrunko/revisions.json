@@ -2,38 +2,45 @@
   "revisions": [
     {
       "spec": "productions/short_petrunko/variants/astra.ts",
-      "sha256": "7647d1733523a6fde9a0e5598d7cb7d860bd532a3a10dee481a74cec1e0a0a4e",
+      "sha256": "4162098f766a96e15c33dd50f7aa62a431683b1bd6aa860752d7301d2044421c",
       "at": "2026-11-18T22:52:37.309Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The little ticks start close to the ground. Each has more spring until the doubles draw the rider down into the roll. The held note gets the tallest arc. After the return the rider swings up from each last drum into the soft bar opener, then rushes through its answers. The last swing dies out in five steps."
     },
     {
       "spec": "productions/short_petrunko/variants/sol.ts",
-      "sha256": "5715a44e1acc1203bf827b5f7e31d46c2aae3c9c960b21c7ead22e4aa3a32684",
+      "sha256": "6ad567cfed192b90153d64ed436e043434ea03049705b6c98702faf2df7ca10d",
       "at": "2026-11-18T22:52:37.448Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The upper figure starts as a string of light, unhurried hops and gathers into a low, quick roll. Its held high note gets the widest flight, with the weight saved for the drum on the far side. The replies now breathe in groups of four bars. Each soft opener comes out of a bound, and the stronger answering drums carry the rider forward close to the line. The last five strokes spend that momentum, with one soft rise before the closing touch."
     },
     {
       "spec": "productions/short_petrunko/variants/opus.ts",
-      "sha256": "b929068a166416c6c5edfa6ecc1b5982698233116e7ef365ab034b2cfd165d63",
+      "sha256": "136353df2d014f91a30491ad9e68d9f110d58662f97b7b739ff80ae8e4f447e7",
       "at": "2026-11-18T22:52:37.556Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: The growth is told in height. Through the quiet ticks the rider skims almost flat and slow; with every stroke of the twenty-second build the arcs open a little taller and the touches a little firmer, growing slowly at first and then faster, until the roll pulls it down onto the line at full speed. The lone high note becomes the highest arc of the song, and the return lands out of it. The long reply section then rides as big loping bounds: a tall arc through each long breath, a medium one, and quick flat steps where the drum and bass answer close together, the same two-bar gait each time, swelling a little as the voices join, then shrinking and slowing through the five closing strokes. The approved reading kept one height throughout; here the shape of the song is drawn in the air."
     },
     {
-      "spec": "productions/short_petrunko/variants/blend.ts",
+      "spec": "productions/short_petrunko/spec.ts",
       "sha256": "c2c8f9091a96a52b88489fc65f6b017673f6c149220f9a8bdee7fffda0eba035",
       "at": "2026-11-19T14:46:33.311Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The growth is drawn in height, then in speed, then in one long loping gait. The low phrase and the quiet ticks keep the approved pace and strengths; with every tick of the build the arcs open a little taller, as in Opus's reading. When the strokes double the rider comes down onto the line and gathers speed, and holds it low and fast through the roll, as in Astra's, the roll that came out clearest. The lone high note is the tallest arc of the song, and the return lands out of it. The replies are the same two-bar gait each time: a tall arc through each long breath, a smaller one through the medium, as Opus sized them; my own part is the rush between, where the drum and bass answer close together and the rider runs low and quick (after Astra), so each bar is a float and a dash. The approved strengths stay as they were. The five closing strokes shrink and slow to rest."
     },
     {
-      "spec": "productions/short_petrunko/variants/blend.ts",
-      "sha256": "0e898d7ef604a161bab136b5799d567f0502f1825f93d497a2ec2b9548856d7a",
-      "at": "2026-11-19T16:30:01.287Z",
+      "spec": "productions/short_petrunko/spec.ts",
+      "sha256": "e76ed2edb9509edeb68829271791f8033172818d05814f8f304a01a7ab8f8185",
+      "at": "2026-11-19T19:44:30.614Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
+    },
+    {
+      "spec": "productions/short_petrunko/variants/approved.ts",
+      "sha256": "60b9116b2d56c78196b38a0412f64cb7d980d133ee9de2fd392bbded7a728ca2",
+      "at": "2026-11-19T19:44:30.670Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     }
   ]
 }

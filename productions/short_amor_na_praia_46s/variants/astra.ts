@@ -4,9 +4,9 @@
  * stretching out and the second drawing the rider back down. At the big kick near 27 seconds
  * that rocking motion straightens into a fast glide. Only the last two echoes lift out of it.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

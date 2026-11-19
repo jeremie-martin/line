@@ -5,9 +5,9 @@
  * twenty-six seconds makes room for the longest leap, and the final double brings the rider back down.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 export default {
   ...base,

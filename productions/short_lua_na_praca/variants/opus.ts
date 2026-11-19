@@ -7,10 +7,10 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 import {bareOpening, firstBody, secondBody, returningDrums, bassReturn, lastBars, type Strike} from '../music.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 /** The drums alone, quieter than the bass bodies around them, gathering toward the bass return. */
 const drumsAlone: Strike[] = returningDrums.map(([t, impact], i): Strike => {

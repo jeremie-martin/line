@@ -1,63 +1,46 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_amour_de_ma_vie/spec.ts",
-      "sha256": "682b78c15f185f70936c213b81a7f78630fd38d52c66d6e7ed892d10c0f2d25d",
-      "at": "2026-11-18T17:10:00.000Z",
-      "by": "Codex (note by Claude)",
-      "summary": "From your notes. The opening words are very low. The three drums land on their own attacks at 3.25, 3.59 and 3.92 s, all three asked equally and very strong. The two bass-led catches between them are removed. The drop is removed for this song, and its zoom no longer stages one.",
-      "points": [
-        {
-          "from": 0.06,
-          "to": 3.2,
-          "text": "Opening words, very low."
-        },
-        {
-          "from": 3.2,
-          "to": 3.98,
-          "text": "Three equal, very strong drums; the two odd impacts removed."
-        },
-        {
-          "from": 22.29,
-          "to": null,
-          "text": "No drop any more; the passage itself is unchanged."
-        }
-      ]
+      "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
+      "sha256": "30155b71abfa400742bb7452fda2bd1ce2565d81d7db84d7d96550dd3723e0ce",
+      "at": "2026-11-19T19:44:27.772Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_amour_de_ma_vie/variants/astra.ts",
-      "sha256": "93df25312cd17916d38020b0cb2730a0dfd3abd44ac0e5eab78f3c7a28373ed7",
+      "sha256": "b80aa09182ff26a733ce8832f1158ff2683343dadf08fc97beec4bf06e142b4e",
       "at": "2026-11-18T22:52:27.193Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Let the first words slide by almost silently, with three equally sharp knocks across them. The backbeat has a lazy swing. The rider takes a little more sky each time the drums leave a beat empty, until the held word at 24 seconds can carry a whole flight. The return runs close to the ground for four bars, then the beat softens and the rider drifts on past it."
     },
     {
       "spec": "productions/short_amour_de_ma_vie/variants/sol.ts",
-      "sha256": "f2b136d309160e7e02cd28744175afc317dc20322bdd4ea2d9d978d1a3e45d19",
+      "sha256": "fcdc1cd4a17c3e5553a718af044856eac3ee4695af58e200e40a1ee0da94092e",
       "at": "2026-11-18T22:52:27.315Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The first words brush the line, then the melody draws a small bow before the three sharp drums. After those drums the rider settles into a rolling backbeat that loosens as the singer holds the high note. The bass pickup leads to the longest, highest breath of the ride and a soft return to the rolling pace. The final bars let the voice draw the rider outward again, with lighter landings and room at the cut."
     },
     {
       "spec": "productions/short_amour_de_ma_vie/variants/opus.ts",
-      "sha256": "34eebfc628a021da025fd5588c23f2f01ff6f9a2abed1ffcc1619776baedc409",
+      "sha256": "4be0cb0a97874f5c16adc1d24d068670f7e6bdef9bd3eb945a96861b7fd0d9d0",
       "at": "2026-11-18T22:52:27.442Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A slow dance. This song is chill, and the approved reading rides it at full pace; here the rider sways. After the near-still opening words and the three hard drums, it settles to an unhurried speed: low through the steps of each bar, and a soft lift over every bar's long rest, the same in every bar. The held voice gets the one tall flight of the film. When the backbeat returns the rider is heavier, quicker and closer to the line for those bars; as the groove eases it slows again and the lifts grow, floating out to the cut. The body of the strokes is a little softer in the swaying passages, so the three drums and the return stand clear; the order of the strengths is unchanged."
     },
     {
-      "spec": "productions/short_amour_de_ma_vie/variants/blend.ts",
+      "spec": "productions/short_amour_de_ma_vie/spec.ts",
       "sha256": "64362a97a4b1a04438cd23578261e4729f8d80a987b2f2232b110f7cf171aa8b",
       "at": "2026-11-19T14:46:28.842Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A slow dance that never turns into a drop. This song is chill; the rider sways instead of running. From Sol: the first words even smaller, with one small bow over the melody, then a quick low run into the three hard drums so that they land as sharp as they can. From Opus: after them an unhurried pace, low through the steps of each bar and a soft lift over every bar's long rest, the same in every bar; the held voice is the one tall flight; the body is touched gently. Its own: the returning backbeat has its weight for four bars only, quicker and closer to the line, and then lets go gradually, slowing and lifting more each bar, so the easing groove floats out to the cut without a step between the two. Strengths keep the approved order."
     },
     {
-      "spec": "productions/short_amour_de_ma_vie/variants/blend.ts",
-      "sha256": "bd70442499a7105a7da0a9b1afa959f12a4acdc21af4566de7de562c42094fe4",
-      "at": "2026-11-19T16:29:59.887Z",
+      "spec": "productions/short_amour_de_ma_vie/spec.ts",
+      "sha256": "9ba3957f860f01ecdf44ef256e22f5e78db9b773c141e0cd24b6249640fb8dc4",
+      "at": "2026-11-19T19:44:27.708Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

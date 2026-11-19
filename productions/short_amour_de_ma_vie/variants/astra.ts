@@ -4,9 +4,9 @@
  * a beat empty, until the held word at 24 seconds can carry a whole flight. The return runs
  * close to the ground for four bars, then the beat softens and the rider drifts on past it.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

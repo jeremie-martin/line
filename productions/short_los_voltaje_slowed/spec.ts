@@ -1,73 +1,53 @@
-/** Three little calls cross long rests. The drums first speak in a group of
- * three at 5.94, then six at 10.02. The quick voice takes over both slots.
- * At the return the kick carries the body and the singer catches its gaps.
- * Leave the treble loop behind them, even as the hook grows more regular.
- * Several hook attacks coincide with a kick and share its landing. The
- * soft word between the two short kicks at 19.75 may be hard to see.
+/**
+ * Two leaps, a fuse, a pendulum. The calls hang over their long rests as in the approved reading, but each rest is now
+ * a real leap, the second taller than the first, so the opening rises (Opus's leaps, made into a rise of my own).
+ * The quick voice runs low and flat, faster and faster, and thins just before the first kick so that kick lands into
+ * space, the strongest moment of the song (Opus). From there the rider swings from kick to kick and only skims the
+ * words between them; plain kicks a little softer, accented kicks as they were (Opus). Where the accented kicks
+ * cluster, around 23 and 32 seconds, the swing opens up a little more air (Astra and Sol). When the treble loop
+ * takes the hook the swing grows taller and slightly slower, and the last three words drift out high (Opus).
  */
 import type {Spec} from '../../scripts/v0/types.ts';
 import {curve} from '../../scripts/v0/core/measured.ts';
+import base from './variants/approved.ts';
 
-const music = {"title": "LOS VOLTAJE (Slowed)", "audio": "productions/short_los_voltaje_slowed/audio.mp3", "beats": "productions/short_los_voltaje_slowed/audio.json", "spectrogram": {"image": "productions/short_los_voltaje_slowed/spectrogram.png", "metadata": "productions/short_los_voltaje_slowed/spectrogram.json"}};
-export const overlayMeta = {title: music.title, artist: "Sayfalse, Yb Wasg'ood & Ariis", phases: [
-  {"name": "Voice calling across space", "t0": 0, "t1": 7.03, "color": "#426582"},
-  {"name": "Gathering calls", "t0": 7.03, "t1": 10.02, "color": "#a45643"},
-  {"name": "Drum reply and quick voice", "t0": 10.02, "t1": 15.78, "color": "#448078"},
-  {"name": "Words between kicks", "t0": 15.78, "t1": 34.381, "color": "#826488"},
-  {"name": "Repeating hook in the low beat", "t0": 34.381, "t1": 50.47, "color": "#426582"},
-  {"name": "Last isolated words", "t0": 50.47, "t1": 51.479, "color": "#a45643"},
-]};
+export {overlayMeta} from './variants/approved.ts';
 
-type Strike = [time: number, impact: number];
+// The sung words between kicks (the approved reading's hook list).
+const words = new Set([
+  16.049, 17.639, 18.255, 19.207, 19.752, 21.413, 21.982, 22.643, 23.677, 24.222, 26.324, 27.020,
+  28.471, 30.782, 32.431, 32.988, 34.544, 35.089, 35.635, 36.715, 37.260, 38.920, 39.466, 40.116,
+  41.742, 43.297, 43.913, 44.389, 46.014, 47.674, 48.290, 48.882,
+]);
+type Kind = 'call' | 'quick' | 'kick' | 'word' | 'last';
+const kind = (t: number): Kind =>
+  t < 11.6 ? 'call' : t < 15.7 ? 'quick' : t > 50.4 ? 'last' : words.has(t) ? 'word' : 'kick';
 
-const calls: Strike[] = [
-  [.491,.18],[.689,.08],[1.049,.12],
-  [2.663,.24],[2.883,.12],[3.220,.15],
-  [4.845,.25],[5.066,.12],[5.414,.19],
-  [7.039,.39],[7.318,.25],[7.574,.33],[8.154,.30],[8.479,.20],
-  [9.245,.42],[9.443,.19],[9.791,.28],
-];
-const answers: Strike[] = [
-  [5.937,.22],[6.192,.30],[6.482,.26],
-  [10.023,.35],[10.313,.31],[10.569,.46],[10.859,.42],[11.126,.26],[11.405,.52],
-];
-const pickup: Strike[] = [
-  [11.672,.483],[11.962,.294],[12.218,.385],[12.508,.528],[12.670,.238],[12.856,.284],[13.100,.335],
-  [13.587,.424],[13.808,.307],[13.982,.324],[14.168,.351],[14.354,.395],[14.539,.329],
-  [14.737,.273],[14.923,.356],[15.097,.284],[15.306,.362],[15.468,.265],[15.631,.308],
-];
-// The downstroke persists under the quieter sung offbeats, including the beats with little mix rise.
-const kicks: Strike[] = [
-  [15.770,.976],[16.339,.518],[16.873,.587],[17.419,.564],[17.964,.83],[18.522,.523],
-  [19.067,.574],[19.613,.581],[19.880,.783],[20.159,.78],[20.716,.532],[21.250,.583],
-  [21.796,.567],[22.341,.821],[22.899,.734],[23.444,.90],[23.990,.822],[24.536,.834],
-  [25.081,.542],[25.627,.568],[26.173,.586],[26.718,.85],[27.276,.538],[27.821,.571],
-  [28.367,.583],[28.634,.758],[28.913,.747],[29.458,.562],[30.004,.573],[30.550,.589],
-  [31.095,.796],[31.641,.724],[32.187,.91],[32.744,.781],[33.290,.802],[33.835,.542],
-  [34.381,.548],[34.927,.595],[35.472,.779],[36.030,.544],[36.564,.529],[37.121,.512],
-  [37.388,.85],[37.667,.737],[38.212,.531],[38.758,.555],[39.304,.582],[39.849,.773],
-  [40.395,.742],[40.941,.827],[41.486,.714],[42.044,.794],[42.589,.537],[43.135,.558],
-  [43.681,.582],[44.226,.767],[44.783,.546],[45.329,.549],[45.875,.523],[46.153,.83],
-  [46.432,.687],[46.966,.551],[47.512,.546],[48.058,.576],[48.603,.769],[49.160,.738],
-  [49.706,.85],[50.252,.739],
-];
-const hook: Strike[] = [
-  [16.049,.447],[17.639,.407],[18.255,.367],[19.207,.328],[19.752,.287],[21.413,.341],
-  [21.982,.357],[22.643,.378],[23.677,.485],[24.222,.411],[26.324,.345],[27.020,.378],
-  [28.471,.398],[30.782,.371],[32.431,.463],[32.988,.416],
-  [34.544,.382],[35.089,.359],[35.635,.331],[36.715,.381],[37.260,.327],[38.920,.376],
-  [39.466,.354],[40.116,.427],[41.742,.418],[43.297,.353],[43.913,.387],[44.389,.342],
-  [46.014,.329],[47.674,.368],[48.290,.374],[48.882,.407],
-];
-const lastWords: Strike[] = [[50.484,.402],[50.832,.441],[51.390,.384]];
+function strength(t: number, impact: number): number {
+  switch (kind(t)) {
+    case 'quick': return impact * (t > 15.4 ? .55 : .8);      // a patter, thinning before the first kick
+    case 'kick': return t === 15.77 ? 1 : impact < .62 ? impact * .9 : impact; // plain kicks softer, accents kept
+    case 'word': return impact * .82;                          // skimmed
+    default: return impact;
+  }
+}
+
+const contacts = base.contacts.map(({t, impact = 0}) => ({t, impact: Number(strength(t, impact).toFixed(3))}));
 
 const spec: Spec = {
-  duration: 51.479, preroll: 2, music,
-  contacts: [...calls, ...answers, ...pickup, ...kicks, ...hook, ...lastWords]
-    .sort(([a], [b]) => a - b).map(([t, impact]) => ({t, impact})),
+  ...base,
+  contacts,
   axes: {
-    air: curve([[0,.76],[.491,.40],[1.049,.78],[2.429,.78],[2.663,.40],[3.220,.78],[4.629,.78],[4.845,.40],[5.414,.64],[5.937,.46],[7.039,.42],[9.791,.42],[10.023,.38],[11.405,.38],[11.672,.28],[15.306,.28],[15.631,.49],[15.770,.62],[16.339,.54],[34.381,.54],[34.927,.62],[50.252,.62],[50.484,.42]]),
-    speed: curve([[0,.40],[5.414,.40],[5.937,.56],[7.039,.62],[9.791,.62],[10.023,.68],[11.405,.68],[11.672,.78],[13.587,.86],[15.306,.96],[50.252,.96],[50.484,.64]]),
+    air: curve([
+      [0,.78],[.491,.40],[1.049,.80],[2.429,.82],[2.663,.38],[3.220,.84],[4.629,.88],[4.845,.38],[5.414,.64],
+      [5.937,.48],[7.039,.44],[9.791,.42],[10.023,.36],[11.405,.32],[11.672,.22],[15.468,.22],[15.631,.40],
+      [15.770,.58],[16.339,.56],[21.8,.56],[22.6,.64],[24.6,.64],[25.4,.56],[30.6,.56],[31.3,.64],[33.4,.64],
+      [34.0,.58],[35.0,.66],[50.252,.66],[50.484,.76],[51.479,.80],
+    ]),
+    speed: curve([
+      [0,.34],[5.414,.36],[5.937,.52],[7.039,.60],[9.791,.62],[10.023,.66],[11.405,.68],[11.672,.74],
+      [13.587,.86],[15.306,1],[15.770,1],[16.339,.93],[34.0,.93],[35.0,.86],[50.252,.86],[50.484,.62],[51.479,.52],
+    ]),
   },
 };
 export default spec;

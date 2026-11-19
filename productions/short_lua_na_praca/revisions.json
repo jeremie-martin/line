@@ -15,7 +15,7 @@
       ]
     },
     {
-      "spec": "productions/short_lua_na_praca/spec.ts",
+      "spec": "productions/short_lua_na_praca/variants/approved.ts",
       "sha256": "178dc02d6b768a09af91c01deb9d054586cae4d77a8a5f040cdd271cfaf6e0a0",
       "at": "2026-11-18T17:10:00.000Z",
       "by": "Codex (note by Claude)",
@@ -34,11 +34,11 @@
       ]
     },
     {
-      "spec": "productions/short_lua_na_praca/spec.ts",
-      "sha256": "c52ef70a8357f07d8acf98ea28c298a606a8046c77dc8d3c4a44dfafdba21443",
-      "at": "2026-11-18T20:13:33.201Z",
+      "spec": "productions/short_lua_na_praca/variants/approved.ts",
+      "sha256": "3ec9e10307c69ed74686d785a04795c8b48a38c99c096872891ad773624e6597",
+      "at": "2026-11-19T19:44:29.035Z",
       "by": "Claude",
-      "summary": "Nothing changed in the reading itself: this is the one you called god tier (it was 'upper'), now the song's spec. The former main reading is kept beside it as 'calm'."
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_lua_na_praca/variants/calm.ts",
@@ -49,31 +49,31 @@
     },
     {
       "spec": "productions/short_lua_na_praca/variants/astra.ts",
-      "sha256": "bad893458945a1df43464d276bc666237f06dc103b49e7660e4bf4969d1249b1",
+      "sha256": "94b06295047d22bc55ae5456d51df90e3c06d673918be1d663ec13ad412f2094",
       "at": "2026-11-18T22:52:31.573Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The bass sends the sled racing close to the ground. Each time the seven bright notes answer, the fourth and fifth carry it up over the beat. The second answer stays aloft into the hush, crossing it at speed on the faintest touches. The bare drums take the height away in one stroke. When the bass returns it has farther to run before that last little lift."
     },
     {
       "spec": "productions/short_lua_na_praca/variants/sol.ts",
-      "sha256": "fcb2742946db20341a813ce2e832f5345dcd1da1743e6b1f0069e29bbc898d9f",
+      "sha256": "31ca632144bc2a7abebaf439c2b59aaf1e53b3c0d903178dbde5fc69fc635de4",
       "at": "2026-11-18T22:52:31.699Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Keep the drums racing low. Each bright seven-note answer leans up out of the groove and then tips back into it. When the bass disappears, let the fast ride lift across the empty space and brush the exposed notes. Drop close to the track for the bare drums, then let the bass return in a single strong stride. The last bright answer brings back the earlier lift and carries it away on a soft catch."
     },
     {
       "spec": "productions/short_lua_na_praca/variants/opus.ts",
-      "sha256": "09594d91188b8c75f801bb49c350e425587b5b6dc93d9e8857dd6fac7bd0afbc",
+      "sha256": "910c9d19d1f91eea4eb5bca202a07c79eaf0188c36c04ab2682d8c7c68c09900",
       "at": "2026-11-18T22:52:31.819Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Run low under the bass, lift on the seven notes, float through the quiet. Wherever the bass pumps, the rider runs fast and close to the line in quick flat skips; on each seven-note contour it lifts into taller hops, as if the melody pulled it up; and when the band drops out it takes one long leap into a high, slower float, every touch nearly weightless, until the drums come back. The drums alone are lighter than before and grow stroke by stroke, so the return of the bass at 34.6 is the clear peak of the song; from there the run is low and fast again to the last answer, which lifts once more as the music lets go."
     },
     {
-      "spec": "productions/short_lua_na_praca/variants/blend.ts",
-      "sha256": "01391525835cd4585e3ad9f5f9fbe1b1c06681dddbf4d13871a6a120298419e9",
-      "at": "2026-11-19T14:46:30.776Z",
-      "by": "Claude (Opus 5.5), from the four",
-      "summary": "The intention: Run low under the bass, rise on the seven notes, glide through the quiet. Wherever the bass pumps the rider runs fast and close to the line; on each seven-note contour it lifts, as if the melody pulled it up (an idea all three new readings share, and their rides show it clearly). The quiet middle keeps the approved float, with the touches lighter still, as you asked there. The drums alone start lighter and gather stroke by stroke, so the return of the bass is the clear peak of the song (Opus: its ride is the only one where that return truly lands hardest). From there the run is low and fast again, and the last answer lifts once more as the music lets go. My own part is how much: the low run is lower than approved but not flat, the lifts as high as in the quiet, and the whole song keeps the approved high pace."
+      "spec": "productions/short_lua_na_praca/spec.ts",
+      "sha256": "75732a99d31c828109a2e0b6c72e0a49b85dd98b19cd8601e0b8cd728bbca0f3",
+      "at": "2026-11-19T19:44:28.978Z",
+      "by": "Claude",
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

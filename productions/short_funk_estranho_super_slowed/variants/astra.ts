@@ -3,9 +3,9 @@
  * The bass at eighteen seconds pulls the whole ride forward in shallow strokes.
  * It coasts over the missing weight at twenty-seven, then slowly gets its
  * bounce back as the high sound comes through over the motor. */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

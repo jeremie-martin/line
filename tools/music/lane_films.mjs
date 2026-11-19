@@ -1,4 +1,4 @@
-// Films of each song's blend reading under each of its zoom lanes, and the index the comparison page reads.
+// Films of each song's main reading under each of its zoom lanes, and the index the comparison page reads.
 // node tools/music/lane_films.mjs [jobs=3]   (run from the repository root; resumable: a written film is kept)
 import {spawn} from 'node:child_process';
 import {createHash} from 'node:crypto';
@@ -8,13 +8,13 @@ const out = 'generated/videos/lanes', jobs = Number(process.argv[2] ?? 3);
 mkdirSync(out, {recursive: true});
 const todo = [], index = {};
 for (const song of readdirSync('productions').filter(d => d.startsWith('short_')).sort()) {
-  const ride = `generated/dashboard-rides/${song}--blend`, side = `generated/videos/dashboard/${song}--blend.json`;
+  const ride = `generated/dashboard-rides/${song}--spec`, side = `generated/videos/dashboard/${song}--spec.json`;
   if (!existsSync(`productions/${song}/zooms.ts`) || !existsSync(`${ride}/manifest.json`) || !existsSync(side)) {console.log('skipped', song); continue;}
   const lanes = (await import(`${process.cwd()}/productions/${song}/zooms.ts`)).default, theme = JSON.parse(readFileSync(side, 'utf8')).theme;
   const rideHash = JSON.parse(readFileSync(`${ride}/manifest.json`, 'utf8')).cells[0].trackHash;  // a film is of one ride: a new ride, a new film
   index[song] = [];
   for (const lane of lanes) {
-    const name = `${song}--blend--${lane.id}-${createHash('sha256').update(JSON.stringify(lane.keyframes) + theme + rideHash + JSON.stringify(ZOOM)).digest('hex').slice(0, 8)}`;
+    const name = `${song}--main--${lane.id}-${createHash('sha256').update(JSON.stringify(lane.keyframes) + theme + rideHash + JSON.stringify(ZOOM)).digest('hex').slice(0, 8)}`;
     index[song].push({...lane, file: name});
     if (!existsSync(`${out}/${name}.mp4`)) todo.push({song, lane: lane.id, name, args: ['scripts/video.ts', `--study=${ride}`, `--look=${theme}`, `--zoom=${lane.id}`, '--review', `--out=${out}/${name}.mp4`]});
   }

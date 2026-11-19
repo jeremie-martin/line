@@ -5,9 +5,9 @@
  * The shared word and drum near 29 seconds sets a heavier tread that lasts
  * until the voice lets go and the upper reply lifts clear of the ground.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

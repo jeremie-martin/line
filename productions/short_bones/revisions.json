@@ -1,73 +1,46 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_bones/spec.ts",
-      "sha256": "a9337796f0e5a318f2e1afadc86a0fac02b1ecd86bff6d1328328b822460b322",
-      "at": "2026-11-18T15:00:00.000Z",
-      "by": "Codex (note by Claude)",
-      "summary": "From your notes. The three landings you named are raised: 22.23 s now above the one after it, 23.27 s, and 25.40 s a bit. Your four marks have landings: 21.98 s as a light pickup, the other three on drum-and-bass replies that also return elsewhere in the chorus.",
-      "points": [
-        {
-          "from": 21.98,
-          "to": 22.23,
-          "text": "Light pickup, then the strong backbeat."
-        },
-        {
-          "from": 23.27,
-          "to": null,
-          "text": "Raised."
-        },
-        {
-          "from": 24.1,
-          "to": null,
-          "text": "Your mark."
-        },
-        {
-          "from": 25.4,
-          "to": null,
-          "text": "A bit stronger."
-        },
-        {
-          "from": 31.2,
-          "to": 32.52,
-          "text": "Your two marks."
-        }
-      ]
+      "spec": "productions/short_bones/variants/approved.ts",
+      "sha256": "cdd00c0f0a1c7e742a786c05ced78b365b001e0b1d7c31cfe8e9af060e14d31d",
+      "at": "2026-11-19T19:44:28.019Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_bones/variants/astra.ts",
-      "sha256": "882bb707c0e1e9a4a4691ef50a041a97815ceb42838fa7f4d2de15be4eef2f22",
+      "sha256": "057e60de992b4202c440a5922156206db8465b973c98e3405a61e9b1e7cc99d2",
       "at": "2026-11-18T22:52:28.053Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The bridge moves at speaking pace. The long lower vowels lift the rider, then the tightening syllables send it down into the crash. The chorus runs in four sentences. The first stays low, the second takes longer strides on the bass replies, and the third eases back for the held voice. The last line picks up speed into the fill and spends the two seconds of ringing sound coasting out."
     },
     {
       "spec": "productions/short_bones/variants/sol.ts",
-      "sha256": "85016e70e2659508bb98890a578967fcd698193d7681a0623a488586969161e2",
+      "sha256": "a1253255c405bbc8c8b86d31157c470ea30a029f373dfc426038ee53676559a7",
       "at": "2026-11-18T22:52:28.171Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The spoken bridge barely brushes the line. The lower sung notes stretch it into slow, suspended arcs, with a quick tightening as the pickups drive into the first crash. In the chorus the rider stays low through the drum-and-bass exchanges so the backbeats stand out. The held lower voice widens the next turn, then the clipped notes pull it back to the line. The last drum fill lifts the rider once more, and the resonance carries a long, settling coast."
     },
     {
       "spec": "productions/short_bones/variants/opus.ts",
-      "sha256": "884ce3340d643717ec43a739698df045384fdcb1f90a13d7824cfdc0197111a6",
+      "sha256": "750e1ae3a4624b70b218f72456a19e3c10834f78968445582c23c9d5b3814f7d",
       "at": "2026-11-18T22:52:28.313Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Rising out of the ground. The spoken bridge creeps, slow and close to the line, and only the held vowel lifts it once. With the low register the bass entries swell under it: slow, tall arcs over each long rest. The pickup then pulls taut, flat and accelerating, into the crash. The chorus is ridden hard and grounded, and the second drum sentence a notch faster still. Where the singer holds the long low notes the rider eases off and floats above the drums; the last line drops it back to the ground, the fill gets one hop into its last heavy stroke, and the closing resonance is a long, slowing glide. The approved reading holds full speed from the pickup to the end; this one moves between passages. Strengths as approved."
     },
     {
-      "spec": "productions/short_bones/variants/blend.ts",
+      "spec": "productions/short_bones/spec.ts",
       "sha256": "60e3bdab8cec445395cfc78500f9e47603e5e8ffc05dc6194804484e74559996",
       "at": "2026-11-19T14:46:29.226Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Out of the ground and into the air, then back down for the last line: a wider arc than the approved ride, which holds one level from the pickup to the end. From the approved reading: the creeping spoken bridge, the full pace from the pickup on, all the strengths. From Opus: the one lift on the held vowel, the slow tall arcs over the bass entries, the pickup pulled taut and flat into the crash, and the float above the drums where the singer holds the long low notes. Its own: the chorus starts grounded, so the backbeats stand out, and takes off with its second drum sentence, riding high from there through the held voice; the last line brings the rider back to the line. From Sol: the fill lifts it once more into its last heavy stroke, and the three backbeats you asked to be stronger in the second sentence are raised as Sol raised them. The resonance is a long, slowing glide."
     },
     {
-      "spec": "productions/short_bones/variants/blend.ts",
-      "sha256": "8ac3d94994ef5691d9c790800e21903fdd89322f04da3535c35749a693d6c946",
-      "at": "2026-11-19T16:30:00.012Z",
+      "spec": "productions/short_bones/spec.ts",
+      "sha256": "e2ceae2780721f35802cd47eb620c9ef42e41e7157b45778b0492ad75270fd72",
+      "at": "2026-11-19T19:44:27.959Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

@@ -4,9 +4,9 @@
  * pull that run off the ground. When the bass takes over at 32 seconds, the rider hangs back
  * and swings in longer arcs. The quick words bring the feet back down for the last pair.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

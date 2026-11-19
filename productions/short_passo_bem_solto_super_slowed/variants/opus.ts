@@ -8,7 +8,7 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base, {overlayMeta} from '../spec.ts';
+import base, {overlayMeta} from './approved.ts';
 export {overlayMeta};
 
 const tier = (v: number, steps: Array<[number, number]>) => (steps.find(([min]) => v >= min) ?? steps[steps.length - 1])[1];

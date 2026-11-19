@@ -1,63 +1,46 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_luna_bala_original/spec.ts",
-      "sha256": "244e9aa14ba89c15a9edf577ca878a964ff3a0b979b69c845bb77ea7940cb185",
-      "at": "2026-11-18T17:10:00.000Z",
-      "by": "Codex (note by Claude)",
-      "summary": "Rewritten after the slowed entry's reading, timed on this cut's own audio: every opening syllable gets a very light landing, the upper answers after the first drum are articulated, and the lighter treatment continues to the end, where the closing calls have small replies.",
-      "points": [
-        {
-          "from": 0.2,
-          "to": 3.49,
-          "text": "Opening syllables, each landed very lightly."
-        },
-        {
-          "from": 3.69,
-          "to": 5.1,
-          "text": "Four upper answers to the drum, then the downstroke."
-        },
-        {
-          "from": 25.8,
-          "to": null,
-          "text": "From here the upper answers are lighter, their fifth strokes medium."
-        }
-      ]
+      "spec": "productions/short_luna_bala_original/variants/approved.ts",
+      "sha256": "f8c9621a6c5a0cccdfa273a55ea4be02d14d4630255b056872fea548fbb31d0f",
+      "at": "2026-11-19T19:44:29.290Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_luna_bala_original/variants/astra.ts",
-      "sha256": "675e52a347b4983101819d53dca4fea48ce4a10a97a0262fbc47f0ab722278cc",
+      "sha256": "7e873d2c4dd21e901c81269952fc361f093bd9f9cfdc9424043f55c4eb6c3d1d",
       "at": "2026-11-18T22:52:32.457Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The singer lets the sled go with a whisper. The broken drum bars pick up speed in bursts, and the bass takes those bursts into one sustained run. Keep the four bare drums moving fast right to the edge of the sung answer. Each low A-sharp then gives the sled a fresh push up toward the higher voice; the replies touch lightly, and the last one has time to drift away."
     },
     {
       "spec": "productions/short_luna_bala_original/variants/sol.ts",
-      "sha256": "4002c3e0f0d75d48018e5b264345119c5b30e52b0b39e00f6965adf79e201e09",
+      "sha256": "1247bb6cdc3dc4e613a51812d79d6b58174fcec8f7cd284745f4cd5940e87525",
       "at": "2026-11-18T22:52:32.578Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Give the quick opening words a low, soft run, then let the drums kick it into a sprint. Keep the upper figure in short bounds. The broken bars bunch together, then spring into the next downbeat. Leave more space above the low answers as the upper strokes thin out. The four bare drums brake the ride in steps. The singer comes back in three separate leaps with little touches in between."
     },
     {
       "spec": "productions/short_luna_bala_original/variants/opus.ts",
-      "sha256": "e6243f912349ea1cd62b143f907cb005ad39a1afc9e540dca1e951332f58f373",
+      "sha256": "e9f94dd4657e6cdb3b43e665767033cb2c4972b1cf41ee45bd35fdabd5b09417",
       "at": "2026-11-18T22:52:32.697Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Down into the drive, then out into the open. The breathy pickup glides almost on the line. Under the broken percussion the rider gathers pace bar by bar, in steady hops with the doubles skimmed. When the low answers come in (18.5) it runs lowest and fastest, close to the line, the hardest part of the ride. Then it opens up: where the upper strokes thin out over the bass the hops grow tall, the four bare drums are four separate high leaps, slowing, and the three pitched calls at the end are wide, slow, lazy arcs with their fine answers barely touched. The middle stroke of each bar is a little softer than before, so the downbeats stand clearer."
     },
     {
-      "spec": "productions/short_luna_bala_original/variants/blend.ts",
+      "spec": "productions/short_luna_bala_original/spec.ts",
       "sha256": "bd64aa37ff467163f641dbf485124c7a45e748573bd83a447c53f30df3783026",
       "at": "2026-11-19T14:46:31.166Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Down into the drive, then out into the open (Opus's shape, whose ride lands the downbeats harder than the others). The breathy pickup glides slowly almost on the line, its touches lighter still. Under the broken percussion the rider gathers pace bar by bar, low and close, with no reach for height where the strokes come too close together to show it; when the low answers come in it runs lowest and fastest, the hardest part of the ride. Then it opens up: where the upper strokes thin out over the bass the hops grow tall and the touches between the downbeats turn lighter, so each downbeat stands alone (Sol's contrast there). The four bare drums are four high leaps, slowing, and the three pitched calls at the end are wide, slow arcs with their fine answers barely touched (Opus)."
     },
     {
-      "spec": "productions/short_luna_bala_original/variants/blend.ts",
-      "sha256": "04f310a40984b693272c79dd56c65e8eed93dcc60a7cfa77d054c8a0ddb61f40",
-      "at": "2026-11-19T16:30:00.589Z",
+      "spec": "productions/short_luna_bala_original/spec.ts",
+      "sha256": "97efea664d15a9c694d3da0571084850701b9f6dfced05a22773959052e75e21",
+      "at": "2026-11-19T19:44:29.228Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

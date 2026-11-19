@@ -5,9 +5,9 @@
  * Let the low drum land with more weight under those replies. Unwind the last surge into the three bare words at the cut.
  */
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const swell = curve([[0, .50], [2.492, .64], [4.559, .78], [6.626, .87], [8.704, .95], [11.002, 1]]);
 const drumWeight = curve([

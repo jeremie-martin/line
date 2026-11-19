@@ -5,9 +5,9 @@
  * The returning kick pulls the rider back into stride. The roll folds into four short, low steps.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 const soften = curve([[0, .16], [4.27, .10], [5.34, .26], [12, .43], [14.22, .22],
   [18.66, .36], [22, .22], [23.10, .03], [29.76, .05], [31.42, .02],

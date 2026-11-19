@@ -4,10 +4,10 @@
  * The beat moves in waves, opening up around the paired kicks and the long downbeats at 23 and 32 seconds.
  * The repeating hook runs lower and faster until one last lift into the kick, then the bare words let the ride settle.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import { curve } from '../../../scripts/v0/core/measured.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 const contrast = curve([
   [0, 1.65], [5.4, 1.35], [11.4, 1.13], [15.631, 1.4],

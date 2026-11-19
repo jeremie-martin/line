@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
       "sha256": "d71c21cc4c1e4375978faa13f1bfbbf452bfc4ade331e46dcee59470e5aeb99d",
       "at": "2026-11-18T18:44:25.918Z",
       "by": "Codex",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
       "sha256": "3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b",
       "at": "2026-11-18T20:13:33.648Z",
       "by": "Claude",
@@ -54,53 +54,46 @@
       ]
     },
     {
-      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
-      "sha256": "30ed953ef0b720107e5f1f80212054f71bfbc3ba8541fd595a33d698b40b64f4",
-      "at": "2026-11-18T20:52:52.024Z",
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
+      "sha256": "9375cab38f834cb4b69b5fd8e3e04cb128251d680df29fe23b1242fae33b5b22",
+      "at": "2026-11-19T19:44:29.913Z",
       "by": "Claude",
-      "summary": "From your note: the quick voice before the second drum return is now followed syllable by syllable, light and rising into the drum, as before the first return (18.6–20.1 s).",
-      "points": [
-        {
-          "from": 28.61,
-          "to": 29.95,
-          "text": "Seven light syllables rising into the drum."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_montagem_tomada_super_slowed/variants/astra.ts",
-      "sha256": "f3f18fbe52d5029362a43e8f32b5e70e2c6697a28f6924098d06d453129dd59e",
+      "sha256": "efee21e62afdba6cd69a0563e1ffb650fab017809b966ff5a6bd2f76013e661f",
       "at": "2026-11-18T22:52:34.669Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Let the held call carry the rider forward at a walk. When the upper notes have two seconds to themselves, the rider lifts with them, then sinks under the returning voice. Both little strings of syllables draw the rider close to the ground. Out of each drum entrance comes a rolling stride, rising on the three low rebounds together. After the last kick the treble keeps hopping as the forward motion ebbs away."
     },
     {
       "spec": "productions/short_montagem_tomada_super_slowed/variants/sol.ts",
-      "sha256": "a5d0efd88766b1ec5c2c7693e707f834a81365b797a0ad9c660a12fa34ef3a8c",
+      "sha256": "f4fd4c9440df8df5a12055aaa6fa1199a9d0af1f39f753444bc019883c2c20ea",
       "at": "2026-11-18T22:52:34.800Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Hang over the held call, then cross the exposed upper notes in a quicker, shallower sweep. When the singer comes back, settle closer to the ground and let the little upper notes brush past. The two quiet runs of syllables let the drums hit in clear space. After each return, start low and let the offbeat bass push the rider upward. Coast out on the bright notes after the last kick."
     },
     {
       "spec": "productions/short_montagem_tomada_super_slowed/variants/opus.ts",
-      "sha256": "81d2d11fc5a0f6a99c5517f88924ce52b21d77f8267302fdfc43b690329fd570",
+      "sha256": "c027497a33cde8f15dcde6e14abe01a6748e84a1a6d19b3a3314e016ef9f8b9c",
       "at": "2026-11-18T22:52:34.918Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Airborne, then stamping. For the long opening the rider swings with the upper figure: the two wide strokes of every bar are two tall, slow arcs and the six close ones a low ripple along the line, and the swing changes with the voice: small and slow under the held call, wider and quicker when the figure is left alone at 6.2, hushed and low when the voice returns, and widening again into the swell. The quick voice before the drum is a light run gathering speed. Then the drum puts the foot down and the motion turns over: from 20.1 to the end the rider stays low and fast, stamping along the line on the quarters, with no tall arcs left, except the long syllable at 28.9, which is ridden like the run before the first drum and lands on the second downstroke at full weight."
     },
     {
-      "spec": "productions/short_montagem_tomada_super_slowed/variants/blend.ts",
+      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
       "sha256": "183daa6fa21db613abbd8203801b57e2f02925c28a38a05135fa47a84dca8cea",
       "at": "2026-11-19T14:46:32.168Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Two halves, each with one figure per bar. In the long opening the rider swings with the upper figure: the two wide strokes of every bar are two tall slow arcs and the six close ones a low ripple along the line (Opus, whose ride shows this figure plainly, and an answer to your wish for something more than the same sounds for 17 seconds). The swing changes with the voice: small and slow under the held call, wider when the figure is left alone at 6.2, hushed under the returning voice, the figure there whispering a little more (Opus). The light runs of syllables before each drum downstroke are ridden as approved, the second like the first as you asked. In the drum half the figure turns into a surge: each downstroke lands low and the low rebounds push the rider up through the bar, once per bar (Sol, at whose ride the first downstroke lands hardest; Astra had the same rise). After the last kick the rider coasts out on the bright notes (Sol and Astra)."
     },
     {
-      "spec": "productions/short_montagem_tomada_super_slowed/variants/blend.ts",
-      "sha256": "a66947c44debadf06d6ce8ed6903b266b149ad4ec80be90976cd9af2bc13b0f3",
-      "at": "2026-11-19T16:30:00.910Z",
+      "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+      "sha256": "08b92f035ff5207fd74a4ddd6f45dbbfa996ce98c5327a8753c732b49fa1d24b",
+      "at": "2026-11-19T19:44:29.850Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

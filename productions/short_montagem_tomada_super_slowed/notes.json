@@ -17,7 +17,7 @@
       "createdAt": "2026-11-18T19:51:01.690Z",
       "updatedAt": "2026-11-18T19:51:01.690Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -37,7 +37,7 @@
       "createdAt": "2026-11-18T19:51:08.841Z",
       "updatedAt": "2026-11-18T19:51:08.841Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -57,7 +57,7 @@
       "createdAt": "2026-11-18T19:50:58.898Z",
       "updatedAt": "2026-11-18T19:50:58.898Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -77,7 +77,7 @@
       "createdAt": "2026-11-18T19:51:12.294Z",
       "updatedAt": "2026-11-18T19:51:12.294Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -97,7 +97,7 @@
       "createdAt": "2026-11-18T19:51:13.417Z",
       "updatedAt": "2026-11-18T19:51:13.417Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -117,7 +117,7 @@
       "createdAt": "2026-11-18T19:50:56.456Z",
       "updatedAt": "2026-11-18T19:50:56.456Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -137,7 +137,7 @@
       "createdAt": "2026-11-18T19:51:15.737Z",
       "updatedAt": "2026-11-18T19:51:15.737Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -157,7 +157,7 @@
       "createdAt": "2026-11-18T19:51:17.628Z",
       "updatedAt": "2026-11-18T19:51:17.628Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -177,7 +177,7 @@
       "createdAt": "2026-11-18T19:51:19.134Z",
       "updatedAt": "2026-11-18T19:51:19.134Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -197,7 +197,7 @@
       "createdAt": "2026-11-18T19:51:20.274Z",
       "updatedAt": "2026-11-18T19:51:20.274Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -217,7 +217,7 @@
       "createdAt": "2026-11-18T19:51:21.612Z",
       "updatedAt": "2026-11-18T19:51:21.612Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -237,7 +237,7 @@
       "createdAt": "2026-11-18T19:51:25.343Z",
       "updatedAt": "2026-11-18T19:51:25.343Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -257,7 +257,7 @@
       "createdAt": "2026-11-18T19:51:26.171Z",
       "updatedAt": "2026-11-18T19:51:26.171Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -277,7 +277,7 @@
       "createdAt": "2026-11-18T19:51:27.526Z",
       "updatedAt": "2026-11-18T19:51:27.526Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -297,7 +297,7 @@
       "createdAt": "2026-11-18T19:51:28.778Z",
       "updatedAt": "2026-11-18T19:51:28.778Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -317,7 +317,7 @@
       "createdAt": "2026-11-18T19:51:29.719Z",
       "updatedAt": "2026-11-18T19:51:29.719Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -337,7 +337,7 @@
       "createdAt": "2026-11-18T19:51:31.409Z",
       "updatedAt": "2026-11-18T19:51:31.409Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -357,7 +357,7 @@
       "createdAt": "2026-11-18T19:51:33.459Z",
       "updatedAt": "2026-11-18T19:51:33.459Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -377,7 +377,7 @@
       "createdAt": "2026-11-18T19:51:45.697Z",
       "updatedAt": "2026-11-18T19:51:45.697Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -397,7 +397,7 @@
       "createdAt": "2026-11-18T19:51:47.056Z",
       "updatedAt": "2026-11-18T19:51:47.056Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -417,7 +417,7 @@
       "createdAt": "2026-11-18T19:51:47.910Z",
       "updatedAt": "2026-11-18T19:51:47.910Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -437,7 +437,7 @@
       "createdAt": "2026-11-18T19:51:48.868Z",
       "updatedAt": "2026-11-18T19:51:48.868Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -457,7 +457,7 @@
       "createdAt": "2026-11-18T19:51:49.916Z",
       "updatedAt": "2026-11-18T19:51:49.916Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -477,7 +477,7 @@
       "createdAt": "2026-11-18T19:51:50.869Z",
       "updatedAt": "2026-11-18T19:51:50.869Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -497,7 +497,7 @@
       "createdAt": "2026-11-18T19:51:52.193Z",
       "updatedAt": "2026-11-18T19:51:52.193Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -515,7 +515,7 @@
       "createdAt": "2026-11-18T19:53:46.808Z",
       "updatedAt": "2026-11-18T19:53:46.808Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -535,7 +535,7 @@
       "createdAt": "2026-11-18T19:51:59.710Z",
       "updatedAt": "2026-11-18T19:51:59.710Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -555,7 +555,7 @@
       "createdAt": "2026-11-18T19:52:01.121Z",
       "updatedAt": "2026-11-18T19:52:01.121Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -575,7 +575,7 @@
       "createdAt": "2026-11-18T19:52:01.949Z",
       "updatedAt": "2026-11-18T19:52:01.949Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -595,7 +595,7 @@
       "createdAt": "2026-11-18T19:52:03.334Z",
       "updatedAt": "2026-11-18T19:52:03.334Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -615,7 +615,7 @@
       "createdAt": "2026-11-18T19:52:05.566Z",
       "updatedAt": "2026-11-18T19:52:05.566Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -635,7 +635,7 @@
       "createdAt": "2026-11-18T19:52:07.191Z",
       "updatedAt": "2026-11-18T19:52:07.191Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -655,7 +655,7 @@
       "createdAt": "2026-11-18T19:52:09.802Z",
       "updatedAt": "2026-11-18T19:52:09.802Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -675,7 +675,7 @@
       "createdAt": "2026-11-18T19:52:11.644Z",
       "updatedAt": "2026-11-18T19:52:11.644Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -695,7 +695,7 @@
       "createdAt": "2026-11-18T19:52:13.295Z",
       "updatedAt": "2026-11-18T19:52:13.295Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -715,7 +715,7 @@
       "createdAt": "2026-11-18T19:52:15.157Z",
       "updatedAt": "2026-11-18T19:52:15.157Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -735,7 +735,7 @@
       "createdAt": "2026-11-18T19:52:17.630Z",
       "updatedAt": "2026-11-18T19:52:17.630Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -755,7 +755,7 @@
       "createdAt": "2026-11-18T19:52:18.842Z",
       "updatedAt": "2026-11-18T19:52:18.842Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -775,7 +775,7 @@
       "createdAt": "2026-11-18T19:52:20.949Z",
       "updatedAt": "2026-11-18T19:52:20.949Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -795,7 +795,7 @@
       "createdAt": "2026-11-18T19:52:22.286Z",
       "updatedAt": "2026-11-18T19:52:22.286Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -815,7 +815,7 @@
       "createdAt": "2026-11-18T19:52:29.738Z",
       "updatedAt": "2026-11-18T19:52:29.738Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -835,7 +835,7 @@
       "createdAt": "2026-11-18T19:52:31.787Z",
       "updatedAt": "2026-11-18T19:52:31.787Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -855,7 +855,7 @@
       "createdAt": "2026-11-18T19:52:33.565Z",
       "updatedAt": "2026-11-18T19:52:33.565Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -875,7 +875,7 @@
       "createdAt": "2026-11-18T19:52:34.952Z",
       "updatedAt": "2026-11-18T19:52:34.952Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -895,7 +895,7 @@
       "createdAt": "2026-11-18T19:52:36.666Z",
       "updatedAt": "2026-11-18T19:52:36.666Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -915,7 +915,7 @@
       "createdAt": "2026-11-18T19:52:54.387Z",
       "updatedAt": "2026-11-18T19:52:54.387Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -935,7 +935,7 @@
       "createdAt": "2026-11-18T19:52:44.014Z",
       "updatedAt": "2026-11-18T19:52:44.014Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -955,7 +955,7 @@
       "createdAt": "2026-11-18T19:52:45.093Z",
       "updatedAt": "2026-11-18T19:52:45.093Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -975,7 +975,7 @@
       "createdAt": "2026-11-18T19:52:46.352Z",
       "updatedAt": "2026-11-18T19:52:46.352Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -995,7 +995,7 @@
       "createdAt": "2026-11-18T19:52:47.170Z",
       "updatedAt": "2026-11-18T19:52:47.170Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -1015,7 +1015,7 @@
       "createdAt": "2026-11-18T19:52:48.798Z",
       "updatedAt": "2026-11-18T19:52:48.798Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "06560bb4b1d2633daeeb04b9e8ddabae6d446be217f93a70cd07508ffce2a593"
       }
     },
@@ -1033,7 +1033,7 @@
       "createdAt": "2026-11-18T20:49:15.243Z",
       "updatedAt": "2026-11-18T20:49:42.905Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_super_slowed/spec.ts",
+        "spec": "productions/short_montagem_tomada_super_slowed/variants/approved.ts",
         "sha256": "3498544d77ddc04d5b775f44b50e89183198afe78a4f72849794581b3f31503b"
       }
     }

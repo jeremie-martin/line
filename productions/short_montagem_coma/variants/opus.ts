@@ -8,9 +8,9 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const bursts: Array<[number, number]> = [[8.09, 16.1], [18.09, 22.1], [32.09, 47.6]];
 const inBurst = (t: number) => bursts.some(([a, b]) => t >= a - .01 && t <= b + .01);

@@ -381,7 +381,7 @@
       "createdAt": "2026-11-18T17:34:06.727Z",
       "updatedAt": "2026-11-18T17:34:26.175Z",
       "on": {
-        "spec": "productions/short_believer/spec.ts",
+        "spec": "productions/short_believer/variants/approved.ts",
         "sha256": "7eb7c14366e791c430eae40c33f0ad34b71bcc88e336ac08a47e341e4655a7b2"
       }
     },

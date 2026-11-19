@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
       "sha256": "2575a86c7d70963b4022ae352e6f1e7abb4bec5daf69c0672235ece5b186cdb1",
       "at": "2026-11-18T18:44:26.250Z",
       "by": "Codex",
@@ -30,7 +30,7 @@
       ]
     },
     {
-      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
       "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95",
       "at": "2026-11-18T20:13:33.524Z",
       "by": "Claude",
@@ -49,7 +49,7 @@
       ]
     },
     {
-      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
       "sha256": "b4d7ec55772a0d361398603b7bdd2ff8836519f27d58a187703b9016af270869",
       "at": "2026-11-18T20:52:51.962Z",
       "by": "Claude",
@@ -78,53 +78,46 @@
       ]
     },
     {
-      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
-      "sha256": "07a7931ddc5c90891f580fd7e71966337245482c9c35ec546c9097bc897d7c31",
-      "at": "2026-11-18T21:25:25.778Z",
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
+      "sha256": "8abcf18639ab967be1f701ac1b2c84b75692a9b6385fe6f50df143e968848a5a",
+      "at": "2026-11-19T19:44:30.558Z",
       "by": "Claude",
-      "summary": "As you said, the drums continue to the end. A correction to my question: from 30.6 s the third beat itself was already landed; what was missing is a pair of lighter drum strokes in every bar, falling between the landings already there. Both are now landed in every bar to the end, lightly, the second a little more than the first.",
-      "points": [
-        {
-          "from": 31.435,
-          "to": 48.995,
-          "text": "Two lighter drum strokes per bar, between the existing landings."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_passo_bem_solto_super_slowed/variants/astra.ts",
-      "sha256": "4c2afa737b12ebfb4530e299fb761b73758ee8d125e7f71d57840ff1acea8da7",
+      "sha256": "d08d73fc2f2848b35d6ac66558f3fd1983a903251cd583ce4607605589c3a349",
       "at": "2026-11-18T22:52:36.883Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Follow the low vowel up to the high answer at six and a half seconds. On the repeated C the rider gradually trades height for speed, until the exposed calls bring him almost to a walk. Listen for the second drum stroke at 36.64 and again at 45.43. Each throws him up, with just enough time to come down for the reply. The last syllables carry him away at a walk again."
     },
     {
       "spec": "productions/short_passo_bem_solto_super_slowed/variants/sol.ts",
-      "sha256": "7075912a8526e50aad4dd3b2ca9e47c28999e0913d36c844ffb506b089b81418",
+      "sha256": "639c5d85194936c7c190a813ba2155ba9885ff1b72f56798078bf91f41cc4fc9",
       "at": "2026-11-18T22:52:37.009Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Start with long, low glides under the dark vowel. Let the high reply at six and a half seconds make the first big rise. The repeated C settles to a steady pace, with shorter flights around the third-beat drum and a lift into each A-sharp turn. Five exposed calls hang close to the line before the kick sets down firmly at the return. Give the late drums weight and keep their two little steps audible. Let the last word carry the rider over their fading edge."
     },
     {
       "spec": "productions/short_passo_bem_solto_super_slowed/variants/opus.ts",
-      "sha256": "bd903a6449410cf3c887efa611d2f058f356793e9529f4e3585c6ae06f0c3b9c",
+      "sha256": "815c0ea6c2e75924bd48c4775fb523281ecac52c2fa0ebea75ec06c6ac92d751",
       "at": "2026-11-18T22:52:37.131Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Super slowed, the rider glides. It stays down on the line and moves at an unhurried pace, and the small notes between the calls become ripples it rolls over rather than steps it lands on; what remains as weight is the recurring C, the drum strokes he asked for under it (14.1, 18.5, 20.7, 22.9, 27.3) and the strong strokes of the high answer. The hand-mapped opening keeps its syllables as they were. The five unaccompanied calls are the one place it lifts and floats, the held breath before the return at 30.6, and the drum pairs after it glide again, a little faster, heads firm and pickups soft. The approved reading hopped through every note at a brisker pace; this one should look like one long line with a few deep strokes in it, most of all from 13 to 28 s."
     },
     {
-      "spec": "productions/short_passo_bem_solto_super_slowed/variants/blend.ts",
+      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
       "sha256": "4a1c6f5921975ec6fdbc5ce05c54e01b5b93c973eb41fd8073c6547f00eca326",
       "at": "2026-11-19T14:46:33.152Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Super slowed, the rider glides on the approved line, and a few long breaths become arcs that return like a refrain. The opening he mapped by hand keeps its syllables, strengths and glide; the high answer at six and a half seconds makes the first big rise, as in Sol's reading. The high answer over the bass is the approved one. Under the recurring C my own figure: wherever the C comes after a long breath, the rider rises into it, the same arc each time, so the passage reads as one phrase coming back (Sol lifted into some of them; here it is every one). The drums he marked between keep their approved weight. The five calls float into the return as approved. In the late drums the two heaviest second strokes throw the rider up, with just time to come down for the reply, as Astra found; the rest of that passage and the last syllables are the approved ride."
     },
     {
-      "spec": "productions/short_passo_bem_solto_super_slowed/variants/blend.ts",
-      "sha256": "9e5e74975420888dd32c744ae72c762312151e0dc2148b40482719b02e230d4f",
-      "at": "2026-11-19T16:30:01.224Z",
+      "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+      "sha256": "36370bcf1960d50590eeb7137764cfee70384f3010cea1537ae3334456084774",
+      "at": "2026-11-19T19:44:30.499Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

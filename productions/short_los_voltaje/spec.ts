@@ -1,61 +1,61 @@
-/** Three small sung attacks leave room for the answering drums. At 11 s the singer
- * takes their time as well, right down to the last consonant before the return.
- * Keep the half-second drum underneath the three bright replies from 23.55 s.
- * Omit the smaller upper introductions and the backing hook. The last three
- * words run through the cut. The separation of the last pickup from the slam
- * is the tightest and least certain part of this reading.
- */
+/** The loved approved ride, with the drum driving the picture, as you asked: charge, then current.
+ * From the approved reading: the calls with their slow crescendo, the quick naked voice ridden flat and
+ * accelerating into the slam, the last words, and the strengths.
+ * From Opus: the drums that take over are ridden as tall, regular hops, one per beat.
+ * From Sol: the drum strokes are a little heavier, in the drum passage and on the beat that closes each
+ * phrase of the bright replies, and each phrase is one sweep: low through the replies, lifting into
+ * the closing drum, driving on into the next.
+ * Its own: that closing lift grows a little phrase by phrase (Opus's climb, in Sol's sweep), so the
+ * long passage of replies keeps rising to the end instead of repeating; then the words glide out. */
 import type {Spec} from '../../scripts/v0/types.ts';
 import {curve} from '../../scripts/v0/core/measured.ts';
+import base from './variants/approved.ts';
 
-const music = {"title": "LOS VOLTAJE", "audio": "productions/short_los_voltaje/audio.mp3", "beats": "productions/short_los_voltaje/audio.json", "spectrogram": {"image": "productions/short_los_voltaje/spectrogram.png", "metadata": "productions/short_los_voltaje/spectrogram.json"}};
-export const overlayMeta = {title: music.title, artist: "Sayfalse, Yb Wasg'ood & Ariis", phases: [
-  {"name": "Calls and space", "t0": 0, "t1": 6.61, "color": "#426582"},
-  {"name": "Calls gather", "t0": 6.61, "t1": 11.0, "color": "#a45643"},
-  {"name": "Quick naked voice", "t0": 11.0, "t1": 14.88, "color": "#448078"},
-  {"name": "Drums take over", "t0": 14.88, "t1": 23.55, "color": "#826488"},
-  {"name": "Bright upper replies", "t0": 23.55, "t1": 47.67, "color": "#426582"},
-  {"name": "Words past the drums", "t0": 47.67, "t1": 48.352, "color": "#a45643"},
-]};
+export {overlayMeta} from './variants/approved.ts';
 
-const strikes: [number, number][] = [
-  // Each call opens with a low layer sounding through the syllable.
-  [.426,.23],[.623,.11],[.971,.15], [1.691,.19],[1.970,.16],[2.214,.10],
-  [2.492,.28],[2.690,.14],[3.026,.18], [3.514,.18],[3.758,.25],[4.025,.21],
-  [4.559,.33],[4.768,.16],[5.093,.25], [5.824,.31],[6.091,.24],[6.347,.16],
-  [6.626,.43],[6.893,.24],[7.136,.31],[7.369,.22],[7.682,.35],[8.007,.21],
-  [8.704,.43],[8.901,.21],[9.214,.30],
-  [9.447,.32],[9.714,.28],[9.958,.42],[10.236,.38],[10.492,.22],[10.747,.47],
-  // Accelerate through the exposed voice. Most of these are light articulations.
-  [11.002,.462],[11.269,.319],[11.513,.389],[11.792,.496],[11.931,.242],[12.129,.289],
-  [12.361,.328],[12.814,.416],[13.023,.285],[13.185,.312],[13.359,.335],[13.533,.369],
-  [13.708,.295],[13.893,.314],[14.079,.356],[14.230,.247],[14.427,.344],[14.590,.306],[14.741,.258],
-  // The body is the drum. Preserve the change in attack within the repeated pulse.
-  [14.869,.977],[15.403,.358],[15.913,.412],[16.436,.484],[16.947,.85],[17.469,.369],
-  [17.992,.492],[18.502,.461],[18.758,.755],[19.025,.658],[19.547,.376],[20.058,.448],
-  [20.569,.459],[21.080,.738],[21.602,.695],[22.125,.84],[22.636,.762],[23.158,.795],
-  // Upper replies in threes, with their small leading shoulder folded into the reply.
-  [23.553,.590],[23.669,.407],[23.948,.651],[24.191,.492],[24.458,.567],[24.702,.464],
-  [25.225,.79],[25.619,.621],[25.747,.389],[26.026,.668],[26.258,.453],[26.525,.595],[26.769,.481],
-  [27.036,.734],[27.291,.676],[27.686,.602],[27.814,.384],[28.081,.641],[28.325,.472],[28.592,.584],[28.847,.449],
-  [29.358,.783],[29.753,.436],[29.880,.710],[30.136,.479],[30.391,.89],[30.658,.446],[30.914,.748],[31.424,.771],
-  [31.831,.546],[31.947,.423],[32.214,.643],[32.458,.447],[32.736,.559],[32.980,.466],
-  [33.491,.733],[33.897,.568],[34.013,.382],[34.292,.673],[34.524,.415],[34.803,.602],[35.047,.398],
-  [35.302,.80],[35.569,.643],[35.964,.591],[36.080,.371],[36.359,.716],[36.602,.439],[36.869,.596],[37.113,.465],
-  [37.636,.741],[38.030,.575],[38.158,.709],[38.414,.752],[38.669,.789],[38.924,.551],[39.180,.705],[39.702,.747],
-  [40.109,.569],[40.225,.384],[40.492,.685],[40.736,.436],[41.014,.544],[41.258,.458],
-  [41.769,.82],[42.164,.578],[42.291,.392],[42.558,.677],[42.802,.420],[43.081,.565],[43.325,.403],
-  [43.580,.791],[43.847,.651],[44.242,.552],[44.358,.374],[44.637,.674],[44.869,.471],[45.147,.611],[45.391,.438],
-  [45.902,.714],[46.308,.574],[46.424,.698],[46.692,.732],[46.947,.85],[47.202,.592],[47.458,.716],
-  [47.678,.397],[48.003,.428],[48.201,.306],
-];
+const SLAM = 14.869, REPLIES = 23.553, WORDS = 47.678;
+const drumWeight = curve([[14.869, 1.02], [16.947, 1.08], [18.758, 1.04], [20.569, 1.05], [22.125, 1.10], [23.158, 1.06]]);
+const ends0 = base.contacts.map((c) => c.t);
+/** In the replies, a long gap (over 0.45 s) lands on the drum beat that closes a phrase. */
+const closesPhrase = (end: number, len: number) => end > REPLIES && end < WORDS - 0.01 && len > 0.45;
 
-const spec: Spec = {
-  duration: 48.352, preroll: 2, music,
-  contacts: strikes.map(([t, impact]) => ({t, impact})),
-  axes: {
-    air: curve([[0,.62],[.426,.43],[.971,.64],[2.492,.42],[3.026,.60],[4.559,.40],[5.093,.60],[6.626,.36],[9.214,.44],[10.747,.44],[11.002,.30],[14.741,.30],[14.869,.68],[22.636,.68],[23.158,.46],[45.902,.46],[46.424,.57],[46.947,.56],[47.458,.46],[47.678,.36]]),
-    speed: curve([[0,.44],[4.559,.50],[6.347,.50],[6.626,.60],[10.747,.60],[11.002,.74],[12.361,.82],[14.427,.94],[14.869,.96],[47.458,.96],[47.678,.64]]),
-  },
+const contacts = base.contacts.map(({t, impact = 0}, i) => {
+  const len = i > 0 ? t - ends0[i - 1] : 0;
+  if (t > SLAM && t <= 23.16) return {t, impact: Math.min(1, +(impact * drumWeight(t)!).toFixed(3))};
+  if (closesPhrase(t, len)) return {t, impact: Math.min(1, +(impact + 0.045).toFixed(3))};
+  return {t, impact};
+});
+
+const ends = contacts.map((c) => c.t);
+/** A value per gap, chosen by the landing that ends it and the gap's length (s); `tail` after the last landing. */
+const perGap = (f: (end: number, len: number) => number | undefined, tail: number) => (t: number) => {
+  const i = ends.findIndex((e) => e >= t);
+  if (i < 0) return tail;
+  return f(ends[i], ends[i] - (i > 0 ? ends[i - 1] : 0));
 };
+/** How far through the replies (0 to 1). */
+const through = (t: number) => Math.min(1, Math.max(0, (t - REPLIES) / (WORDS - REPLIES)));
+
+const approvedAir = curve([[0,.62],[.426,.43],[.971,.64],[2.492,.42],[3.026,.60],[4.559,.40],[5.093,.60],[6.626,.36],
+  [9.214,.44],[10.747,.44],[11.002,.30],[14.741,.30]]);
+
+const air = perGap((end, len) => {
+  if (end < SLAM - 0.01) return approvedAir(end);
+  if (end < REPLIES - 0.01) return len > 0.45 ? 0.86 : 0.6; // Drum hops.
+  if (closesPhrase(end, len)) return 0.66 + 0.18 * through(end); // The lift into the closing drum, growing.
+  if (end < WORDS - 0.01) return 0.42; // Low through the replies.
+  return 0.45;
+}, 0.45);
+
+const spec: Spec = {...base, contacts,
+  axes: {
+    air,
+    speed: curve([
+      [0,.44],[4.559,.50],[6.347,.50],[6.626,.60],[10.747,.60],[11.002,.74],[12.361,.82],[14.427,.94],[SLAM,.94],
+      [15.4,.86],[23.158,.86],
+      [25.23,.80],[27.04,.92],[28.08,.82],[30.39,.98],[31.42,.92],[32.21,.80],[33.49,.84],[35.30,.94],
+      [36.36,.82],[38.67,.98],[39.70,.92],[40.49,.80],[41.77,.90],[42.56,.82],[43.58,.92],[44.64,.84],
+      [46.95,.99],[47.46,.90],[WORDS,.66],[48.352,.56],
+    ]),
+  }};
 export default spec;

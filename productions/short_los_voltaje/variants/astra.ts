@@ -3,9 +3,9 @@
  * Under the bright replies the rider swings out and draws back three times.
  * Each swing runs low and quick into the footfall at its end. The three words
  * after the drums get a little lift of their own. */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const height = curve([[0,.08],[.971,.22],[1.691,.36],[2.214,.10],[3.026,.23],[3.514,.32],
   [4.025,.21],[4.559,.30],[5.093,.24],[5.824,.35],[6.626,.13],[9.214,.09],[11.002,.04],

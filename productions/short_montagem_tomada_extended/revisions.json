@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_montagem_tomada_extended/spec.ts",
+      "spec": "productions/short_montagem_tomada_extended/variants/approved.ts",
       "sha256": "90bc995970ebd891021d57f43319da10130adf302617333d735f7d442bc52b22",
       "at": "2026-11-18T17:10:00.000Z",
       "by": "Codex (note by Claude)",
@@ -15,58 +15,46 @@
       ]
     },
     {
-      "spec": "productions/short_montagem_tomada_extended/spec.ts",
-      "sha256": "e4b27c6f38c814a9463b04fab636f3181bccdedb72d0e172afee45e20581fc52",
-      "at": "2026-11-18T20:13:33.398Z",
+      "spec": "productions/short_montagem_tomada_extended/variants/approved.ts",
+      "sha256": "38095d1e23e79b5c2369d7b818fe60f1deb0fcf4423385ec9c4daf9bb7624ff1",
+      "at": "2026-11-19T19:44:29.671Z",
       "by": "Claude",
-      "summary": "From your two notes: the quick voice before each drum return is now followed syllable by syllable and very light, as in the slowed entry (its 16.5–17.9 s): seven syllables on this cut's own voice notes, then the drum. These two places are the only ones where the voice runs alone into a drum return.",
-      "points": [
-        {
-          "from": 7.5,
-          "to": 8.62,
-          "text": "Seven light syllables into the drum."
-        },
-        {
-          "from": 37.04,
-          "to": 38.15,
-          "text": "The same before the second return."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_montagem_tomada_extended/variants/astra.ts",
-      "sha256": "bf5288bd4351c6098eda04e58d6be73627ec288170b58c30f75101df51d6d45e",
+      "sha256": "b5ff67066616b938597e8234e5034f9b845f67170af0964bdceff4e33bff4fa3",
       "at": "2026-11-18T22:52:33.799Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Each sung pair flicks up and leaves the rider hanging on the long vowel. The first drum takes up that bounce, with an extra lift in the missing beat before 16 seconds. The upper notes in the break gather into a quick skim. On the second verse the long vowels stretch out again. This time the drum pulls everything low and fast until the singer briefly gets the space back at 44.7 seconds. The last kick sends the treble clear."
     },
     {
       "spec": "productions/short_montagem_tomada_extended/variants/sol.ts",
-      "sha256": "21af893557a657d62d54e881446f396c39c221f08f3dbc5f856ffa4210fd2cd8",
+      "sha256": "eada5630ff3882a40a7aae5bfce60a1105bba176f1b6fa529427caa8242f2acb",
       "at": "2026-11-18T22:52:33.929Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Let the paired words build through progressively longer, higher steps, then skim the quick syllables. The first drum entrance brings a measured stride that loosens into a high, slow glide when the voice holds its note in the break. The second entrance sends the rider much faster and lower. Let the held word near forty-five seconds briefly lift that run before the last low beat and bright tail."
     },
     {
       "spec": "productions/short_montagem_tomada_extended/variants/opus.ts",
-      "sha256": "195e8bc8f776a89372d36ff1bd5ac714e2cc6e3fc41e1bbee3fdc2708d2f756c",
+      "sha256": "1bd438cbd173a6ca72b78a860ecd5824330276b83204201bbc82d4fad52faf7a",
       "at": "2026-11-18T22:52:34.050Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: The same road twice, the second time higher. The song tells its story two times: a verse, the quick voice, the drum. The first time the rider holds back: the verse starts low and soft and grows, the first drum is ridden close to the line with modest hops. In the break without drums it hangs, slow and high, over the upper figure. Then the second verse and the second drum repeat the same motions, but everything is taller, faster and heavier, so the eye recognises the road and feels the return as the bigger one: the arcs between low beats there are the tallest of the song. The quick voice before each drum keeps its light, syllable-by-syllable touches."
     },
     {
-      "spec": "productions/short_montagem_tomada_extended/variants/blend.ts",
+      "spec": "productions/short_montagem_tomada_extended/spec.ts",
       "sha256": "6cb744321adcdd1b82169b210887ea2b9247fbe2fadc1748fe24a8773f494eaf",
       "at": "2026-11-19T14:46:31.777Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The same road twice, the second time bigger (Opus, whose ride lands both drum entrances best). The song tells its story two times, a verse, the quick voice, the drum, and the second time everything is taller, faster and heavier. Into that road I put Astra's best gesture, which her ride shows clearly: at the end of each sung pair the rider hangs on the long vowel, and again over the missing beat just before the first drum's second half. The first verse starts low and soft and grows, as you asked, and its hangs are modest; the second verse hangs higher. The quick voice before each drum keeps its light syllable-by-syllable touches as approved. The first drum runs close to the line with modest hops, the break floats slow and high over the upper figure, and the return is the fastest, highest running of the song."
     },
     {
-      "spec": "productions/short_montagem_tomada_extended/variants/blend.ts",
-      "sha256": "66cd5b007c0e01140866f0c160706357a451bf9493c4190abed7e6a9b93073e1",
-      "at": "2026-11-19T16:30:00.788Z",
+      "spec": "productions/short_montagem_tomada_extended/spec.ts",
+      "sha256": "56c940a5fdc00b186c0706ee1e196c2b0e0151bc43ad7fc3ff79ac7b4d27c002",
+      "at": "2026-11-19T19:44:29.606Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

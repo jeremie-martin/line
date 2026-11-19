@@ -4,9 +4,9 @@
  * After “Pain!” the quarter beats stride out at half that height. When the second drummer joins,
  * the rider digs in and gathers speed beneath the chant, rising again for the snare at 44.74.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_passo_bem_solto/spec.ts",
+      "spec": "productions/short_passo_bem_solto/variants/approved.ts",
       "sha256": "ec8fc3f7ee8dc18113f1182bc78d55aeb6a8b497125dc33ae3a403aa208984ad",
       "at": "2026-11-18T18:44:26.124Z",
       "by": "Codex",
@@ -25,7 +25,7 @@
       ]
     },
     {
-      "spec": "productions/short_passo_bem_solto/spec.ts",
+      "spec": "productions/short_passo_bem_solto/variants/approved.ts",
       "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8",
       "at": "2026-11-18T20:13:33.458Z",
       "by": "Claude",
@@ -59,83 +59,46 @@
       ]
     },
     {
-      "spec": "productions/short_passo_bem_solto/spec.ts",
-      "sha256": "8abb393f2ef269320cb0b54434b1289b310024121bc1382ca49c92de0c703c8b",
-      "at": "2026-11-18T20:52:51.903Z",
+      "spec": "productions/short_passo_bem_solto/variants/approved.ts",
+      "sha256": "bb9f5acd0013ff6326bc4e4bad67946a526666516317b0707dbed290e75f4f57",
+      "at": "2026-11-19T19:44:30.303Z",
       "by": "Claude",
-      "summary": "From your seven marks in the opening: each is a sung syllable that had no landing, and each now has one, on the voice's own note. The one at 13.90 s is voice and drum together, so it is asked strong; the others are light. I looked for other syllables of the same kind between 2 and 14.6 s: two remain without a landing (8.04 and 11.74 s), each within a tenth of a second of a landing that is already there.",
-      "points": [
-        {
-          "from": 5.13,
-          "to": null,
-          "text": "Added."
-        },
-        {
-          "from": 5.577,
-          "to": null,
-          "text": "Added."
-        },
-        {
-          "from": 6.494,
-          "to": null,
-          "text": "Added, with the drum under it."
-        },
-        {
-          "from": 7.69,
-          "to": null,
-          "text": "Added."
-        },
-        {
-          "from": 11.829,
-          "to": null,
-          "text": "Added."
-        },
-        {
-          "from": 12.978,
-          "to": null,
-          "text": "Added."
-        },
-        {
-          "from": 13.901,
-          "to": null,
-          "text": "Added, strong: voice and drum together."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_passo_bem_solto/variants/astra.ts",
-      "sha256": "f54ae59ce8118f8cd9be913f9887fb5f8194fdf1a2d7694bc6d6b7e10dda3758",
+      "sha256": "945c03f7e427cfcf48a9333c895d41d87ff58010dd89ca9339f1f65ead9e55fa",
       "at": "2026-11-18T22:52:35.988Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The rider takes the opening syllables in quick, shallow steps. When the treble starts dancing, he skips over the same hole in each phrase, landing back among the little answers. The bare call takes the spring out of his step. When the drums come back he spends that energy on one long accelerating run, easing off as the last word breaks up the beat."
     },
     {
       "spec": "productions/short_passo_bem_solto/variants/sol.ts",
-      "sha256": "b7450e4e217a08ba57823ef353787c5746a9792072704c705eaf33cc70314d12",
+      "sha256": "fdef0390130df22a1c43289c93c935f2fcb2f284185aeb839d1806bb462aaa70",
       "at": "2026-11-18T22:52:36.109Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Skim through the quick words in one run, with softer catches between the three low accents. When the treble takes over, stretch each long space into a leap and tuck the close replies under it. The bare call eases into short, light steps. The returning drum sends the rider out low and fast. Let the broad drum strides carry the broken pickups, then shorten them as the last figure frays."
     },
     {
       "spec": "productions/short_passo_bem_solto/variants/opus.ts",
-      "sha256": "d4d7592d1400ea8abe64ed31392a61ba33f345ecc1fcc20bded9e47096989877",
+      "sha256": "3600011754a112e9667e87ac411fcc8fb11cf4847d163324aebea19748b15fe0",
       "at": "2026-11-18T22:52:36.241Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A loose step, from the ground up. The opening sentence is a low ripple: the rider hardly leaves the line and goes slowly, each syllable a light touch, so that the three strokes he marked (7.2, 9.05, 10.9) are the first real weight and kick it off the ground. The high answer rides in the air, the treble dance settles into a springy middle with clear accents and small in-between notes, and the naked call floats on the barest touches, the most airborne stretch of the song and the room before the drums return at 29.35 with the heaviest landing. From there it runs low and fast, a firm beat with light pickups, and loosens as the drum figure frays. The approved reading gave the opening the height of the rest and near-equal weights; here the song climbs out of a quiet floor."
     },
     {
-      "spec": "productions/short_passo_bem_solto/variants/blend.ts",
+      "spec": "productions/short_passo_bem_solto/spec.ts",
       "sha256": "5973339d3812ef14d1ce89f9c4b21aa343259e3a03649431474f21e6ec4c3241",
       "at": "2026-11-19T14:46:32.772Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A loose step that learns to leave the ground, then comes back down to run. The opening sentence is a slow, low ripple on the syllables he placed by hand (Opus); just before the three strokes he marked strong it rises into the approved stride, and those strokes are asked a little stronger, as Opus did, so they are the first real weight. The high answer keeps the approved air and pace. In the treble dance the rider skims low and leaps over the same long space in each phrase, as Astra and Sol found; my own part is that the four leaps grow, each a little longer in the air, the last the highest, until the naked call is one long float on the barest touches (Opus), the room before the drums come back. From the return on it is the approved run and its fraying end, which kept its strong strokes best of the four."
     },
     {
-      "spec": "productions/short_passo_bem_solto/variants/blend.ts",
-      "sha256": "b08db52628e519c1a84acfdd34558ca1e3721160536e8de47f54e7edaccdca4b",
-      "at": "2026-11-19T16:30:01.098Z",
+      "spec": "productions/short_passo_bem_solto/spec.ts",
+      "sha256": "b1ffb74b7ea904d4ff517a8aa3a47cbec44965de7149959b56cb7ca7dfa43aa4",
+      "at": "2026-11-19T19:44:30.234Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

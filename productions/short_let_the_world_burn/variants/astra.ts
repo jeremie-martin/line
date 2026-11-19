@@ -3,9 +3,9 @@
  * stretches out ahead of the drums. The upper C is the summit, slower and
  * higher, with time to fall all the way back to the three drum answers.
  * The last word lifts off again on its own. */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

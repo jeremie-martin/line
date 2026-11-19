@@ -8,9 +8,9 @@
  * their order, only the fills of the quick-words passage are lighter. */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const contacts = base.contacts.map(({t, impact = 0}) => {
   // Upper answers and quick words: the fills step back so the downbeats carry the passage.

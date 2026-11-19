@@ -5,9 +5,9 @@
  * into the cluster around 23 seconds and its echo nine seconds later, then runs
  * beneath the repeating hook until the last three words lift free.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

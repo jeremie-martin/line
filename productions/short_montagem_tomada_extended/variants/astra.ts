@@ -4,9 +4,9 @@
  * On the second verse the long vowels stretch out again. This time the drum pulls everything low and fast
  * until the singer briefly gets the space back at 44.7 seconds. The last kick sends the treble clear.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

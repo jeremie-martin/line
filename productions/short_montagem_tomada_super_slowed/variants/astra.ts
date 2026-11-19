@@ -4,9 +4,9 @@
  * rider close to the ground. Out of each drum entrance comes a rolling stride, rising on the three low
  * rebounds together. After the last kick the treble keeps hopping as the forward motion ebbs away.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

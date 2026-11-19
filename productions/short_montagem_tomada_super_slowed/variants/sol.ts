@@ -5,9 +5,9 @@
  * start low and let the offbeat bass push the rider upward. Coast out on the bright notes after the last kick.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 export default {
   ...base,

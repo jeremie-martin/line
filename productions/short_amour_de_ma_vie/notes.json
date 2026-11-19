@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:18:19.610Z",
       "updatedAt": "2026-11-18T16:18:19.610Z",
       "on": {
-        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
         "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
       }
     },
@@ -35,7 +35,7 @@
       "createdAt": "2026-11-18T16:18:25.820Z",
       "updatedAt": "2026-11-18T16:18:25.820Z",
       "on": {
-        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
         "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
       }
     },
@@ -55,7 +55,7 @@
       "createdAt": "2026-11-18T16:18:27.948Z",
       "updatedAt": "2026-11-18T16:18:27.948Z",
       "on": {
-        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
         "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
       }
     },
@@ -73,7 +73,7 @@
       "createdAt": "2026-11-18T16:18:42.738Z",
       "updatedAt": "2026-11-18T16:19:01.975Z",
       "on": {
-        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
         "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
       }
     },
@@ -93,7 +93,7 @@
       "createdAt": "2026-11-18T16:18:29.401Z",
       "updatedAt": "2026-11-18T16:18:29.401Z",
       "on": {
-        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
         "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
       }
     },
@@ -111,7 +111,7 @@
       "createdAt": "2026-11-18T16:19:46.768Z",
       "updatedAt": "2026-11-18T16:20:16.191Z",
       "on": {
-        "spec": "productions/short_amour_de_ma_vie/spec.ts",
+        "spec": "productions/short_amour_de_ma_vie/variants/approved.ts",
         "sha256": "2887e8a89b5b7a7fbbf1b9555df9c0055211f9ab2ae49e2605b91b53c81e7964"
       }
     }

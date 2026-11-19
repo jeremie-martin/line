@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:22:34.755Z",
       "updatedAt": "2026-11-18T16:22:34.755Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "423e50c84c0d608b45935d75cdf5b2fd4df59bc73ae0efbe7fa54bfa6a034959"
       }
     },
@@ -35,7 +35,7 @@
       "createdAt": "2026-11-18T17:36:53.736Z",
       "updatedAt": "2026-11-18T17:36:53.736Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -55,7 +55,7 @@
       "createdAt": "2026-11-18T17:36:52.122Z",
       "updatedAt": "2026-11-18T17:36:52.122Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -75,7 +75,7 @@
       "createdAt": "2026-11-18T17:36:50.902Z",
       "updatedAt": "2026-11-18T17:36:50.902Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -95,7 +95,7 @@
       "createdAt": "2026-11-18T17:36:55.686Z",
       "updatedAt": "2026-11-18T17:36:55.686Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -115,7 +115,7 @@
       "createdAt": "2026-11-18T17:36:57.459Z",
       "updatedAt": "2026-11-18T17:36:57.459Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -135,7 +135,7 @@
       "createdAt": "2026-11-18T17:37:01.636Z",
       "updatedAt": "2026-11-18T17:37:01.636Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -155,7 +155,7 @@
       "createdAt": "2026-11-18T17:37:03.139Z",
       "updatedAt": "2026-11-18T17:37:03.139Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -175,7 +175,7 @@
       "createdAt": "2026-11-18T17:37:04.405Z",
       "updatedAt": "2026-11-18T17:37:04.405Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -195,7 +195,7 @@
       "createdAt": "2026-11-18T17:37:09.513Z",
       "updatedAt": "2026-11-18T17:37:09.513Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     },
@@ -215,7 +215,7 @@
       "createdAt": "2026-11-18T17:37:11.657Z",
       "updatedAt": "2026-11-18T17:37:11.657Z",
       "on": {
-        "spec": "productions/short_los_voltaje/spec.ts",
+        "spec": "productions/short_los_voltaje/variants/approved.ts",
         "sha256": "3f26c54085f992da8256a00712cf4a0eda3e3723182705f410ee6369f6dfe14b"
       }
     }

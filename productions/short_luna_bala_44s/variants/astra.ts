@@ -5,9 +5,9 @@
  * and comes down through the clipped fifth. The bare drums cut that bow short.
  * Bass answers send the sled along the ground until the refrain opens out again.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

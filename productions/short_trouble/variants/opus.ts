@@ -8,7 +8,7 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base, {overlayMeta} from '../spec.ts';
+import base, {overlayMeta} from './approved.ts';
 export {overlayMeta};
 
 function strength(t: number, v: number): number {

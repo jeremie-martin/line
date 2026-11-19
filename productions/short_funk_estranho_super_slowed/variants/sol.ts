@@ -5,9 +5,9 @@
  * Bring the pulse back under that wider bounce, then gather speed and flatten the jumps as the cut approaches.
  */
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const strokeWeight = curve([
   [0, .56], [3.624, .70], [4.181, .92], [7.583, 1], [8.720, .91], [12.099, .95],

@@ -17,7 +17,7 @@
       "createdAt": "2026-11-18T19:54:50.036Z",
       "updatedAt": "2026-11-18T19:54:50.036Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -37,7 +37,7 @@
       "createdAt": "2026-11-18T19:54:51.237Z",
       "updatedAt": "2026-11-18T19:54:51.237Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -57,7 +57,7 @@
       "createdAt": "2026-11-18T19:54:56.396Z",
       "updatedAt": "2026-11-18T19:54:56.396Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -77,7 +77,7 @@
       "createdAt": "2026-11-18T19:54:58.844Z",
       "updatedAt": "2026-11-18T19:54:58.844Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -97,7 +97,7 @@
       "createdAt": "2026-11-18T19:54:59.759Z",
       "updatedAt": "2026-11-18T19:54:59.759Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -117,7 +117,7 @@
       "createdAt": "2026-11-18T19:55:15.416Z",
       "updatedAt": "2026-11-18T19:55:15.416Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -137,7 +137,7 @@
       "createdAt": "2026-11-18T19:55:24.459Z",
       "updatedAt": "2026-11-18T19:55:24.459Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -157,7 +157,7 @@
       "createdAt": "2026-11-18T20:44:29.361Z",
       "updatedAt": "2026-11-18T20:44:29.361Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -177,7 +177,7 @@
       "createdAt": "2026-11-18T20:44:36.485Z",
       "updatedAt": "2026-11-18T20:44:36.485Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -197,7 +197,7 @@
       "createdAt": "2026-11-18T20:44:39.835Z",
       "updatedAt": "2026-11-18T20:44:39.835Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -215,7 +215,7 @@
       "createdAt": "2026-11-18T19:57:29.796Z",
       "updatedAt": "2026-11-18T19:57:29.796Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -235,7 +235,7 @@
       "createdAt": "2026-11-18T19:55:35.547Z",
       "updatedAt": "2026-11-18T19:55:38.002Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -255,7 +255,7 @@
       "createdAt": "2026-11-18T20:44:46.452Z",
       "updatedAt": "2026-11-18T20:44:46.452Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -275,7 +275,7 @@
       "createdAt": "2026-11-18T19:55:46.534Z",
       "updatedAt": "2026-11-18T19:55:46.534Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -295,7 +295,7 @@
       "createdAt": "2026-11-18T19:55:48.822Z",
       "updatedAt": "2026-11-18T19:55:48.822Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -315,7 +315,7 @@
       "createdAt": "2026-11-18T19:55:55.943Z",
       "updatedAt": "2026-11-18T19:55:58.149Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -335,7 +335,7 @@
       "createdAt": "2026-11-18T19:56:02.090Z",
       "updatedAt": "2026-11-18T19:56:02.090Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -353,7 +353,7 @@
       "createdAt": "2026-11-18T20:45:27.337Z",
       "updatedAt": "2026-11-18T20:45:34.452Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -373,7 +373,7 @@
       "createdAt": "2026-11-18T19:56:04.155Z",
       "updatedAt": "2026-11-18T19:56:04.155Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -393,7 +393,7 @@
       "createdAt": "2026-11-18T19:56:09.446Z",
       "updatedAt": "2026-11-18T19:56:09.446Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -413,7 +413,7 @@
       "createdAt": "2026-11-18T19:56:12.392Z",
       "updatedAt": "2026-11-18T19:56:12.392Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -433,7 +433,7 @@
       "createdAt": "2026-11-18T19:56:24.288Z",
       "updatedAt": "2026-11-18T19:56:26.785Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -453,7 +453,7 @@
       "createdAt": "2026-11-18T19:56:33.602Z",
       "updatedAt": "2026-11-18T19:56:33.602Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -473,7 +473,7 @@
       "createdAt": "2026-11-18T19:56:39.153Z",
       "updatedAt": "2026-11-18T19:56:39.153Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "94d8d0096aba86c9f98f4bbf0a096404a8a7593d960a77bbcd8f0707713f7643"
       }
     },
@@ -493,7 +493,7 @@
       "createdAt": "2026-11-18T20:44:58.939Z",
       "updatedAt": "2026-11-18T20:44:58.939Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -513,7 +513,7 @@
       "createdAt": "2026-11-18T20:45:02.795Z",
       "updatedAt": "2026-11-18T20:45:02.795Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     },
@@ -533,7 +533,7 @@
       "createdAt": "2026-11-18T20:45:07.460Z",
       "updatedAt": "2026-11-18T20:45:07.460Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto/spec.ts",
+        "spec": "productions/short_passo_bem_solto/variants/approved.ts",
         "sha256": "1365c3dc903ff0e28457876e9a282f8a7a3638f2747e4fe6d8299567383c10e8"
       }
     }

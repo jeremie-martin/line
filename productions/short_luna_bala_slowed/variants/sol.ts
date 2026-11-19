@@ -5,9 +5,9 @@
  * into wider jumps as the low replies come back. Let the treble glide out as the bass falls away.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 export default {
   ...base,

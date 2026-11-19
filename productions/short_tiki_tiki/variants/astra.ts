@@ -5,9 +5,9 @@
  * swinging highest on the long beats between lines. The voice carries that
  * swing on after the kick has gone, a little less each time.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const secondHookHeight = curve([[27.83,.43],[28.70,.55],[29.14,.12],[31.31,.12],
   [31.62,.62],[32.18,.62],[32.62,.13],[34.78,.13],[35.08,.64],[35.66,.64],

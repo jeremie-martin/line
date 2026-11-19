@@ -4,9 +4,9 @@
  * closer to the track. The last burst grows out of those low steps and runs straight through to the little
  * vocal bridge, where the rider takes a breath before gathering speed again.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

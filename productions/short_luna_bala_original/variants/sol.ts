@@ -4,10 +4,10 @@
  * Leave more space above the low answers as the upper strokes thin out.
  * The four bare drums brake the ride in steps. The singer comes back in three separate leaps with little touches in between.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import { curve } from '../../../scripts/v0/core/measured.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 function strikeWeight(t: number, impact: number): number {
   if (t < 3.685 || t >= 33.233) return impact * .69;

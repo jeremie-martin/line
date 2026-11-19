@@ -1,46 +1,46 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_montagem_coma/spec.ts",
-      "sha256": "697621eca10482176a56ae6131e9fa4df6f41dd76c5293e8a7c06fbf42ff038a",
-      "at": "2026-11-18T18:44:46.696Z",
+      "spec": "productions/short_montagem_coma/variants/approved.ts",
+      "sha256": "9d0c56112a07915aa7ad1c30f3af2ec81cf45968b34311822d7a753bde865625",
+      "at": "2026-11-19T19:44:29.542Z",
       "by": "Claude",
-      "summary": "Nothing changed in this reading. Your request to see how the film really loops is on the dashboard: 'Watch the loop' under the video plays the finished film with its own sound and ending, looping, from five seconds before the end."
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_montagem_coma/variants/astra.ts",
-      "sha256": "b0339d5e80923dc5a65572ae61767a63c746ad468b7d6476991be62fe976d1cf",
+      "sha256": "cbc86a114677c8bb1e99991ea903c4463a9e1e944f258302d5a4494c1e20850a",
       "at": "2026-11-18T22:52:33.348Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Let the drums race along the ground. The singer pulls the rider up out of that rhythm, first in short answers, then all the way up on the long B around 25 seconds. Each turn down through A and G-sharp brings the rider closer to the track. The last burst grows out of those low steps and runs straight through to the little vocal bridge, where the rider takes a breath before gathering speed again."
     },
     {
       "spec": "productions/short_montagem_coma/variants/sol.ts",
-      "sha256": "7986cf4ad554556d0f137eb38433389112e865c6ae506b8d62ed1dff55935bc9",
+      "sha256": "ded49365dee38d9b8a38aae6dfe4f65236da62788036c5b09b1d2c8970aeafae",
       "at": "2026-11-18T22:52:33.472Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The upper figure barely clears the rail. The first drum burst turns that flicker into a fast, low run, with room for the little rap to keep its quick steps. Stretch the held B and follow the voice down through A and G-sharp as the rider settles. The last burst stays in the air longer, dips for the short bridge, then runs out low."
     },
     {
       "spec": "productions/short_montagem_coma/variants/opus.ts",
-      "sha256": "cf267379af8341c47f936c554bd14743b6dfb9d69f8e6cb04c59abc442aa05ef",
+      "sha256": "f1559ca420ea6bcc1d90d857ea4fc3e94e8971e2232efaf71c0234406f01220e",
       "at": "2026-11-18T22:52:33.600Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A bouncing hammer and a long slide. In the drum bursts the rider pounds the half-second pulse like a ball dropped on stone: one tall, identical arc onto every slam, only the soft pickups of the doubles skimmed low, so the bursts read as one steady, mechanical bounce. Within each bar the lesser slams are a little softer than before so the accents carry. Between the bursts the descending voice is one smooth, low slide down its scale, slower and without the earlier ups and downs, except one long float over the held note at 25.1; then the words shorten and the slide gathers speed into the last burst, whose first slam comes out of a few lighter syllables. The quick words in the hole at 16.5 are ridden as they were."
     },
     {
-      "spec": "productions/short_montagem_coma/variants/blend.ts",
+      "spec": "productions/short_montagem_coma/spec.ts",
       "sha256": "fa48af9440209acfddd91eae9a20590034de40b4818b187bf1889d9feaee12e8",
       "at": "2026-11-19T14:46:31.586Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A bouncing hammer and a long slide (Opus's reading, whose ride is the cleanest of the four and lands the last burst hardest). In the drum bursts the rider pounds the half-second pulse with one tall, identical arc onto every slam, the soft pickups of the doubles skimmed low, the lesser slams of each bar a little softer so the accents carry. The quick words in the hole at 16.5 are ridden exactly as approved. Between the bursts the descending voice is one smooth low slide, and here the reading is my own: the slide brakes as the voice comes down to the held note at 25.1, floats slowly over it (the stretch Sol and Astra gave it), and only then gathers speed again through the shortening words into the last burst, whose first slam comes out of a few lighter syllables (Opus)."
     },
     {
-      "spec": "productions/short_montagem_coma/variants/blend.ts",
-      "sha256": "c1629f3c23307e220929e847762ca2af4bc4afcf6c16dd4a361d0c632bb921e5",
-      "at": "2026-11-19T16:30:00.722Z",
+      "spec": "productions/short_montagem_coma/spec.ts",
+      "sha256": "20140bc5a8c74d1972550709803750df41ecbc4f777d067ad82f8393b2750bcf",
+      "at": "2026-11-19T19:44:29.481Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

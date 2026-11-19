@@ -7,9 +7,9 @@
  * before each made lighter so they land clean. Strengths otherwise as approved. */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const contacts = base.contacts.map(({t, impact = 0}) => {
   // Room before the two late snares.

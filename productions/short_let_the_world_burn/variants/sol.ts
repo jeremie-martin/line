@@ -5,9 +5,9 @@
  * Coming out of the high note, sink into three close drum steps and give the last word a quiet glide through the cut.
  */
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const vocalTouch = curve([
   [0, .63], [3.204, .90], [4.481, .76], [13.514, .76], [23.835, .81],

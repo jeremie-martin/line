@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:52:22.856Z",
       "updatedAt": "2026-11-18T16:52:22.856Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_extended/spec.ts",
+        "spec": "productions/short_montagem_tomada_extended/variants/approved.ts",
         "sha256": "92c68bcf2f4abf938cea5cad8c58919c2f484bfedbbd94f0d9725e29cfc8ab97"
       }
     },
@@ -33,7 +33,7 @@
       "createdAt": "2026-11-18T19:49:24.379Z",
       "updatedAt": "2026-11-18T19:49:48.863Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_extended/spec.ts",
+        "spec": "productions/short_montagem_tomada_extended/variants/approved.ts",
         "sha256": "e221e16a489a955c12bc9e090f0ffe272143a9e779e1bec26353ba413a09728b"
       }
     },
@@ -51,7 +51,7 @@
       "createdAt": "2026-11-18T19:50:08.221Z",
       "updatedAt": "2026-11-18T19:50:08.221Z",
       "on": {
-        "spec": "productions/short_montagem_tomada_extended/spec.ts",
+        "spec": "productions/short_montagem_tomada_extended/variants/approved.ts",
         "sha256": "e221e16a489a955c12bc9e090f0ffe272143a9e779e1bec26353ba413a09728b"
       }
     }

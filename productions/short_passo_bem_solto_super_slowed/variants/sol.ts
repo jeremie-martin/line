@@ -5,9 +5,9 @@
  * Give the late drums weight and keep their two little steps audible. Let the last word carry the rider over their fading edge.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 export default {
   ...base,

@@ -4,10 +4,10 @@
  * The late downbeats run close to the ground and gain speed into the two big answers.
  * Give the four exposed syllables at the end barely a touch and let the last one trail away.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import { curve } from '../../../scripts/v0/core/measured.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 const contrast = curve([
   [0, 1.8], [5.016, 1.6], [8.371, 1.35], [10.995, 1.03], [11.331, 1],

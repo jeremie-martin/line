@@ -5,9 +5,9 @@
  * Give the full groove its swing back, then let the held voice lift the rider once more before the last bar.
  */
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const pace = curve([
   [0, .56], [4.69, .60], [8.29, .77], [17.89, .78],

@@ -5,9 +5,9 @@
  * The drums widen the stride in two waves. The last words settle, then the upper answer gets one more rise.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 export default {
   ...base,

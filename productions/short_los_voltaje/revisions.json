@@ -1,38 +1,11 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_los_voltaje/spec.ts",
-      "sha256": "30155f07226693039696057dcd44663dfe82128e51e59e8c10712f9521609943",
-      "at": "2026-11-18T18:44:46.502Z",
-      "by": "Codex",
-      "summary": "From your last words: A few low drum accents now carry more of the beat under the replies. The smaller beats keep their different weights. Before that, from your earlier note: the opening starts lower and builds, without a high end; each call keeps its strong head and light middle. The intense voice section is exactly as you reviewed it.",
-      "points": [
-        {
-          "from": 0.25,
-          "to": 12.65,
-          "text": "The opening as a rise."
-        },
-        {
-          "from": 12.65,
-          "to": null,
-          "text": "The intense voice section: untouched."
-        },
-        {
-          "from": 16.947,
-          "to": null,
-          "text": "The first full bar comes back with a little more weight."
-        },
-        {
-          "from": 22.125,
-          "to": null,
-          "text": "This is the strongest low accent in the answering phrase."
-        },
-        {
-          "from": 41.769,
-          "to": 46.947,
-          "text": "Listen for the footfall under the last bright replies."
-        }
-      ]
+      "spec": "productions/short_los_voltaje/variants/approved.ts",
+      "sha256": "9bf2ffd458070dae1f111045041144ef864dc61a2e39565325c3fc83a93655c2",
+      "at": "2026-11-19T19:44:28.664Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_los_voltaje/variants/drums.ts",
@@ -60,38 +33,38 @@
     },
     {
       "spec": "productions/short_los_voltaje/variants/astra.ts",
-      "sha256": "c44ebbab19a682bcbe9faa46b3a148252a35761301dffcc31998ea91f39a00da",
+      "sha256": "25a58b9575da2ea2964f21710e60c3aee4866875e7b74129ba735fe726e696e7",
       "at": "2026-11-18T22:52:30.232Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Let the rider linger in the silences after the first little calls. The calls gather into the quick exposed voice, then the first drum takes a long stride. Under the bright replies the rider swings out and draws back three times. Each swing runs low and quick into the footfall at its end. The three words after the drums get a little lift of their own."
     },
     {
       "spec": "productions/short_los_voltaje/variants/sol.ts",
-      "sha256": "3588c5a997b8bcc78cdab090c490de9d48438ffa792bd9e0b73fec6536ec05dc",
+      "sha256": "d61d115496cb6e83c41cefa89aeeb0037ad93fe31354b01e3f94477453a598a6",
       "at": "2026-11-18T22:52:30.350Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Begin on light syllables and let the rider hang in the gaps between the first calls. Gather pace as those gaps close. Carry the quick bare words into the big drum entrance, then let the drum push the rider out in broad strides. Under the bright replies, build one sweep from several steps. Start low, lift through the answer, then drive into the next phrase. Let the low drum land with more weight under those replies. Unwind the last surge into the three bare words at the cut."
     },
     {
       "spec": "productions/short_los_voltaje/variants/opus.ts",
-      "sha256": "a7de0edd48beb8c9182fc7d7c325b37c5192e025f4158bb47b841231474091fd",
+      "sha256": "e0119d9bf2ef626cd91e76763773d4012df3a0a5e730faf9f9a33ea2f839ee45",
       "at": "2026-11-18T22:52:30.472Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Charge and discharge. In the opening each call is a little spark that jumps the silence after it: a slow small arc over every space, the arcs growing as the calls gather. The quick naked voice charges up: flat to the line and accelerating, no height at all. The slam lets it go, and the drums that take over are ridden as tall, regular hops, one per beat, so the drum drives the picture. Under the bright replies the rider runs low and fast like current along a wire, and only the drum beat that closes each phrase lifts it, a little higher phrase by phrase, so the long passage keeps climbing to the end; the last words glide out. The approved reading keeps the drum passage and the replies at one pace and height; strengths are unchanged."
     },
     {
-      "spec": "productions/short_los_voltaje/variants/blend.ts",
+      "spec": "productions/short_los_voltaje/spec.ts",
       "sha256": "964eb306d210582105d8c3b5ac8a088c2ce13b77cbdf4d733b3cd43119e4362e",
       "at": "2026-11-19T14:46:30.199Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The loved approved ride, with the drum driving the picture, as you asked: charge, then current. From the approved reading: the calls with their slow crescendo, the quick naked voice ridden flat and accelerating into the slam, the last words, and the strengths. From Opus: the drums that take over are ridden as tall, regular hops, one per beat. From Sol: the drum strokes are a little heavier, in the drum passage and on the beat that closes each phrase of the bright replies, and each phrase is one sweep: low through the replies, lifting into the closing drum, driving on into the next. Its own: that closing lift grows a little phrase by phrase (Opus's climb, in Sol's sweep), so the long passage of replies keeps rising to the end instead of repeating; then the words glide out."
     },
     {
-      "spec": "productions/short_los_voltaje/variants/blend.ts",
-      "sha256": "a3e16a86f21ef280542a6f9d40ad6ef3d9a9b0f6c0e4c98a68240bb646c10276",
-      "at": "2026-11-19T16:30:00.328Z",
+      "spec": "productions/short_los_voltaje/spec.ts",
+      "sha256": "20ee4a45b3375dec41f4da52aef76b3af5754a1bcc35d22b501a1e7c9f1d14fc",
+      "at": "2026-11-19T19:44:28.594Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

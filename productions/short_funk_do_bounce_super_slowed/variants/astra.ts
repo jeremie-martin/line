@@ -3,9 +3,9 @@
  * takes big, unhurried steps. When a little high note answers each footfall,
  * the step folds in two and hurries along. The upper tune gradually gets all
  * that room to itself, right up to the last small ticking notes. */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

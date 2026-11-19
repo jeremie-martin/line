@@ -5,9 +5,9 @@
  * Let the held word near forty-five seconds briefly lift that run before the last low beat and bright tail.
  */
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 export default {
   ...base,

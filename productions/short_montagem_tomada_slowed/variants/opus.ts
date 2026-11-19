@@ -6,9 +6,9 @@
  * swell is ridden as approved; with the drum the dives are deepest and fastest.
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const strikes = base.contacts.map(({t, impact = 0}): [number, number] => [t, impact]);
 const times = strikes.map(([t]) => t);

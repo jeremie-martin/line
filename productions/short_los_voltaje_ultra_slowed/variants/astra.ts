@@ -5,9 +5,9 @@
  * the two sounds. The heavy beats gradually win back the height, spending it
  * all on the last drum before the four soft syllables coast out together.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

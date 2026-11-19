@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:48:34.762Z",
       "updatedAt": "2026-11-18T16:48:35.823Z",
       "on": {
-        "spec": "productions/short_montagem_coma/spec.ts",
+        "spec": "productions/short_montagem_coma/variants/approved.ts",
         "sha256": "06ca1cd6862e6769132762e34bf3a254afba3d8a2ace2ad0a1c2a07ce04961a8"
       }
     }

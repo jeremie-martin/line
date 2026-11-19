@@ -2,38 +2,45 @@
   "revisions": [
     {
       "spec": "productions/short_tiki_tiki/variants/astra.ts",
-      "sha256": "8cc0c586abd7b6f774ca1d79f209fad7196c582582c23c8850e42f53ced02c37",
+      "sha256": "52e24861cf33c14911448de68df5ada160937b6c2d5d6e7bc340b19fabf4b949",
       "at": "2026-11-18T22:52:37.718Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Let the solo words rock gently over the seven brushes. The four beats pull the rider down and send it racing close to the ground through the first hook. At the boom the stride opens. The second hook takes its time in the air, swinging highest on the long beats between lines. The voice carries that swing on after the kick has gone, a little less each time."
     },
     {
       "spec": "productions/short_tiki_tiki/variants/sol.ts",
-      "sha256": "d9b5c0a569249a974937a2175ce8ed41d1fd94729bd59cd8f59593a881a8d56f",
+      "sha256": "8b92bc91e43260d4701fdb22341512e3e3f048e92d1eca5b6e32184809937539",
       "at": "2026-11-18T22:52:37.847Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The solo words skim in slowly, then four increasingly quick steps open the first drop. In the hook, each long gap swings up on the voice before the rider slips back into low, soft answers between the kicks. The reset at the boom stretches the step and slows it down. The second drop sends the rider on a faster, flatter run, with shorter breaths at each return. Once the kicks go, the solo voice gets a higher, almost weightless glide out."
     },
     {
       "spec": "productions/short_tiki_tiki/variants/opus.ts",
-      "sha256": "0f3808624f619a5ef76ac973f18c1ae08b06241077de8d09253b02d009da6fcf",
+      "sha256": "54437431976dc64f699941ce7bbe7cb4ddc8545f2e25993d8c411685b364db96",
       "at": "2026-11-18T22:52:37.944Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Bookended by soft hills. Under the solo words the rider rolls over low, slow swells, one per brush; the four gathering beats are a staircase, each arc higher than the last, so the drop at 10.4 lands from the top step. In the hook the beat and its answer part ways: the kick on the beat lands full, the short answer between beats only grazes the line, so the hook reads as a clean tick-tock instead of a row of equal strokes. The reset climbs a second staircase into the run, which rides higher than the hook with a lift into each bar's first kick. Under the closing voice the hills come back, growing as the rider slows to the cut. The approved reading made the answers nearly as firm as the beats; most visible in the hook (10.4–24.4 s) and the two staircases."
     },
     {
-      "spec": "productions/short_tiki_tiki/variants/blend.ts",
+      "spec": "productions/short_tiki_tiki/spec.ts",
       "sha256": "d0c3937329fddffc1f4941aa20ab545b77873419cd116618504ec58e863a436a",
       "at": "2026-11-19T14:46:33.436Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The approved ride he loved, bookended by soft hills and with a clearer tick-tock in the two hooks. Under the solo words the rider rolls over one low, slow swell per brush instead of skimming flat, as Opus had it, and under the closing voice the hills come back, growing as the rider slows to the cut. The four gathering beats, the drop and both hooks keep the approved air, speed and height; the reset climbs a staircase of arcs into the run, each a little higher, as in Opus's reading, where the run landed hardest. My own part is in the weights: every stroke he marked as an impact keeps its approved strength, and the other answers between the beats step back in proportion, so the beat and its answer part more clearly without the order he set changing anywhere (the tick-tock Opus wanted, without losing his marks off the beat)."
     },
     {
-      "spec": "productions/short_tiki_tiki/variants/blend.ts",
-      "sha256": "0052427ee7e69fe273aeafc793f426558f4e76ad174bf480761ce957be89a5cc",
-      "at": "2026-11-19T16:30:01.332Z",
+      "spec": "productions/short_tiki_tiki/spec.ts",
+      "sha256": "543ea7620cbe68985ecdd6fc9c133b5416cabe022ebe9c70daa74f8286efdfb4",
+      "at": "2026-11-19T19:44:30.716Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
+    },
+    {
+      "spec": "productions/short_tiki_tiki/variants/approved.ts",
+      "sha256": "98c6574224c4f8103bdad7cfa1b26e760f16bc404bde0524fa907746a1700856",
+      "at": "2026-11-19T19:44:30.776Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     }
   ]
 }

@@ -4,10 +4,10 @@
  * Drop close to the track for the bare drums, then let the bass return in a single strong stride.
  * The last bright answer brings back the earlier lift and carries it away on a soft catch.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import { curve } from '../../../scripts/v0/core/measured.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 const weight = curve([
   [0, .92], [3.252, .92], [4.628, .84], [5.406, .84], [5.522, 1],

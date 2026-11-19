@@ -17,7 +17,7 @@
       "createdAt": "2026-11-18T20:46:07.878Z",
       "updatedAt": "2026-11-18T20:46:07.878Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
         "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
       }
     },
@@ -37,7 +37,7 @@
       "createdAt": "2026-11-18T20:46:13.111Z",
       "updatedAt": "2026-11-18T20:46:13.111Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
         "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
       }
     },
@@ -57,7 +57,7 @@
       "createdAt": "2026-11-18T20:46:15.804Z",
       "updatedAt": "2026-11-18T20:46:15.804Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
         "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
       }
     },
@@ -77,7 +77,7 @@
       "createdAt": "2026-11-18T20:46:18.013Z",
       "updatedAt": "2026-11-18T20:46:18.013Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
         "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
       }
     },
@@ -95,7 +95,7 @@
       "createdAt": "2026-11-18T20:46:31.200Z",
       "updatedAt": "2026-11-18T20:46:32.362Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
         "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
       }
     },
@@ -115,7 +115,7 @@
       "createdAt": "2026-11-18T20:46:21.450Z",
       "updatedAt": "2026-11-18T20:46:21.450Z",
       "on": {
-        "spec": "productions/short_passo_bem_solto_super_slowed/spec.ts",
+        "spec": "productions/short_passo_bem_solto_super_slowed/variants/approved.ts",
         "sha256": "106f2076f8e2a3dd1f5798daa7d83bdbb6d20b8fbed83a2d8844988fd75c3b95"
       }
     }

@@ -4,9 +4,9 @@
  * With the drums back the stride opens again. The missing strokes after 25.54 leave room for one long vault.
  * Its echoes grow shorter through the last double, then the rider coasts out on the three replies.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

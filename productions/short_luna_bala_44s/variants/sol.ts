@@ -4,10 +4,10 @@
  * The uncovered drums briefly put the rider back on the ground. The bass sends it out in wider strides,
  * with more room around the late downstrokes before the voice comes through again at the cut.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import { curve } from '../../../scripts/v0/core/measured.ts';
 
-export { overlayMeta } from '../spec.ts';
+export { overlayMeta } from './approved.ts';
 
 function strikeWeight(t: number, impact: number): number {
   if (t < 8.615) return impact * .72;

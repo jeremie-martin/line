@@ -4,9 +4,9 @@
  * the second takes longer strides on the bass replies, and the third eases back for the held voice.
  * The last line picks up speed into the fill and spends the two seconds of ringing sound coasting out.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

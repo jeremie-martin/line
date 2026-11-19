@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:31:35.419Z",
       "updatedAt": "2026-11-18T16:32:16.769Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -209,7 +209,7 @@
       "createdAt": "2026-11-18T16:31:23.889Z",
       "updatedAt": "2026-11-18T16:31:23.889Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -563,7 +563,7 @@
       "createdAt": "2026-11-18T19:47:23.698Z",
       "updatedAt": "2026-11-18T19:47:27.552Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "418ea499c2bbc167f8b6cdebc2089fd4d624cd704f35aca617b42c87edd1d0e6"
       }
     },
@@ -645,7 +645,7 @@
       "createdAt": "2026-11-18T16:41:46.234Z",
       "updatedAt": "2026-11-18T16:42:14.565Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -743,7 +743,7 @@
       "createdAt": "2026-11-18T16:42:20.891Z",
       "updatedAt": "2026-11-18T16:42:20.891Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -857,7 +857,7 @@
       "createdAt": "2026-11-18T16:42:26.643Z",
       "updatedAt": "2026-11-18T16:42:32.548Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -941,7 +941,7 @@
       "createdAt": "2026-11-18T16:43:12.198Z",
       "updatedAt": "2026-11-18T16:43:17.389Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -959,7 +959,7 @@
       "createdAt": "2026-11-18T16:42:58.702Z",
       "updatedAt": "2026-11-18T16:43:05.960Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -993,7 +993,7 @@
       "createdAt": "2026-11-18T16:43:21.751Z",
       "updatedAt": "2026-11-18T16:43:21.751Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -1299,7 +1299,7 @@
       "createdAt": "2026-11-18T16:44:09.890Z",
       "updatedAt": "2026-11-18T16:44:16.916Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     },
@@ -1317,7 +1317,7 @@
       "createdAt": "2026-11-18T16:43:57.643Z",
       "updatedAt": "2026-11-18T16:43:57.643Z",
       "on": {
-        "spec": "productions/short_luna_bala_slowed/spec.ts",
+        "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
         "sha256": "d36a64dd940a0a02179ff9410e8000097794fd5cc3dc650bda81b3340a02979d"
       }
     }

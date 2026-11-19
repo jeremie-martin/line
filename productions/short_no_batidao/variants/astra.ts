@@ -4,9 +4,9 @@
  * The bass catches him and sends him skimming through the hook. He gives up speed
  * for the lower singer, takes off again with the roll and coasts out on the drums.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

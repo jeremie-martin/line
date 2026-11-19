@@ -5,9 +5,9 @@
  * When the drums come back he spends that energy on one long accelerating run,
  * easing off as the last word breaks up the beat.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

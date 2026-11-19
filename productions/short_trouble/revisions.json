@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_trouble/spec.ts",
+      "spec": "productions/short_trouble/variants/approved.ts",
       "sha256": "0d2a80a47b44d71c8cea15b0701a9cdb8e9ef63977a57b337c32766be27caa52",
       "at": "2026-11-18T18:44:26.311Z",
       "by": "Codex",
@@ -30,11 +30,11 @@
       ]
     },
     {
-      "spec": "productions/short_trouble/spec.ts",
-      "sha256": "2a0f105ac36a9c99982dea39260590e3d062406065e46560e8cd05247078d74c",
-      "at": "2026-11-18T20:13:33.263Z",
+      "spec": "productions/short_trouble/variants/approved.ts",
+      "sha256": "5f8a326101844f7959dceceda0d3918470ab0b75cb5de66413e1a1b50b1f9cab",
+      "at": "2026-11-19T19:44:30.904Z",
       "by": "Claude",
-      "summary": "Nothing changed in the reading itself: this is the one you found significantly better (it was 'cycle'), now the song's spec. The former main reading is kept beside it as 'first'."
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_trouble/variants/first.ts",
@@ -45,38 +45,38 @@
     },
     {
       "spec": "productions/short_trouble/variants/astra.ts",
-      "sha256": "324f2d01f4bb36927f94dee5e4569f4f402224c3a5d6315a77bbb8db1bc95a3b",
+      "sha256": "50aa0da2ce878b4973e028b402a1156a555bcad39f2455f876302a54911d61bc",
       "at": "2026-11-18T22:52:38.122Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The opening crash throws a long shadow. Let the rider drift through the gaps between the words, then tuck low as the three uneven stresses take over. The quick drum answers barely lift. When the bass comes in, the rider bounds away from the heavy kicks twice, gathering speed into each climbing triple. One long glide carries the last kick out to the two exposed words."
     },
     {
       "spec": "productions/short_trouble/variants/sol.ts",
-      "sha256": "3ab267c177c15a82532be614d6b7ca0b49f1b839344c1ccc446365ec13a60436",
+      "sha256": "44fb1181091ce5b64803c4861bdbe09e0f7272ca1f13f8a45e2499140bc9c152",
       "at": "2026-11-18T22:52:38.250Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The opening crash lets go into long, unhurried bows under the words. The quiet catches barely interrupt them. The three uneven kicks feel like a push, a softer step and a second push. Once the little drum answers arrive, the rider stays low and carries pace through the whole figure. The exposed G briefly lifts that motion. After the drop the bass pickups hug the line and the longer gaps open into fast, broad flights. The two rising triples pull those flights back down into the drums. The last two words drift out lightly."
     },
     {
       "spec": "productions/short_trouble/variants/opus.ts",
-      "sha256": "eac09d07adef57c6e8fb493df8808ee0bc80788cb137a59cab59f65f4115aed9",
+      "sha256": "5817fe048c2697f55b7b181966d3d301cbbeb0cd65786eff09ce3152c9bfcd64",
       "at": "2026-11-18T22:52:38.396Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: The verse limps and the chorus bounds. Under the words the rider glides almost level, softer than before. When the three stresses arrive it takes up their long-long-short lilt in its height: two arcs and a skip, two arcs and a skip; once the small percussion fills the spaces the lilt stays in the weights and the little steps run flat beneath it. The exposed E and G hang slow and high. Then each heavy release of the chorus throws the rider into a tall bound through the gap that follows it, with the close answering pairs taken low and quick, so the chorus breathes in big arcs that the verse never had. The approved reading kept the chorus at one height and pace; here the difference between verse and chorus is drawn in the air. Most visible from 29 s on."
     },
     {
-      "spec": "productions/short_trouble/variants/blend.ts",
+      "spec": "productions/short_trouble/spec.ts",
       "sha256": "e8d5d59b135fc41b843d76f610192f2a3a9d6ffef4f53c4da154e394cd50319a",
       "at": "2026-11-19T14:46:33.618Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The verse limps, the chorus bounds, and the opening crash already shows the bound to come. Under the words the rider glides level on the approved quiet catches, except in the three long silences, where the crash lets go into one long bow each (Sol and Astra). When the three stresses arrive it takes up their long-long-short lilt in its height, two arcs and a skip, and once the little drum strokes fill the spaces it runs flat beneath them, as Opus had it; every strength there, the little strokes he marked included, is the approved one. The exposed E and G hang slow and high. In the chorus each heavy release throws the rider into a tall bound through the gap after it, with the close answering pairs taken low and quick (Opus, the chorus that kept its heavy kicks best). My own part: the rider gathers speed up each of the two climbing triples, so they drive into their heavy kick rather than float."
     },
     {
-      "spec": "productions/short_trouble/variants/blend.ts",
-      "sha256": "c6cd43e1e61a7a9621fa09441ea7ee55d571caeab57723db0a7aba89bca49bad",
-      "at": "2026-11-19T16:30:01.388Z",
+      "spec": "productions/short_trouble/spec.ts",
+      "sha256": "89d7671a2445e28122217503e20110dc8b388cdb76c9e222d077369e1f218526",
+      "at": "2026-11-19T19:44:30.845Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

@@ -5,9 +5,9 @@
  * Each low A-sharp then gives the sled a fresh push up toward the higher voice;
  * the replies touch lightly, and the last one has time to drift away.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

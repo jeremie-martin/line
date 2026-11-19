@@ -5,9 +5,9 @@
  * Open the skip into wider leaps for the upper tune, give the low double a sharp landing, and leave on light treble steps.
  */
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const rollAndVoice = curve([
   [0, .68], [1.283, .92], [2.06, .57], [3.117, .76], [3.419, .95],

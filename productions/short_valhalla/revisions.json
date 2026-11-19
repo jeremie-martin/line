@@ -2,38 +2,45 @@
   "revisions": [
     {
       "spec": "productions/short_valhalla/variants/astra.ts",
-      "sha256": "40f69f876280e0c9b3d798ad415dbeb8f1b865c1f35537662093d2c4de57b60b",
+      "sha256": "7894690d0ae178320c0888080ae26d45a232011dd2c077dcbc66a9c321ad28aa",
       "at": "2026-11-18T22:52:38.588Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Hear the change of singer in the length of a stride. The high pickup and the kick pairs sail forward. The low singer draws the rider in close, lingering on the long vowels and running through each knot of consonants. The roll opens that stride again. On the return the little high replies brush past, with the full weight saved for the kicks underneath."
     },
     {
       "spec": "productions/short_valhalla/variants/sol.ts",
-      "sha256": "9f31abf023d1ce5b5fdd836429f443e8456992f9aeb93df49d45c58d744d4add",
+      "sha256": "a348c70a923c0bdf1eff95ae6cf6d1250aa9767755cfec97a3b92d0a093fee65",
       "at": "2026-11-18T22:52:38.712Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The high call takes broad, even bounds over the kick pairs, with soft catches on the smaller replies. When the low singer enters, the rider settles close to the line and moves with his speech. The rushes near 18 and 31 seconds are fast and shallow. Each opens into a slower, longer breath, as do the held low notes in between. The drum roll gathers the rider into the air again. The returning high voice gets a lighter, faster stride through to the closing kick and snare."
     },
     {
       "spec": "productions/short_valhalla/variants/opus.ts",
-      "sha256": "7e615388b5a47546e7ddd10422eeb09645043d940916c8dfd30f42b05cf7c27f",
+      "sha256": "b11db11417467b3f6960c9fd57996df14f70e43d9f8af311d883b79b7401b330",
       "at": "2026-11-18T22:52:38.830Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Call, trudge, run, soar. The high pickup and its kick pairs ride in measured arcs, each big kick throwing it into one. When the low singer takes over, the rider comes down and slows to a heavy walk close to the line, only rising where his phrases leave a long breath, so the uneven rhythm of his speech shows as uneven steps; his stressed syllables land full and the in-between ones fall back. The quick words speed it up, flat and running. The roll launches it, and over the high voice and the renewed groove it soars: fastest, highest, every kick launching a tall arc and the small replies brushed in between, to the cut. The approved reading rode the low verse nearly as fast as the opening and the finale no higher than the start; here the song climbs from a trudge to a flight, most of all after 42.5 s."
     },
     {
-      "spec": "productions/short_valhalla/variants/blend.ts",
+      "spec": "productions/short_valhalla/spec.ts",
       "sha256": "ed4745fc98179afa141c6b8c5d246af6975366d9218d09fd27aeddb5c49296a8",
       "at": "2026-11-19T14:46:33.803Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Call, walk, run, soar: the song climbs from the low singer's heavy walk to a flight over the high voice. The high pickup and the kick pairs keep the approved pace and weights, each big kick throwing the rider into an arc (Opus). When the low singer takes over, the rider slows to a walk close to the line, as all three new readings had it, rising only on the two long breaths of his phrases, at 20 and 28 seconds; his strokes keep their approved weights, which held his strongest syllables best. The quick words run flat and fast, one level all through (Opus); the roll launches the rider, and over the high voice it soars, fastest and highest, kicks full, replies light (Opus). My own part is the arrangement: one pace per singer, so the change of voice is seen as a change of gait, with the low singer's two breaths the only height between the opening's arcs and the final flight."
     },
     {
-      "spec": "productions/short_valhalla/variants/blend.ts",
-      "sha256": "6e49bb2021acdd266358e09384142822c88e0c2fbc31e4fa3d541a71c63f5684",
-      "at": "2026-11-19T16:30:01.451Z",
+      "spec": "productions/short_valhalla/spec.ts",
+      "sha256": "7b77e62b248e3f815246e916d2779a49f2badb7c66ed5e4489e446554a9979a2",
+      "at": "2026-11-19T19:44:30.968Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
+    },
+    {
+      "spec": "productions/short_valhalla/variants/approved.ts",
+      "sha256": "5622f9510b2de6e78aca72a635fd5b748c92c776198cd2cb9d83092760e7f9bd",
+      "at": "2026-11-19T19:44:31.032Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     }
   ]
 }

@@ -7,8 +7,8 @@
  */
 import type { Spec } from '../../../scripts/v0/types.ts';
 import { curve } from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
-export { overlayMeta } from '../spec.ts';
+import base from './approved.ts';
+export { overlayMeta } from './approved.ts';
 
 const contacts = base.contacts.map(({ t, impact = 0 }) => {
   if (t < 6.9 || t > 41.74 || impact === 1) return { t, impact };

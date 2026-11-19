@@ -1,58 +1,46 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_luna_bala_44s/spec.ts",
-      "sha256": "bf8e3e7b55a8d25ac4a207db72b7138496b8674ef325526b8f304d32ef0a556f",
-      "at": "2026-11-18T17:10:00.000Z",
-      "by": "Codex (note by Claude)",
-      "summary": "Rewritten after the slowed entry's reading, timed on this cut's own audio. The opening voice is now a line of very light catches, and the lighter replies continue through the rest of the piece under strong downstrokes. This changed more than a touch-up.",
-      "points": [
-        {
-          "from": 0.08,
-          "to": 8.43,
-          "text": "The exposed voice in very light catches, the biggest lift on the vowel at 5.9 s."
-        },
-        {
-          "from": 8.6,
-          "to": null,
-          "text": "From here the upper figure crosses the kicks in five positions, as in the slowed entry."
-        }
-      ]
+      "spec": "productions/short_luna_bala_44s/variants/approved.ts",
+      "sha256": "6b03de4d4e9df40f4a737733836bdc1eeec38f45982a2eadbf379b5e46843c3e",
+      "at": "2026-11-19T19:44:29.165Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_luna_bala_44s/variants/astra.ts",
-      "sha256": "1d5865302561a7779bc3e64219bb88deec9fd5e7593dcb3cb1b297b945a827d7",
+      "sha256": "21b796d07a5df1dc95d6c2c851015535b0406e9130a9faeb93259b1fdab133ec",
       "at": "2026-11-18T22:52:32.001Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The solo voice barely brushes the snow. In the breath between its two sentences the sled hangs for a moment, then slips back under the words. Hear the five upper strokes as a bow: the sled rises into the long fourth and comes down through the clipped fifth. The bare drums cut that bow short. Bass answers send the sled along the ground until the refrain opens out again."
     },
     {
       "spec": "productions/short_luna_bala_44s/variants/sol.ts",
-      "sha256": "c7ca6293d9104a6610e47b0a3749ad3ef279d22030b120f5f8c38f7d1d0b7b8a",
+      "sha256": "08427bed8aaf3a4cc65d0eef9c14ccb469df6f3689e98734ea795af1882834a5",
       "at": "2026-11-18T22:52:32.130Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Follow the solo voice with small, slow catches. Let the silence between its two lines make the first real leap. After the drums enter, the upper figure gathers into long sweeps and folds low on its short replies. The uncovered drums briefly put the rider back on the ground. The bass sends it out in wider strides, with more room around the late downstrokes before the voice comes through again at the cut."
     },
     {
       "spec": "productions/short_luna_bala_44s/variants/opus.ts",
-      "sha256": "5bdaae4ab1f8f4884ae9c474e92e710a687c7656162a716077158ef3d7ef909e",
+      "sha256": "6deacde7cd1116f1e48483a0427faa5428b940385053fb230fa9654a213fe6be",
       "at": "2026-11-18T22:52:32.261Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: One gesture per bar. Under the five upper strokes the rider repeats the same figure every bar, so the eye learns it: the heavy downbeat, two small equal steps, a tall arc over the long fourth stroke, a quick skim on the short fifth, and a tall arc again into the next downbeat. The solo voice before it drifts slowly with nearly weightless touches and a breath where the singer breathes. The uncovered drums slow down and hang. When the bass fills the holes the figure runs lower and quicker; when the bass withdraws under the refrain (from 34.8) the in-between touches turn lighter and the rider sails higher between the downbeats, which keep all their weight."
     },
     {
-      "spec": "productions/short_luna_bala_44s/variants/blend.ts",
+      "spec": "productions/short_luna_bala_44s/spec.ts",
       "sha256": "7402ae283356e57890bd2725f7255588bdd964688cab612bae7a767d970ebfc8",
       "at": "2026-11-19T14:46:30.968Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: One bow per bar. The solo voice is slower and lower than approved, with touches lighter still, and the rider hangs once, high, in the breath between the singer's two sentences (Astra, whose ride holds that breath best). Under the five upper strokes every bar draws the same bow: the rider rises into the long fourth stroke and comes down through the short fifth onto the downbeat (Astra's bow), at the approved reading's full pace rather than Astra's slower one. The uncovered drums and the bass entrance after them are the approved ones: their ride lands that entrance hardest. The bass runs level and fast as approved. When the bass withdraws under the refrain the bow returns, wider, and the touches between the downbeats turn lighter while the downbeats keep their weight (Opus)."
     },
     {
-      "spec": "productions/short_luna_bala_44s/variants/blend.ts",
-      "sha256": "607d35dec1937fa7a1f30c8932ef7c0e17bf084b5cf9814935bd2ea230d7e03c",
-      "at": "2026-11-19T16:30:00.527Z",
+      "spec": "productions/short_luna_bala_44s/spec.ts",
+      "sha256": "49779bc33fc4c588aeece48aa2fab35f14535270863a2c4680ea4416c0c3d410",
+      "at": "2026-11-19T19:44:29.095Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

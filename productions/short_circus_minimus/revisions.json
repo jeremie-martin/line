@@ -25,18 +25,11 @@
       ]
     },
     {
-      "spec": "productions/short_circus_minimus/spec.ts",
-      "sha256": "52874ef784fbb830efdb792800e1d56806fcbf79718e4e064294435422542288",
-      "at": "2026-11-18T20:13:33.140Z",
+      "spec": "productions/short_circus_minimus/variants/approved.ts",
+      "sha256": "6cc890edfd7843e2f757801609266f2950e738e1ce87972d5e06e42c472bccbd",
+      "at": "2026-11-19T19:44:28.139Z",
       "by": "Claude",
-      "summary": "Nothing changed in the reading itself: this is the one you found way better (it was called 'hook'), now the song's spec. The former main reading is kept beside it as 'accents'.",
-      "points": [
-        {
-          "from": 18.9,
-          "to": 29.5,
-          "text": "The hook's inner beats, which 'accents' leaves out."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_circus_minimus/variants/accents.ts",
@@ -47,38 +40,38 @@
     },
     {
       "spec": "productions/short_circus_minimus/variants/astra.ts",
-      "sha256": "d3013c40f39ff41c397ef14b7b9c728b4b44eed7bd3bf2f0fe3b4e3dd9e30e92",
+      "sha256": "76221be34539b6147bd348168288b8813f2e47d50406050dda67c39985590133",
       "at": "2026-11-18T22:52:28.487Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The low stroke sets the stride. When the hats come in, the rider leans forward. In the hook the words skim along close together, then the rider vaults the hole at the end of each line and comes down on the bass. The five exposed notes take the pace right back. The full band opens the stride again, widest on the held word."
     },
     {
       "spec": "productions/short_circus_minimus/variants/sol.ts",
-      "sha256": "029083e4cda028040ddcabfd3bd08f3036cedca2d5235d5094e4ea1fbaaf29f6",
+      "sha256": "f1d631bd3a53d18553db5b8147f83e6bdcc3ebff338aa77030906ef93271f4f1",
       "at": "2026-11-18T22:52:28.607Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Let the bass swing the rider through wide arcs in the verse, with softer touches for the answering words. When the hook starts catching on every little syllable, gather speed and skim low until each phrase opens up. In the break, the five upper notes climb lightly toward the hardest bass return. Give the full groove its swing back, then let the held voice lift the rider once more before the last bar."
     },
     {
       "spec": "productions/short_circus_minimus/variants/opus.ts",
-      "sha256": "f244cf222846ac4061d6c50025a8657c3106e89fec7a6624e35208340b4d71ea",
+      "sha256": "277c702055aa8cc516bcb0f381d1b1eb0ad283ba49ae883c71613b000072a9a5",
       "at": "2026-11-18T22:52:28.739Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A juggler's act. In the verse every big low stroke is thrown: the rider goes up slowly over the long rest before it and falls onto it, tall against an unhurried pace. Under the hats the throws stop and the rider runs quick and low through the groove. In the hook the throw returns once per phrase, always on the same stroke, so the passage has a visible period. The five even notes are a drum roll on the ground, accelerating into the band's return; the full groove floats in quick small hops; the held note is one slow high lob, landing softly, and the last bar throws once more. The approved reading keeps one even motion per passage; this one shapes the long rests. Strengths as approved."
     },
     {
-      "spec": "productions/short_circus_minimus/variants/blend.ts",
+      "spec": "productions/short_circus_minimus/spec.ts",
       "sha256": "eabf27d3464c316fb3443343ff86331d9f3e3fca6398ee9cd256062883ea86aa",
       "at": "2026-11-19T14:46:29.414Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The loved approved ride, with the hook given a visible period. The verse, the hats, the break with its five even notes and the full groove are as approved, strengths included. In the hook all three new readings found the same gesture, and their rides show it: the words skim low and close together, and the rider vaults the hole at the end of each line to come down on the bass. Its own: the vault is one stroke recurring every two bars, from the first stroke of the hook to the last line, always the same height, so the hook reads as a juggler's beat; between the vaults the rider stays low. From Opus and Astra: the held note near the end is one slow high lob, landing softly, and the last stroke is thrown once more into the cut."
     },
     {
-      "spec": "productions/short_circus_minimus/variants/blend.ts",
-      "sha256": "fccdd6882532d29878d127c6efb59c06b6fbe6cd47373dc980b02662ce88c36a",
-      "at": "2026-11-19T16:30:00.072Z",
+      "spec": "productions/short_circus_minimus/spec.ts",
+      "sha256": "2f56c92eddf4466a8ea0592d23346adaf720fadd251f8a6320a517b43b97517c",
+      "at": "2026-11-19T19:44:28.080Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

@@ -4,9 +4,9 @@
  * When the bass begins answering, the rider folds low and runs. As the bass thins, the bright notes lift the rider
  * out of that run, with the last few strokes hanging almost in place.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:30:54.836Z",
       "updatedAt": "2026-11-18T16:30:54.836Z",
       "on": {
-        "spec": "productions/short_luna_bala_44s/spec.ts",
+        "spec": "productions/short_luna_bala_44s/variants/approved.ts",
         "sha256": "51691ced87e34dbbc9b88dba610c924ae4d3fedc546ee2fdf0bf64424bea2775"
       }
     }

@@ -8,7 +8,7 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {keyframes} from '../../../scripts/v0/core/curves.ts';
-import base, {overlayMeta} from '../spec.ts';
+import base, {overlayMeta} from './approved.ts';
 export {overlayMeta};
 
 // On the beat grid of the hook and run (one beat = 0.87 s from the drop), a stroke is either a beat or its answer.

@@ -4,9 +4,9 @@
  * After the return the rider swings up from each last drum into the soft bar
  * opener, then rushes through its answers. The last swing dies out in five steps.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const air = curve([[0,.36],[3.31,.33],[11.48,.71],[15.57,.80],[17.28,.43],
   [19.67,.25],[20.875,.25],[21.05,.95],[22.396,.95]]);

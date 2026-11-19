@@ -8,9 +8,9 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const DRUM = 20.093;
 const runs = [[18.7, DRUM], [28.6, 29.95]] as const;      // the light voice runs into a downstroke

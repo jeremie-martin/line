@@ -1,68 +1,46 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_montagem_tomada_slowed/spec.ts",
-      "sha256": "5e4fe8b922c58a8675e17b686a51cd26e7793991ce7d1c5d3c363e2bde779c85",
-      "at": "2026-11-18T13:50:00.000Z",
-      "by": "Codex (note by Claude)",
-      "summary": "From your first notes. The voice at 15.6–17.9 s is followed on ten syllables, kept light, into the strong drum at 17.86 s. The three landings you named are high (18.28 s), low (18.69 s) and high (20.47 s). Your question about 17.9–28.9 s: yes, the opening's rhythm returns (six close strokes and a delayed seventh); it is followed for three repetitions, a gap is left where the figure breaks after 25.5 s, and it resumes at 26.6 s.",
-      "points": [
-        {
-          "from": 15.61,
-          "to": 17.91,
-          "text": "The voice on ten light syllables, then the drum."
-        },
-        {
-          "from": 18.28,
-          "to": 20.47,
-          "text": "High, low, high as you asked."
-        },
-        {
-          "from": 18.69,
-          "to": 25.54,
-          "text": "The opening's seven-stroke figure, three times."
-        },
-        {
-          "from": 25.54,
-          "to": 26.64,
-          "text": "The figure breaks: left open until the drum returns."
-        }
-      ]
+      "spec": "productions/short_montagem_tomada_slowed/variants/approved.ts",
+      "sha256": "8c95d88342084486a09eb94423c7a4025f2a1acf8e5c150ef4ad3cf0a178de1b",
+      "at": "2026-11-19T19:44:29.791Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_montagem_tomada_slowed/variants/astra.ts",
-      "sha256": "f7f939d9a0b25440f5d60d8544e2c1c0df98b0fb8ecd015a215997c71be9c4aa",
+      "sha256": "7aee29b1efd9a3c1bffbe7115fc1ff595608e2796ba8885fb3c9667200fc08c4",
       "at": "2026-11-18T22:52:34.236Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: Six close strokes hurry past and the delayed seventh gets a little flight of its own. Each time the figure comes round the rider stretches that last step, until the tune thins and the steps barely clear the ground. With the drums back the stride opens again. The missing strokes after 25.54 leave room for one long vault. Its echoes grow shorter through the last double, then the rider coasts out on the three replies."
     },
     {
       "spec": "productions/short_montagem_tomada_slowed/variants/sol.ts",
-      "sha256": "cc8122fec4a6deabf72e560101a281fa3882dcf2a9ea6755ab77dbbe74d7db0c",
+      "sha256": "1afa8a7c8113300dd30e140ca0eba17abf5aab293e821349a905f8ce172abce1",
       "at": "2026-11-18T22:52:34.359Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Give the seven-stroke figure a low start and a lift at its delayed seventh note. The lifts grow across the opening, then the voice pares them down to quick, soft catches before the drum. The same figure comes back with a faster run between the lifts. The missing bar around twenty-six seconds makes room for the longest leap, and the final double brings the rider back down."
     },
     {
       "spec": "productions/short_montagem_tomada_slowed/variants/opus.ts",
-      "sha256": "b9c1a937d6b6d511bb1ad859df98f031cdac3f4dce244241d846e849df36aadd",
+      "sha256": "b370b87886acac0513b4a3ead24dddd72674fbf80fc9b7f7bd236906d2a5e1ff",
       "at": "2026-11-18T22:52:34.475Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Every bar is a dive. The upper figure counts six close strokes and then a delayed seventh, and the strokes grow toward it; the rider rides each bar as one gesture: it starts the bar floating, then each close stroke comes lower and faster, skimming down the staircase, and the delay before the seventh is one tall arc that drops onto it. The same dive runs through the opening figure and through the drum bars, so the two halves of the song rhyme. In the second half of the opening, where the figure loses weight, the dive is gentler and slower; the voice across the swell is ridden as approved; with the drum the dives are deepest and fastest."
     },
     {
-      "spec": "productions/short_montagem_tomada_slowed/variants/blend.ts",
+      "spec": "productions/short_montagem_tomada_slowed/spec.ts",
       "sha256": "a1c11aeaea8d45c4530570d5670598e3ae518ef7850f73f06ce51107e140d562",
       "at": "2026-11-19T14:46:31.962Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Every bar is a dive (Opus, whose ride is also the only one that lands the returning drum at 17.86 with its weight). The upper figure counts six close strokes and a delayed seventh: the rider starts each bar floating, skims lower and faster down the close strokes, and the delay before the seventh is one tall arc that drops onto it. The same dive runs through the opening figure and through the drum bars, so the two halves rhyme, and the missing strokes after 25.5 become its longest leap. From Astra and Sol: the lift before the seventh grows bar by bar through the opening, and the second half of the opening loses weight before the swell (Astra). The voice across the swell is ridden as approved. My own ending: after the last double the dives stop and the rider coasts out slowly on the three replies."
     },
     {
-      "spec": "productions/short_montagem_tomada_slowed/variants/blend.ts",
-      "sha256": "14e8bd28332bbb97dd41436f1b9a961a433c2d4e7fb211819e01d4b163394582",
-      "at": "2026-11-19T16:30:00.848Z",
+      "spec": "productions/short_montagem_tomada_slowed/spec.ts",
+      "sha256": "e816ac5e9b493cdf510bba3422a7c2eb1acdbf45fb3c911c6e93788769b2c59e",
+      "at": "2026-11-19T19:44:29.731Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

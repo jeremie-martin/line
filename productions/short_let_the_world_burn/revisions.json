@@ -2,38 +2,45 @@
   "revisions": [
     {
       "spec": "productions/short_let_the_world_burn/variants/astra.ts",
-      "sha256": "7d9c1d4540a6a7656f761f9ba2dcfbd9a580e56ee388c3fe1fc008a58997e5ac",
+      "sha256": "80bc67c18a8f761109c82009aaced465fd3591f603dfb1ec3d793563f17ee5e0",
       "at": "2026-11-18T22:52:29.795Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The first two calls lift the rider up to the chorus, then the drums pull the words into a low, urgent run. When the singer holds the G the rider stretches out ahead of the drums. The upper C is the summit, slower and higher, with time to fall all the way back to the three drum answers. The last word lifts off again on its own."
     },
     {
       "spec": "productions/short_let_the_world_burn/variants/sol.ts",
-      "sha256": "a354914b2c91472fcf8f739c600e489b715c24f9d54363fb19061f28cbafd48f",
+      "sha256": "810dff2b8c0b473291be3a4aee2129948bb14ac91afd02c4cd0a5813a2a98582",
       "at": "2026-11-18T22:52:29.918Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Keep the distant words close to the track, then take the two exposed C calls as a run-up to the first big fall. In the chorus, draw out the approach to each drum answer and tuck the words close between those strokes. Let the held G carry one long flight and the higher C carry a higher one. These are the two widest shapes in the ride. Coming out of the high note, sink into three close drum steps and give the last word a quiet glide through the cut."
     },
     {
       "spec": "productions/short_let_the_world_burn/variants/opus.ts",
-      "sha256": "d030a72ed5bedadc1b0b55cc789d7f1365ac7c21fd9c4cef33c730ba0e03114c",
+      "sha256": "3601857f6fb98b5dfbb9c9d4d8957347c62a64de115efa128ff4f32908e84455",
       "at": "2026-11-18T22:52:30.042Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Fire, then smoke. The distant opening smoulders, slow and low; the two exposed calls draw a breath. The drum sentence is the fire: fast, close to the line, crackling, and once a bar the sharp answering stroke throws a spark, a small jump onto it, always at the same place in the bar. When the voice leaves the drummer behind the rider rises like smoke: it slows right down and climbs into huge, slow arcs over the held notes, the upper C the highest and slowest of all. The three drum answers bring it back to earth, and the last word glides low through the cut. The approved reading rides the held notes at full speed; here they are slow and tall, and the drums are lower and quicker."
     },
     {
-      "spec": "productions/short_let_the_world_burn/variants/blend.ts",
+      "spec": "productions/short_let_the_world_burn/spec.ts",
       "sha256": "856183a840c94687e53c64384a87eb9ae9cd46e83a7050c5cb25e89c562d48b3",
       "at": "2026-11-19T14:46:30.006Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Fire, then smoke: the drum sentence burns close to the ground, the held notes rise slow and tall. From the approved reading: the distant opening, the two exposed calls, and the strengths. From Sol: in the drum sentence each bar draws out its approach to the sharp answering stroke, quicker and higher into it, low and close for the words between, which are touched more lightly: the spark Opus wanted, in a form the ride shows. From Opus: when the voice leaves the drummer the rider slows right down and climbs into huge, slow arcs over the held G, and higher still over the upper C. Its own: the smoke rises out of the fire rather than after it; over the last bars of the drum sentence the pace eases and the air grows, so the first held note lifts off from a rider already rising. From Sol and Astra: the three drum answers bring it back to the ground, and the last word glides out."
     },
     {
-      "spec": "productions/short_let_the_world_burn/variants/blend.ts",
-      "sha256": "a721b3c1b1e1aeeb9a9681b82237d99d5846a89cbfedf8641769a5aab1dc5c9f",
-      "at": "2026-11-19T16:30:00.266Z",
+      "spec": "productions/short_let_the_world_burn/spec.ts",
+      "sha256": "5f95f18c4c39d1aec88935cde87db00db33f57a0aee846eee7eb8bed48de7a47",
+      "at": "2026-11-19T19:44:28.473Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
+    },
+    {
+      "spec": "productions/short_let_the_world_burn/variants/approved.ts",
+      "sha256": "271faf45b47c97d1ebb47ef33ab424acfa48fe6aa3a9dfa43317ea1e3a316244",
+      "at": "2026-11-19T19:44:28.533Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     }
   ]
 }

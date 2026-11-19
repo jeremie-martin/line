@@ -2,9 +2,9 @@
  * In the hook the words skim along close together, then the rider vaults the hole
  * at the end of each line and comes down on the bass. The five exposed notes take
  * the pace right back. The full band opens the stride again, widest on the held word. */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

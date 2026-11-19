@@ -8,9 +8,9 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-import base from '../spec.ts';
+import base from './approved.ts';
 
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 const DOOR = 15.444;
 const strikes = base.contacts.map(({t, impact}): [number, number] => [t, t === DOOR ? 1 : impact ?? 0]);

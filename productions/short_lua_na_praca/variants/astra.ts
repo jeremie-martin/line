@@ -5,9 +5,9 @@
  * faintest touches. The bare drums take the height away in one stroke.
  * When the bass returns it has farther to run before that last little lift.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

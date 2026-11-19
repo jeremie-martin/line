@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_luna_bala_slowed/spec.ts",
+      "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
       "sha256": "a9595b9d4105ac6580eaf527646694476858aef72bbe5c716b009224cf946c76",
       "at": "2026-11-18T17:10:00.000Z",
       "by": "Codex (note by Claude)",
@@ -35,63 +35,46 @@
       ]
     },
     {
-      "spec": "productions/short_luna_bala_slowed/spec.ts",
-      "sha256": "f7f8aceb42b3283b821a34609750c157d900202cddc49d29e5c4418ba568faa6",
-      "at": "2026-11-18T20:13:33.329Z",
+      "spec": "productions/short_luna_bala_slowed/variants/approved.ts",
+      "sha256": "b07e5d1f9314892b3e038471f1df2ce6ad07c74ddf7fec803c4586fd00e2713b",
+      "at": "2026-11-19T19:44:29.417Z",
       "by": "Claude",
-      "summary": "From your note: the stroke at 15.44 s is way stronger. It is the first downstroke of the full band, and the downstroke of every bar is strong in this reading except three: this one and those at 24.16 and 30.71 s, which have the same strong drum. I raised all three; say if the two others should have stayed as they were.",
-      "points": [
-        {
-          "from": 15.444,
-          "to": null,
-          "text": "Way stronger: the full band's first downstroke."
-        },
-        {
-          "from": 24.163,
-          "to": null,
-          "text": "The same downstroke, raised too."
-        },
-        {
-          "from": 30.705,
-          "to": null,
-          "text": "The same downstroke, raised too."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_luna_bala_slowed/variants/astra.ts",
-      "sha256": "aab8daa584b3236c48003895aa35a6f96998a2fd364bd08763a1930fe992388a",
+      "sha256": "a79b7fc987535b0dd0791c176bf4e7e979ebd365c10fef76b9ab10c63b6482ae",
       "at": "2026-11-18T22:52:32.907Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The distant words gather speed from a murmur until the drum cuts them off. The bare voice keeps its delicate tread. The five upper strokes travel in broad bounds, pulling close to the ground for the shortened bar around 23 seconds. When the bass begins answering, the rider folds low and runs. As the bass thins, the bright notes lift the rider out of that run, with the last few strokes hanging almost in place."
     },
     {
       "spec": "productions/short_luna_bala_slowed/variants/sol.ts",
-      "sha256": "11f3fd32423cd029106fa19e6e8207ddf34ba9527370dd027836e42b4e04ec80",
+      "sha256": "a72477a6258f8881c3241a229b19041a533b648f6e47f67096da726be59d2eb0",
       "at": "2026-11-18T22:52:33.037Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Start close to the ground and let the distant words gather pace up to the drum. The bare voice stays soft. Its breath at eleven seconds gets a longer, slower arc. When the full band arrives, the five-note figure rolls low and fast, then opens into wider jumps as the low replies come back. Let the treble glide out as the bass falls away."
     },
     {
       "spec": "productions/short_luna_bala_slowed/variants/opus.ts",
-      "sha256": "a52bee5e24ebd8c31d6acef11b4d40df3cbf451c5084f25fc9881091433c5006",
+      "sha256": "a41786dec90d9b88a0d13027eaa9f5112b60a2b8a14b893263ed6b8af37d7d7f",
       "at": "2026-11-18T22:52:33.166Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Two worlds, and a door between them. The distant words arrive from far away: wide, slow arcs that tighten and quicken as the voice comes into focus, into the drum at 6.7. The bare voice stays exactly as it was, low and quiet on the line. Then the first upper stroke at 15.4, now the strongest landing of the song, throws the rider up into the strokes, and from there it never quite comes down: every arc is as tall as the stroke it falls onto is strong, so the big strokes are seen coming from high and the light ones are low quick steps. The hurried short bar near 23 s runs low and fast for a moment; the low replies after 30.7 swing tallest; when the bass falls away at the end the rider slows and settles."
     },
     {
-      "spec": "productions/short_luna_bala_slowed/variants/blend.ts",
+      "spec": "productions/short_luna_bala_slowed/spec.ts",
       "sha256": "e944487f2c4840603ec82111b8731b7c497439d15502d63ff6c08e528067cc10",
       "at": "2026-11-19T14:46:31.378Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Two worlds and a door between them. The distant words begin low and slow and gather pace and weight together up to the drum at 6.7, so the motion makes the same crescendo you asked of the strokes (Astra and Sol both found it). The bare voice after the drum is exactly the approved one. Then the first upper stroke at 15.4, now the strongest landing of the song as you asked, throws the rider up into the strokes, and from there every arc is as tall as the stroke it falls onto is strong: the big strokes are seen coming from high, the light ones are low quick steps (Opus). The hurried short bar near 23 s runs low and fast for a moment (Astra and Opus). When the low replies come back after 30.7 the rider swings highest, a little slower than before so those arcs read (Sol), and when the bass falls away it settles."
     },
     {
-      "spec": "productions/short_luna_bala_slowed/variants/blend.ts",
-      "sha256": "54fa24dbe6032df9602bf93f5a9d8b6a496376e4b0c7c792350707540bbc58f5",
-      "at": "2026-11-19T16:30:00.652Z",
+      "spec": "productions/short_luna_bala_slowed/spec.ts",
+      "sha256": "e01a6f68dcef13467a4f75f35c044afe34dc10e42c87ce0996df50ffc3e1eedf",
+      "at": "2026-11-19T19:44:29.350Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

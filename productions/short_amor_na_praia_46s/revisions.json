@@ -1,7 +1,7 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_amor_na_praia_46s/spec.ts",
+      "spec": "productions/short_amor_na_praia_46s/variants/approved.ts",
       "sha256": "5b29aaf2217cea43324baeb82574f6b87618d63a34c04cb9fa9e12de2dbed302",
       "at": "2026-11-18T17:10:00.000Z",
       "by": "Codex (note by Claude)",
@@ -25,65 +25,53 @@
       ]
     },
     {
-      "spec": "productions/short_amor_na_praia_46s/spec.ts",
-      "sha256": "8d07eebce3fd0886520c5403ff0c8adedb9cbf1b0878eeb4c1b54009e221302e",
-      "at": "2026-11-18T21:25:25.711Z",
+      "spec": "productions/short_amor_na_praia_46s/variants/approved.ts",
+      "sha256": "82d2ed3bcdb6fecf64b26989c1b4b2862c92c0e360a9dfe2598d0bafda620cbd",
+      "at": "2026-11-19T19:44:27.637Z",
       "by": "Claude",
-      "summary": "As you said: the landing at 3.24 s is now at 3.08 s, on the syllable that starts there, and the one at 3.77 s is removed.",
-      "points": [
-        {
-          "from": 3.082,
-          "to": null,
-          "text": "Moved here from 3.24 s."
-        },
-        {
-          "from": 3.767,
-          "to": null,
-          "text": "Removed."
-        }
-      ]
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_amor_na_praia_46s/variants/astra.ts",
-      "sha256": "12d1f2ccfb595eaa66b26b90b4448352395becb9fd1ebd991d98c96fb1b752c7",
+      "sha256": "0934ca29b56485697053dcaa60b3a421d0b28a82b722595027399db9af8f8119",
       "at": "2026-11-18T22:52:26.733Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The opening boom loses its weight in a string of tiny mouth sounds. Eight dry strokes set off a single long jump into the band. The kicks swing in pairs of bars, the first stretching out and the second drawing the rider back down. At the big kick near 27 seconds that rocking motion straightens into a fast glide. Only the last two echoes lift out of it."
     },
     {
       "spec": "productions/short_amor_na_praia_46s/variants/sol.ts",
-      "sha256": "2107704130e95d05a691ded4b187f729c63f67556f4f67eb3760eb55c1f20819",
+      "sha256": "d5179e586db4bcc898e9c426c261653ea1a036041b9b0cf6ee9c064fcbad7027",
       "at": "2026-11-18T22:52:26.864Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: The chops after the opening boom nearly whisper, in one low, even glide. The eight dry drums push the rider forward, then a single long flight gathers up the voice. The first kick groove rises and eases across whole phrases. When the kick comes back, the rider gets low and runs, leaving just a flick for the word before the last pair. The last low hit sends the two echoes drifting farther apart, and the pace falls away."
     },
     {
       "spec": "productions/short_amor_na_praia_46s/variants/opus.ts",
-      "sha256": "3ef0107b39b5522feae307f7c0da764c7aa5d16481d350c549f06036051c7eb2",
+      "sha256": "bb1c87ec4da6c66e668a290dbced1eae418a7bf067fc8217340d5f277c4c0aab",
       "at": "2026-11-18T22:52:27.002Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: One held breath and its release. Under the chopped voice the rider tiptoes, slow and close to the line; the dry 808 strokes throw it into tall bounds, and the long silence after them is the highest arc of the film, falling onto the first kick. The first band passage then runs low and flat, gaining speed bar after bar like a held breath, with no lift at all until the stroke before the great downbeat is softened and the rider rises once to meet it. From there the second passage flies: the same groove, ridden high and wide. The last words come down in smaller and smaller bounces. Versus the approved reading: the two band passages, ridden alike there, are here opposites (low run, then flight); strengths keep their order, the first passage's answers are a little softer."
     },
     {
-      "spec": "productions/short_amor_na_praia_46s/variants/blend.ts",
+      "spec": "productions/short_amor_na_praia_46s/spec.ts",
       "sha256": "ca80926ee5be690b74ff7e1ba0cb00194b33e40ab9f727fc9a214c0dc1ac62c1",
       "at": "2026-11-19T14:46:28.665Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A held breath and its release, as Opus reads it, and then a long exhale. Under the chopped voice the rider tiptoes, slow and close to the line, every chop as small as approved. From Opus: the dry 808 strokes throw it into tall bounds, the silence after them is the highest arc, the first band passage runs low and flat gathering speed, and one rise in its last bar meets the great downbeat. From there the same groove is ridden high and wide, rising over each long step. Its own: the flight does not stop at once; over the last phrase it comes down step by step and slows, and, as in Sol, the two echoes drift away higher and farther apart while the pace falls. All strengths are the approved ones, except Opus's slightly softer answers in the low run."
     },
     {
-      "spec": "productions/short_amor_na_praia_46s/variants/blend.ts",
+      "spec": "productions/short_amor_na_praia_46s/spec.ts",
       "sha256": "cf260afec4be3bd1647652b226ca18e8cfca7a8c7c0028852c1d131dd3b49445",
       "at": "2026-11-19T16:29:59.822Z",
       "by": "Claude",
       "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     },
     {
-      "spec": "productions/short_amor_na_praia_46s/variants/blend.ts",
-      "sha256": "940cce23aa791975707609176b8a462540ad953180de1b4c33be9d7b5d7881da",
-      "at": "2026-11-19T17:33:54.746Z",
+      "spec": "productions/short_amor_na_praia_46s/spec.ts",
+      "sha256": "e15c6d957720928b3a2b6ea0944066be3c5ad2fc4b2e0169bc12418b6716f442",
+      "at": "2026-11-19T19:44:27.575Z",
       "by": "Claude",
-      "summary": "The height request is removed (it changed nothing visible). Without it this ride missed the first of the two chops at 2.55 and 2.64 s, which are less than a tenth of a second apart and are one heard stroke: they are now one landing, at 2.55 s. Everything else is as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

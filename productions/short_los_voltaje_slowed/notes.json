@@ -15,7 +15,7 @@
       "createdAt": "2026-11-18T16:23:25.603Z",
       "updatedAt": "2026-11-18T16:23:28.239Z",
       "on": {
-        "spec": "productions/short_los_voltaje_slowed/spec.ts",
+        "spec": "productions/short_los_voltaje_slowed/variants/approved.ts",
         "sha256": "632608fd2ff982ab1a142335ca31d04885e895c933f80ceed55c23b1c6317ecb"
       }
     }

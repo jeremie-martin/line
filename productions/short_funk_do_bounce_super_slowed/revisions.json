@@ -2,38 +2,45 @@
   "revisions": [
     {
       "spec": "productions/short_funk_do_bounce_super_slowed/variants/astra.ts",
-      "sha256": "8537ba097b8119eb638d7f89cd57cb245b55b325cfa3b4a1fa84f388e47a9c63",
+      "sha256": "ef2d77f049abdd0173db4048c9340ee262050eab90a89aa00669c07f9a879d01",
       "at": "2026-11-18T22:52:28.922Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The opening roll runs the rider out close to the ground. The bass catches that speed and spends it on successively longer bounces. The lone drummer takes big, unhurried steps. When a little high note answers each footfall, the step folds in two and hurries along. The upper tune gradually gets all that room to itself, right up to the last small ticking notes."
     },
     {
       "spec": "productions/short_funk_do_bounce_super_slowed/variants/sol.ts",
-      "sha256": "6728bd06fb34dbce01ae43389e9f22b58d2f914f4f94ca28f31143cba92772d6",
+      "sha256": "7da86195446669fcafabc680fa638dbd9ec035794fa922c5145d3384908496fb",
       "at": "2026-11-18T22:52:29.037Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Curl the last words into a low drum roll, then let the bass restart send the rider out in long, easy rebounds. Ease off for the exposed calls and come down hard on the first drum step. The lone drum keeps a lower stride. When the high replies arrive, the rider skips into the drum and brushes each reply as part of the same step. Open the skip into wider leaps for the upper tune, give the low double a sharp landing, and leave on light treble steps."
     },
     {
       "spec": "productions/short_funk_do_bounce_super_slowed/variants/opus.ts",
-      "sha256": "9c9c6d208371a63594a92eb2ab5ef4c192fde2d511f584b1eaca722aa9596734",
+      "sha256": "97de1591812d8481ea85cbceed08b66e82655a556d65eba280fa032a17ffdec0",
       "at": "2026-11-18T22:52:29.159Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: A ball learning to bounce, in slow motion. The roll skitters fast and flat along the line. When the bass restarts alone the rider rolls with it, low and smooth, the strokes softened a little, because there are no drums yet. Over the little calls it slows and lifts once; then the drum stride is the bounce itself: slow, tall, regular hops, one per step, every step the same height. When the high answers enter each bounce gains a small skip on its answer. The upper phrase stretches into broader, floating arcs, and the ticking treble at the end lets the ball settle low. The approved reading rides the stride and the answers fast and fairly flat; here they are its tallest, slowest part, and the drumless bass passage is its lowest."
     },
     {
-      "spec": "productions/short_funk_do_bounce_super_slowed/variants/blend.ts",
+      "spec": "productions/short_funk_do_bounce_super_slowed/spec.ts",
       "sha256": "573821e59766c7ec667f0c478db58d5bf1a58e24e2fd7dd19390947c08c3f540",
       "at": "2026-11-19T14:46:29.617Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A ball that learns to bounce, bounces, and comes to rest. From the approved reading: the last words, the flat fast roll, and the bass restart ridden at its even, moderate height with every bass stroke at its approved weight (the drumless rolling of Opus was weaker there). From Opus and Astra: over the little calls the rider slows and lifts once, and the lone drum stride is the bounce itself: slow, tall, regular hops, one per step, every step the same height. From Opus: when the high answers enter, each bounce gains a small skip on its answer; as in Sol, the answers are lighter than the drum, so each pair reads as one heavy step and its echo. From Astra: the upper phrase gets broad, unhurried arcs. Its own: the ticking treble at the end lets the ball settle, each bounce lower than the one before, down to the line at the cut."
     },
     {
-      "spec": "productions/short_funk_do_bounce_super_slowed/variants/blend.ts",
-      "sha256": "baf66209bfe49095dff34a60eb6e7890dd688ec8f2e6d343c9f5eff67736960c",
-      "at": "2026-11-19T16:30:00.138Z",
+      "spec": "productions/short_funk_do_bounce_super_slowed/spec.ts",
+      "sha256": "53839cbca4f529f802a89f250c33baf926e5c48a1915b3fdc4e5bd8da6c1f14c",
+      "at": "2026-11-19T19:44:28.211Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
+    },
+    {
+      "spec": "productions/short_funk_do_bounce_super_slowed/variants/approved.ts",
+      "sha256": "4c5f66c41f763fa77d19606d892833e7dcf729a1b719c9f8f68dfe8258fc8700",
+      "at": "2026-11-19T19:44:28.277Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     }
   ]
 }

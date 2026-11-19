@@ -3,12 +3,12 @@
  * the spec alone: landings with their strengths, and the air, speed and height curves, with the approved reading behind
  * on request. The vote: one best reading per song, a verdict and words per reading (the spec dashboard's own records). */
 const $ = (id) => document.getElementById(id);
-const ORDER = ["main", "astra", "sol", "opus", "blend"];
-const BY = { main: "The approved reading", astra: "Astra", sol: "Sol", opus: "Opus", blend: "Blend: from the four" };
+const ORDER = ["main", "approved", "astra", "sol", "opus"];
+const BY = { main: "The main reading: the blend", approved: "The reading approved before", astra: "Astra", sol: "Sol", opus: "Opus" };
 const LANES = [["air", "air time", "--teal"], ["speed", "speed", "--blue"], ["amplitude", "height", "--violet"]];
-// Zoom lanes: films of one reading (the blend) under each of the song's camera lanes, listed in an index written when they
+// Zoom lanes: films of one reading (the main one) under each of the song's camera lanes, listed in an index written when they
 // are rendered. `state.zoom[song]` is the lane on screen for that reading; with none, the reading's own film.
-const ZOOM_OF = "blend", ZOOM_INDEX = "/generated/videos/lanes/index.json";
+const ZOOM_OF = "main", ZOOM_INDEX = "/generated/videos/lanes/index.json";
 const lanesOf = (s = song()) => state.lanes[s?.dir.split("/")[1]] ?? [];
 const laneOn = () => reading()?.reading === ZOOM_OF ? lanesOf().find((l) => l.id === state.zoom[song().dir]) ?? lanesOf()[0] ?? null : null;
 const filmKey = () => { const lane = laneOn(); return lane ? `${reading().path}#${lane.id}` : reading()?.path; };
@@ -141,8 +141,7 @@ function renderSide() {
   const notes = r.revisions ?? [], stated = notes.findLast((n) => /^The intention:/.test(n.summary ?? "")) ?? notes.at(-1);
   const since = notes.slice(notes.indexOf(stated) + 1).map((n) => n.summary).filter(Boolean);
   $("by").textContent = BY[r.reading] ?? r.reading;
-  $("intention").textContent = r.reading === "main" ? "The reading you reviewed and approved. The others keep its landings and change how the rider moves between them: air time, speed, height, and how hard each landing is."
-    : ((stated?.summary ?? "").replace(/^The intention:\s*/, "") || "No intention written.") + (since.length ? `\n\nSince then: ${since.join(" ")}` : "");
+  $("intention").textContent = ((stated?.summary ?? "").replace(/^The intention:\s*/, "") || (r.reading === "approved" ? "The reading you reviewed and approved before the blend. The others keep its landings and change how the rider moves between them: air time, speed, and how hard each landing is." : "No intention written.")) + (since.length ? `\n\nSince then: ${since.join(" ")}` : "");
   const lane = laneOn();
   $("zoom").hidden = !lane;
   if (lane) {
@@ -255,7 +254,7 @@ function draw() {
   const dpr = devicePixelRatio || 1, W = canvas.clientWidth, H = canvas.clientHeight;
   if (canvas.width !== Math.round(W * dpr) || canvas.height !== Math.round(H * dpr)) { canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); }
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
-  const v = view(), base = view(song()?.versions[0]);
+  const v = view(), base = view(song()?.versions.find((r) => r.reading === "approved") ?? song()?.versions[0]);
   if (!v || !base) return;
   const x = (t) => GUTTER + (t - state.from) / (state.to - state.from) * (W - GUTTER);
   const hover = state.hover != null && state.hover >= state.from && state.hover <= state.to ? state.hover : null;
@@ -273,7 +272,8 @@ function draw() {
   if (v.drop) { ctx.fillStyle = rust; ctx.globalAlpha = 0.06; ctx.fillRect(x(v.drop[0]), top, x(v.drop[1]) - x(v.drop[0]), H - top); ctx.globalAlpha = 1; }
   ctx.restore();
   // landings: one stem each, as tall as the landing is hard
-  const laneCount = LANES.length + (laneOn() ? 1 : 0), laneH = Math.max(30, Math.round((H - top - 16) * (laneOn() ? 0.16 : 0.2))), impactH = H - top - 16 - laneCount * (laneH + 8), y0 = top + impactH;
+  // a curve the reading on screen does not write (height, in most) takes no room
+  const curves = LANES.filter(([axis]) => v.axes?.[axis]?.points?.some((p) => p[1] != null)), laneCount = curves.length + (laneOn() ? 1 : 0), laneH = Math.max(30, Math.round((H - top - 16) * (laneOn() ? 0.16 : 0.2))), impactH = H - top - 16 - laneCount * (laneH + 8), y0 = top + impactH;
   // one scale per curve for all the readings of the song, so that two readings are compared on the same ruler
   const scale = (axis) => { let lo = 1, hi = 0; for (const r of song().versions) for (const p of view(r)?.axes?.[axis]?.points ?? []) if (p[1] != null) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }
     const pad = Math.max(0.03, (hi - lo) * 0.12); return hi > lo ? [Math.max(0, lo - pad), Math.min(1, hi + pad)] : [0, 1]; };
@@ -293,7 +293,7 @@ function draw() {
   }
   ctx.restore(); ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
   // the curves between the landings
-  const zoomLane = laneOn(), drawn = zoomLane ? [...LANES, ["zoom", "zoom (wide)", "--gold"]] : LANES;
+  const zoomLane = laneOn(), drawn = zoomLane ? [...curves, ["zoom", "zoom (wide)", "--gold"]] : curves;
   drawn.forEach(([axis, label, colour], k) => {
     const zoomPts = axis === "zoom" ? [[0, zoomLane.keyframes[0].wide], ...zoomLane.keyframes.map((p) => [p.t, p.wide]), [duration(), zoomLane.keyframes.at(-1).wide]] : null;
     const y1 = y0 + 8 + k * (laneH + 8) + laneH, pts = zoomPts ?? v.axes?.[axis]?.points, c = css(colour), [lo, hi] = zoomPts ? [0, 1] : scale(axis);
@@ -334,7 +334,7 @@ function draw() {
   ctx.fillStyle = muted; const step = [1, 2, 5, 10, 20].find((s) => (state.to - state.from) / s <= 14) ?? 30;
   for (let t = Math.ceil(state.from / step) * step; t <= state.to; t += step) ctx.fillText(fmt(t).replace(/\.0$/, ""), x(t) + 3, H - 7);
   const X = Math.round(x(audio.currentTime)) + 0.5; ctx.strokeStyle = rust; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X, 0); ctx.lineTo(X, H); ctx.stroke(); ctx.restore();
-  $("legend").textContent = `${v.contacts.length} landings${ghost ? " · dashed and ticks: the approved reading" : ""}${state.to - state.from < duration() - 0.01 ? " · double-click for the whole song" : " · scroll to zoom"}`;
+  $("legend").textContent = `${v.contacts.length} landings${ghost ? " · dashed and ticks: the reading approved before" : ""}${state.to - state.from < duration() - 0.01 ? " · double-click for the whole song" : " · scroll to zoom"}`;
 }
 
 const timeAt = (event) => state.from + (event.clientX - canvas.getBoundingClientRect().left - GUTTER) / (canvas.clientWidth - GUTTER) * (state.to - state.from);

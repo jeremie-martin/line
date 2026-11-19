@@ -1,38 +1,11 @@
 {
   "revisions": [
     {
-      "spec": "productions/short_los_voltaje_ultra_slowed/spec.ts",
-      "sha256": "1013c62481f7d4f678097631c77174070591026e40dd02f722d01ea9a40e159e",
-      "at": "2026-11-18T18:44:46.625Z",
-      "by": "Codex",
-      "summary": "From your last words: The broad beat has a little more weight where it answers the singer most clearly. The strongest entrance and the small vocal replies keep their places. Before that, from your earlier note: the opening as a rise, on this cut's longer calls: the first two calls start low, the five drum strokes from 9.7 s rise under the approach, and the quick voice from 11.3 s is as you reviewed it.",
-      "points": [
-        {
-          "from": 0.06,
-          "to": 13.33,
-          "text": "The opening as a rise."
-        },
-        {
-          "from": 11.33,
-          "to": 15.93,
-          "text": "The quick voice, untouched."
-        },
-        {
-          "from": 18.947,
-          "to": 21.595,
-          "text": "Hear the single low accent, then the pair."
-        },
-        {
-          "from": 25.577,
-          "to": null,
-          "text": "The strongest answer in this group gets a little more weight."
-        },
-        {
-          "from": 46.8,
-          "to": 57.411,
-          "text": "Two later phrases lean on their low strokes."
-        }
-      ]
+      "spec": "productions/short_los_voltaje_ultra_slowed/variants/approved.ts",
+      "sha256": "7ad8546e4b076e8fb8c00a86a5f9a578e41e76cdf857ba5da308a48820e1453f",
+      "at": "2026-11-19T19:44:28.921Z",
+      "by": "Claude",
+      "summary": "Nothing changed in the reading: it is the one approved before the blend took its place as the main reading."
     },
     {
       "spec": "productions/short_los_voltaje_ultra_slowed/variants/drums.ts",
@@ -65,38 +38,38 @@
     },
     {
       "spec": "productions/short_los_voltaje_ultra_slowed/variants/astra.ts",
-      "sha256": "ae04fc36716d5a0bff4788158a55ca4c1707c2e1f5de8ac546fbae7d407a04cf",
+      "sha256": "c8611676c64f99d3355a64d84bb78ef32e8a13bdf729978d2df4a1aa4a2464db",
       "at": "2026-11-18T22:52:31.124Z",
       "by": "Codex (Astra 6.2)",
       "summary": "The intention: The opening gathers speed syllable by syllable until the first heavy drum seems to stop the rush. Give that whole answer slow, high rebounds. When the F starts answering back, the sled slips lower and quicker between the two sounds. The heavy beats gradually win back the height, spending it all on the last drum before the four soft syllables coast out together."
     },
     {
       "spec": "productions/short_los_voltaje_ultra_slowed/variants/sol.ts",
-      "sha256": "c802818f3db47ba45f5a33422664a11a278d84b430ef19d11f558b93aa5e6a37",
+      "sha256": "ada2eae9ee3f0756203af3e315b1e01f8631949ddc74cf13818f0eadeeebcc84",
       "at": "2026-11-18T22:52:31.244Z",
       "by": "Codex (Sol 6.2)",
       "summary": "The intention: Let the low calls gather into a run, then let the first broad drum catch the rider and pull the stride down. The F refrain lifts out of that weight. It crosses the low drum in longer, slower arcs until the bass takes over again. The late downbeats run close to the ground and gain speed into the two big answers. Give the four exposed syllables at the end barely a touch and let the last one trail away."
     },
     {
       "spec": "productions/short_los_voltaje_ultra_slowed/variants/opus.ts",
-      "sha256": "c5ac540052767533f61addfb65cf8e33a92c269b993df7a4a4b09d7163edf89d",
+      "sha256": "b2c77b4e08f0e079df843633b80410bf040b203430e6170df841292b2483c4da",
       "at": "2026-11-18T22:52:31.377Z",
       "by": "Claude (Opus 5.5)",
       "summary": "The intention: Heavy, slow-motion bounces, in three waves. The rider starts close to the line, talking along with the singer in small low steps, and lifts off as the words quicken, the hops growing taller to the first broad drum. From there each low stroke throws it into a deep, round, unhurried arc, slower than the approved reading so the height reads. The three waves of the drum climb: the first is the lowest and lightest, the one with the F loop rises higher, and the heavy downbeats at the end swing tallest and fastest with their plain strokes at full weight. The singer's words between the drums are low quick touches under the arcs. The four exposed syllables at the end bring the rider back down onto the line, as it began."
     },
     {
-      "spec": "productions/short_los_voltaje_ultra_slowed/variants/blend.ts",
+      "spec": "productions/short_los_voltaje_ultra_slowed/spec.ts",
       "sha256": "53b68e89cb31e8375ff1eaee06e6ee012c406e9602895d20028d1fd94fbba488",
       "at": "2026-11-19T14:46:30.578Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The approved reading, with the low drum turned into a pendulum. The opening calls, the drum answer and the quick words are the approved ones: the rise you asked for stays as it is. From the first broad drum each low stroke throws the rider into one round arc to the next, the same figure through all three waves of the drum (Opus's arcs). Unlike Opus the pace stays as fast as the approved reading, which kept the big drums the hardest of all four rides, and the air still steps down for the F and up again for the heavy downbeats as approved. What climbs from wave to wave is weight: the plain strokes gain a little with each wave while the accented ones stay as they were, and the words between the drums are lighter, quick low touches under the arcs (Opus). The four last syllables settle onto the line as in the approved reading."
     },
     {
-      "spec": "productions/short_los_voltaje_ultra_slowed/variants/blend.ts",
-      "sha256": "3fd383884a34a577117a24f552c688bd6fe85044cfc0fe70c88d091f212a985f",
-      "at": "2026-11-19T16:30:00.458Z",
+      "spec": "productions/short_los_voltaje_ultra_slowed/spec.ts",
+      "sha256": "38daab9e368febfa74e2430b072890b59e072c743564128270268086bd25df5e",
+      "at": "2026-11-19T19:44:28.857Z",
       "by": "Claude",
-      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+      "summary": "This is the blend, the main reading of the song since 2026-11-19. Nothing changed in it."
     }
   ]
 }

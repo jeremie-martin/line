@@ -1,23 +1,33 @@
-/** Follow the singer already in flight at the cut. The F4 at .65 hangs; the repeated G-sharps have
- * separate attacks and the A-sharp lifts out of them. Let the voice lead across the first drum strokes.
- * The drum climb breaks off before a bright stab at 12.164. Land it separately from the first low
- * beat at 12.622. Across the body follow the syncopations above that beat, leaving their faint shoulders
- * and the bass pumping under them alone. At 26.94 the lower singer takes the bar away from the hook.
- * Keep the sparse drum answers, then carry the words into the full return. Four closely spaced strokes
- * turn it over to drums alone at the end. The small articulations around 1–2 s are my least certain
- * choice; their timing comes from the vocal attacks even where the pitch detector is silent.
+/** Two singers float, the bass runs, and every big entrance arrives at full pace.
+ * The upper singer at the start is light and slow, long in the air, as all three new readings had it, on the
+ * approved catches made a little softer (Astra). The drums bring the rider down; the climb stays low and fast and
+ * keeps all its lift for one high arc into the bright stab, the arc that came out highest in Sol's ride.
+ * Under the bass it runs close to the line on the approved strengths, rising only where the hook leaves its two
+ * longest breaths (Sol). The lower singer floats again, slower and rounder, as the new readings had it.
+ * My own part: that float gathers pace over its last bar, so the full drums at 34.8 land with the weight the approved
+ * ride gave them and the new readings lost; the approved handoff keeps its strong stroke, and the last two drum
+ * steps lift away into the loop.
  */
 import type {Spec} from '../../scripts/v0/types.ts';
 import {curve} from '../../scripts/v0/core/measured.ts';
-import {duration, music, strikes} from './music.ts';
-export {overlayMeta} from './music.ts';
+import base from './variants/approved.ts';
+export {overlayMeta} from './variants/approved.ts';
 
 const spec: Spec = {
-  duration, preroll: 2, music,
-  contacts: strikes.map(([t, impact]) => ({t, impact})),
+  ...base,
+  contacts: base.contacts.map(({t, impact = 0}) => ({t, impact: t < 4.774 ? +(impact * .85).toFixed(3) : impact})),
   axes: {
-    air: curve([[0,0.47], [4.78,0.48], [7.79,0.54], [11.47,0.69], [12.16,0.74], [14.47,0.58], [26.71,0.48], [29.24,0.57], [34.78,0.68], [41.24,0.43], [42.16,0.65]]),
-    speed: curve([[0,0.66], [4.78,0.72], [10.78,0.84], [12.62,0.89], [26.94,0.75], [34.78,0.87], [41.47,0.93], [42.16,0.88]]),
+    air: curve([
+      [0, .72], [4.19, .70], [5.24, .52], [7.79, .50], [8.47, .45], [11.12, .44], [11.47, .86], [12.16, .88],
+      [12.62, .70], [12.98, .46], [13.78, .44], [14.12, .62], [14.82, .46], [21.17, .46], [21.62, .62], [22.21, .48], [26.25, .46],
+      [27.40, .66], [28.37, .72], [32.52, .72], [33.40, .68], [34.78, .68], [36.16, .54], [41.24, .58],
+      [42.16, .64], [42.63, .64], [43.09, .70], [43.988, .72],
+    ]),
+    speed: curve([
+      [0, .45], [3.16, .48], [4.77, .60], [7.55, .78], [8.47, .88], [11.12, .90], [12.16, .87], [12.98, .92],
+      [25.90, .88], [26.94, .76], [28.37, .62], [31.59, .62], [32.93, .80], [33.86, .87], [34.78, .88], [41.47, .92],
+      [42.16, .90], [43.09, .86], [43.988, .82],
+    ]),
   },
 };
 export default spec;

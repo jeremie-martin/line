@@ -5,9 +5,9 @@
  * The low D brings the rider down close enough to brush the words, then the
  * returning beat carries him forward until the four short strokes catch up.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

@@ -5,9 +5,9 @@
  * away from the heavy kicks twice, gathering speed into each climbing triple.
  * One long glide carries the last kick out to the two exposed words.
  */
-import base from '../spec.ts';
+import base from './approved.ts';
 import {curve} from '../../../scripts/v0/core/measured.ts';
-export {overlayMeta} from '../spec.ts';
+export {overlayMeta} from './approved.ts';
 
 export default {
   ...base,

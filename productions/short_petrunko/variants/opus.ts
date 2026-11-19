@@ -8,7 +8,7 @@
  */
 import type {Spec} from '../../../scripts/v0/types.ts';
 import {keyframes} from '../../../scripts/v0/core/curves.ts';
-import base, {overlayMeta} from '../spec.ts';
+import base, {overlayMeta} from './approved.ts';
 export {overlayMeta};
 
 // The build keeps its strictly rising order; it starts quieter and gathers faster (0 at the first tick, 1 at the roll).

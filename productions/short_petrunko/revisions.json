@@ -27,6 +27,13 @@
       "at": "2026-11-19T14:46:33.311Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The growth is drawn in height, then in speed, then in one long loping gait. The low phrase and the quiet ticks keep the approved pace and strengths; with every tick of the build the arcs open a little taller, as in Opus's reading. When the strokes double the rider comes down onto the line and gathers speed, and holds it low and fast through the roll, as in Astra's, the roll that came out clearest. The lone high note is the tallest arc of the song, and the return lands out of it. The replies are the same two-bar gait each time: a tall arc through each long breath, a smaller one through the medium, as Opus sized them; my own part is the rush between, where the drum and bass answer close together and the rider runs low and quick (after Astra), so each bar is a float and a dash. The approved strengths stay as they were. The five closing strokes shrink and slow to rest."
+    },
+    {
+      "spec": "productions/short_petrunko/variants/blend.ts",
+      "sha256": "0e898d7ef604a161bab136b5799d567f0502f1825f93d497a2ec2b9548856d7a",
+      "at": "2026-11-19T16:30:01.287Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

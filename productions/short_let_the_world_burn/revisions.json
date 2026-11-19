@@ -27,6 +27,13 @@
       "at": "2026-11-19T14:46:30.006Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Fire, then smoke: the drum sentence burns close to the ground, the held notes rise slow and tall. From the approved reading: the distant opening, the two exposed calls, and the strengths. From Sol: in the drum sentence each bar draws out its approach to the sharp answering stroke, quicker and higher into it, low and close for the words between, which are touched more lightly: the spark Opus wanted, in a form the ride shows. From Opus: when the voice leaves the drummer the rider slows right down and climbs into huge, slow arcs over the held G, and higher still over the upper C. Its own: the smoke rises out of the fire rather than after it; over the last bars of the drum sentence the pace eases and the air grows, so the first held note lifts off from a rider already rising. From Sol and Astra: the three drum answers bring it back to the ground, and the last word glides out."
+    },
+    {
+      "spec": "productions/short_let_the_world_burn/variants/blend.ts",
+      "sha256": "a721b3c1b1e1aeeb9a9681b82237d99d5846a89cbfedf8641769a5aab1dc5c9f",
+      "at": "2026-11-19T16:30:00.266Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

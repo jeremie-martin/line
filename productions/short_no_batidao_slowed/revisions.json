@@ -51,6 +51,13 @@
       "at": "2026-11-19T14:46:32.586Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Slowed down, the low pulse is a heavy ball, and the song is the story of how it gets rolling again. The bare drummer and his words keep the approved quick, even stride; the bright signal is one high float. From the first bass catch the rider bounces once per beat in round, unhurried arcs, every landing one of two weights so the two big kicks stand out of the gait: Opus's idea, the cleanest ride of the four here. The lower singer lets it drift lower and flatter, softer than the ball, as Opus and Sol had it. My own part: over the singer's last bar the rider gathers speed again, so the return at 31.4 lands with the weight the slowed readings lost there; from it on, the approved fast, low run with its own strengths and roll, which held the returning drums best of the four."
+    },
+    {
+      "spec": "productions/short_no_batidao_slowed/variants/blend.ts",
+      "sha256": "db2fe7ec75fda97b897a28340f6079d528e4534f2356d89b4a8404e240fd6eb8",
+      "at": "2026-11-19T16:30:01.035Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

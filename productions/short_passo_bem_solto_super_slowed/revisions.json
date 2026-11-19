@@ -118,6 +118,13 @@
       "at": "2026-11-19T14:46:33.152Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Super slowed, the rider glides on the approved line, and a few long breaths become arcs that return like a refrain. The opening he mapped by hand keeps its syllables, strengths and glide; the high answer at six and a half seconds makes the first big rise, as in Sol's reading. The high answer over the bass is the approved one. Under the recurring C my own figure: wherever the C comes after a long breath, the rider rises into it, the same arc each time, so the passage reads as one phrase coming back (Sol lifted into some of them; here it is every one). The drums he marked between keep their approved weight. The five calls float into the return as approved. In the late drums the two heaviest second strokes throw the rider up, with just time to come down for the reply, as Astra found; the rest of that passage and the last syllables are the approved ride."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_super_slowed/variants/blend.ts",
+      "sha256": "9e5e74975420888dd32c744ae72c762312151e0dc2148b40482719b02e230d4f",
+      "at": "2026-11-19T16:30:01.224Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

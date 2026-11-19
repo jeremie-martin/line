@@ -34,6 +34,13 @@
       "at": "2026-11-19T14:46:31.586Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A bouncing hammer and a long slide (Opus's reading, whose ride is the cleanest of the four and lands the last burst hardest). In the drum bursts the rider pounds the half-second pulse with one tall, identical arc onto every slam, the soft pickups of the doubles skimmed low, the lesser slams of each bar a little softer so the accents carry. The quick words in the hole at 16.5 are ridden exactly as approved. Between the bursts the descending voice is one smooth low slide, and here the reading is my own: the slide brakes as the voice comes down to the held note at 25.1, floats slowly over it (the stretch Sol and Astra gave it), and only then gathers speed again through the shortening words into the last burst, whose first slam comes out of a few lighter syllables (Opus)."
+    },
+    {
+      "spec": "productions/short_montagem_coma/variants/blend.ts",
+      "sha256": "c1629f3c23307e220929e847762ca2af4bc4afcf6c16dd4a361d0c632bb921e5",
+      "at": "2026-11-19T16:30:00.722Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

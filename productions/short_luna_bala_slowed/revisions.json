@@ -85,6 +85,13 @@
       "at": "2026-11-19T14:46:31.378Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Two worlds and a door between them. The distant words begin low and slow and gather pace and weight together up to the drum at 6.7, so the motion makes the same crescendo you asked of the strokes (Astra and Sol both found it). The bare voice after the drum is exactly the approved one. Then the first upper stroke at 15.4, now the strongest landing of the song as you asked, throws the rider up into the strokes, and from there every arc is as tall as the stroke it falls onto is strong: the big strokes are seen coming from high, the light ones are low quick steps (Opus). The hurried short bar near 23 s runs low and fast for a moment (Astra and Opus). When the low replies come back after 30.7 the rider swings highest, a little slower than before so those arcs read (Sol), and when the bass falls away it settles."
+    },
+    {
+      "spec": "productions/short_luna_bala_slowed/variants/blend.ts",
+      "sha256": "54fa24dbe6032df9602bf93f5a9d8b6a496376e4b0c7c792350707540bbc58f5",
+      "at": "2026-11-19T16:30:00.652Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

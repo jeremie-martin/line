@@ -70,6 +70,13 @@
       "at": "2026-11-19T14:46:33.618Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The verse limps, the chorus bounds, and the opening crash already shows the bound to come. Under the words the rider glides level on the approved quiet catches, except in the three long silences, where the crash lets go into one long bow each (Sol and Astra). When the three stresses arrive it takes up their long-long-short lilt in its height, two arcs and a skip, and once the little drum strokes fill the spaces it runs flat beneath them, as Opus had it; every strength there, the little strokes he marked included, is the approved one. The exposed E and G hang slow and high. In the chorus each heavy release throws the rider into a tall bound through the gap after it, with the close answering pairs taken low and quick (Opus, the chorus that kept its heavy kicks best). My own part: the rider gathers speed up each of the two climbing triples, so they drive into their heavy kick rather than float."
+    },
+    {
+      "spec": "productions/short_trouble/variants/blend.ts",
+      "sha256": "c6cd43e1e61a7a9621fa09441ea7ee55d571caeab57723db0a7aba89bca49bad",
+      "at": "2026-11-19T16:30:01.388Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

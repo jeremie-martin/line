@@ -51,6 +51,13 @@
       "at": "2026-11-19T14:46:31.166Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Down into the drive, then out into the open (Opus's shape, whose ride lands the downbeats harder than the others). The breathy pickup glides slowly almost on the line, its touches lighter still. Under the broken percussion the rider gathers pace bar by bar, low and close, with no reach for height where the strokes come too close together to show it; when the low answers come in it runs lowest and fastest, the hardest part of the ride. Then it opens up: where the upper strokes thin out over the bass the hops grow tall and the touches between the downbeats turn lighter, so each downbeat stands alone (Sol's contrast there). The four bare drums are four high leaps, slowing, and the three pitched calls at the end are wide, slow arcs with their fine answers barely touched (Opus)."
+    },
+    {
+      "spec": "productions/short_luna_bala_original/variants/blend.ts",
+      "sha256": "04f310a40984b693272c79dd56c65e8eed93dcc60a7cfa77d054c8a0ddb61f40",
+      "at": "2026-11-19T16:30:00.589Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

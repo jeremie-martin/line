@@ -90,6 +90,13 @@
       "at": "2026-11-19T14:46:30.578Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The approved reading, with the low drum turned into a pendulum. The opening calls, the drum answer and the quick words are the approved ones: the rise you asked for stays as it is. From the first broad drum each low stroke throws the rider into one round arc to the next, the same figure through all three waves of the drum (Opus's arcs). Unlike Opus the pace stays as fast as the approved reading, which kept the big drums the hardest of all four rides, and the air still steps down for the F and up again for the heavy downbeats as approved. What climbs from wave to wave is weight: the plain strokes gain a little with each wave while the accented ones stay as they were, and the words between the drums are lighter, quick low touches under the arcs (Opus). The four last syllables settle onto the line as in the approved reading."
+    },
+    {
+      "spec": "productions/short_los_voltaje_ultra_slowed/variants/blend.ts",
+      "sha256": "3fd383884a34a577117a24f552c688bd6fe85044cfc0fe70c88d091f212a985f",
+      "at": "2026-11-19T16:30:00.458Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

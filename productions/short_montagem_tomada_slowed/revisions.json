@@ -56,6 +56,13 @@
       "at": "2026-11-19T14:46:31.962Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Every bar is a dive (Opus, whose ride is also the only one that lands the returning drum at 17.86 with its weight). The upper figure counts six close strokes and a delayed seventh: the rider starts each bar floating, skims lower and faster down the close strokes, and the delay before the seventh is one tall arc that drops onto it. The same dive runs through the opening figure and through the drum bars, so the two halves rhyme, and the missing strokes after 25.5 become its longest leap. From Astra and Sol: the lift before the seventh grows bar by bar through the opening, and the second half of the opening loses weight before the swell (Astra). The voice across the swell is ridden as approved. My own ending: after the last double the dives stop and the rider coasts out slowly on the three replies."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_slowed/variants/blend.ts",
+      "sha256": "14e8bd28332bbb97dd41436f1b9a961a433c2d4e7fb211819e01d4b163394582",
+      "at": "2026-11-19T16:30:00.848Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

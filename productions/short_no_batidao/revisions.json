@@ -51,6 +51,13 @@
       "at": "2026-11-19T14:46:32.365Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Two singers float, the bass runs, and every big entrance arrives at full pace. The upper singer at the start is light and slow, long in the air, as all three new readings had it, on the approved catches made a little softer (Astra). The drums bring the rider down; the climb stays low and fast and keeps all its lift for one high arc into the bright stab, the arc that came out highest in Sol's ride. Under the bass it runs close to the line on the approved strengths, rising only where the hook leaves its two longest breaths (Sol). The lower singer floats again, slower and rounder, as the new readings had it. My own part: that float gathers pace over its last bar, so the full drums at 34.8 land with the weight the approved ride gave them and the new readings lost; the approved handoff keeps its strong stroke, and the last two drum steps lift away into the loop."
+    },
+    {
+      "spec": "productions/short_no_batidao/variants/blend.ts",
+      "sha256": "a24c8315eab1d05646c8fd727131a0b0be162cbd163bb1287f6d68a7d5e9e72f",
+      "at": "2026-11-19T16:30:00.975Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

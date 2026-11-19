@@ -58,6 +58,13 @@
       "at": "2026-11-19T14:46:32.964Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Slowed, the centre of the song is a swing, and the rest is the approved ride he loved. The two sung sentences at the start and their two low strokes are the approved reading. In the centre each measure has two long breaths, and the rider uses them as Opus did: a high, round arc into every strong syllable, then quick low steps through the answer and its small neighbours, the strokes in three clear weights. The exposed words float (Opus) before the shared word and drum at 28.9; the broken drums keep the approved even run and strengths, which held their heavy bar heads best of the four. My own part: the swing's last echo, one rise as the upper reply lifts clear at the very end."
+    },
+    {
+      "spec": "productions/short_passo_bem_solto_slowed/variants/blend.ts",
+      "sha256": "0df3c303686f030ddae3c16bde54907126ed641d4bac6af5bd4a8f632fcdffb3",
+      "at": "2026-11-19T16:30:01.162Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

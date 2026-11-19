@@ -10,9 +10,10 @@ for (const song of readdirSync('productions').filter(d => d.startsWith('short_')
   const ride = `generated/dashboard-rides/${song}--blend`, side = `generated/videos/dashboard/${song}--blend.json`;
   if (!existsSync(`productions/${song}/zooms.ts`) || !existsSync(`${ride}/manifest.json`) || !existsSync(side)) {console.log('skipped', song); continue;}
   const lanes = (await import(`${process.cwd()}/productions/${song}/zooms.ts`)).default, theme = JSON.parse(readFileSync(side, 'utf8')).theme;
+  const rideHash = JSON.parse(readFileSync(`${ride}/manifest.json`, 'utf8')).cells[0].trackHash;  // a film is of one ride: a new ride, a new film
   index[song] = [];
   for (const lane of lanes) {
-    const name = `${song}--blend--${lane.id}-${createHash('sha256').update(JSON.stringify(lane.keyframes) + theme).digest('hex').slice(0, 8)}`;
+    const name = `${song}--blend--${lane.id}-${createHash('sha256').update(JSON.stringify(lane.keyframes) + theme + rideHash).digest('hex').slice(0, 8)}`;
     index[song].push({...lane, file: name});
     if (!existsSync(`${out}/${name}.mp4`)) todo.push({song, lane: lane.id, name, args: ['scripts/video.ts', `--study=${ride}`, `--look=${theme}`, `--zoom=${lane.id}`, '--review', `--out=${out}/${name}.mp4`]});
   }

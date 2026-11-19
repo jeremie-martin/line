@@ -51,6 +51,13 @@
       "at": "2026-11-19T14:46:28.469Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The approved reading is the shore; the bass answers are the tide coming in. Up to the quick words it is the approved ride: the light opening taps, the dry drums, the kicks. The quick words keep their pace right into the big stroke at 31.5 (no slowing before it), so the last hit of the hook and the first bass answer land as one breaking wave. Then, as in Astra, the rider hangs back: slower, longer in the air, and, as in Opus, it rises over each long step of the bass and stays low on the short ones. The reprise returns to the approved ride. From Opus also the lighter fills under the quick words and the softer weak tails of the bass, so that the downbeats stand clear. The closing vowel is the approved easy coast."
+    },
+    {
+      "spec": "productions/short_amor_na_praia/variants/blend.ts",
+      "sha256": "901a461d648dd1cb4b53734101dc1742283da74c63a155059db29b41f32ae637",
+      "at": "2026-11-19T16:29:59.761Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

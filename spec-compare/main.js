@@ -137,10 +137,12 @@ function renderSide() {
   $("best").classList.toggle("on", state.picks[s.dir] === r.path);
   for (const b of $("verdict").children) b.classList.toggle("on", r.verdict === b.dataset.verdict && !r.changed);
   $("open").href = `/spec-dashboard/?spec=${r.path}`;
-  const last = r.revisions?.at(-1);
+  // the author's intention is the note written with the reading; what was changed since is said after it
+  const notes = r.revisions ?? [], stated = notes.findLast((n) => /^The intention:/.test(n.summary ?? "")) ?? notes.at(-1);
+  const since = notes.slice(notes.indexOf(stated) + 1).map((n) => n.summary).filter(Boolean);
   $("by").textContent = BY[r.reading] ?? r.reading;
   $("intention").textContent = r.reading === "main" ? "The reading you reviewed and approved. The others keep its landings and change how the rider moves between them: air time, speed, height, and how hard each landing is."
-    : (last?.summary ?? "").replace(/^The intention:\s*/, "") || "No intention written.";
+    : ((stated?.summary ?? "").replace(/^The intention:\s*/, "") || "No intention written.") + (since.length ? `\n\nSince then: ${since.join(" ")}` : "");
   const lane = laneOn();
   $("zoom").hidden = !lane;
   if (lane) {

@@ -85,6 +85,13 @@
       "at": "2026-11-19T14:46:30.199Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The loved approved ride, with the drum driving the picture, as you asked: charge, then current. From the approved reading: the calls with their slow crescendo, the quick naked voice ridden flat and accelerating into the slam, the last words, and the strengths. From Opus: the drums that take over are ridden as tall, regular hops, one per beat. From Sol: the drum strokes are a little heavier, in the drum passage and on the beat that closes each phrase of the bright replies, and each phrase is one sweep: low through the replies, lifting into the closing drum, driving on into the next. Its own: that closing lift grows a little phrase by phrase (Opus's climb, in Sol's sweep), so the long passage of replies keeps rising to the end instead of repeating; then the words glide out."
+    },
+    {
+      "spec": "productions/short_los_voltaje/variants/blend.ts",
+      "sha256": "a3e16a86f21ef280542a6f9d40ad6ef3d9a9b0f6c0e4c98a68240bb646c10276",
+      "at": "2026-11-19T16:30:00.328Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

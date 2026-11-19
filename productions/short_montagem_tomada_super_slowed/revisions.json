@@ -94,6 +94,13 @@
       "at": "2026-11-19T14:46:32.168Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Two halves, each with one figure per bar. In the long opening the rider swings with the upper figure: the two wide strokes of every bar are two tall slow arcs and the six close ones a low ripple along the line (Opus, whose ride shows this figure plainly, and an answer to your wish for something more than the same sounds for 17 seconds). The swing changes with the voice: small and slow under the held call, wider when the figure is left alone at 6.2, hushed under the returning voice, the figure there whispering a little more (Opus). The light runs of syllables before each drum downstroke are ridden as approved, the second like the first as you asked. In the drum half the figure turns into a surge: each downstroke lands low and the low rebounds push the rider up through the bar, once per bar (Sol, at whose ride the first downstroke lands hardest; Astra had the same rise). After the last kick the rider coasts out on the bright notes (Sol and Astra)."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_super_slowed/variants/blend.ts",
+      "sha256": "a66947c44debadf06d6ce8ed6903b266b149ad4ec80be90976cd9af2bc13b0f3",
+      "at": "2026-11-19T16:30:00.910Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

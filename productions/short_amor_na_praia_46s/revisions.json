@@ -70,6 +70,13 @@
       "at": "2026-11-19T14:46:28.665Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A held breath and its release, as Opus reads it, and then a long exhale. Under the chopped voice the rider tiptoes, slow and close to the line, every chop as small as approved. From Opus: the dry 808 strokes throw it into tall bounds, the silence after them is the highest arc, the first band passage runs low and flat gathering speed, and one rise in its last bar meets the great downbeat. From there the same groove is ridden high and wide, rising over each long step. Its own: the flight does not stop at once; over the last phrase it comes down step by step and slows, and, as in Sol, the two echoes drift away higher and farther apart while the pace falls. All strengths are the approved ones, except Opus's slightly softer answers in the low run."
+    },
+    {
+      "spec": "productions/short_amor_na_praia_46s/variants/blend.ts",
+      "sha256": "cf260afec4be3bd1647652b226ca18e8cfca7a8c7c0028852c1d131dd3b49445",
+      "at": "2026-11-19T16:29:59.822Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

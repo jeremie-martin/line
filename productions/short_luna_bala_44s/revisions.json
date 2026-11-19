@@ -46,6 +46,13 @@
       "at": "2026-11-19T14:46:30.968Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: One bow per bar. The solo voice is slower and lower than approved, with touches lighter still, and the rider hangs once, high, in the breath between the singer's two sentences (Astra, whose ride holds that breath best). Under the five upper strokes every bar draws the same bow: the rider rises into the long fourth stroke and comes down through the short fifth onto the downbeat (Astra's bow), at the approved reading's full pace rather than Astra's slower one. The uncovered drums and the bass entrance after them are the approved ones: their ride lands that entrance hardest. The bass runs level and fast as approved. When the bass withdraws under the refrain the bow returns, wider, and the touches between the downbeats turn lighter while the downbeats keep their weight (Opus)."
+    },
+    {
+      "spec": "productions/short_luna_bala_44s/variants/blend.ts",
+      "sha256": "607d35dec1937fa7a1f30c8932ef7c0e17bf084b5cf9814935bd2ea230d7e03c",
+      "at": "2026-11-19T16:30:00.527Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

@@ -51,6 +51,13 @@
       "at": "2026-11-19T14:46:28.842Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A slow dance that never turns into a drop. This song is chill; the rider sways instead of running. From Sol: the first words even smaller, with one small bow over the melody, then a quick low run into the three hard drums so that they land as sharp as they can. From Opus: after them an unhurried pace, low through the steps of each bar and a soft lift over every bar's long rest, the same in every bar; the held voice is the one tall flight; the body is touched gently. Its own: the returning backbeat has its weight for four bars only, quicker and closer to the line, and then lets go gradually, slowing and lifting more each bar, so the easing groove floats out to the cut without a step between the two. Strengths keep the approved order."
+    },
+    {
+      "spec": "productions/short_amour_de_ma_vie/variants/blend.ts",
+      "sha256": "bd70442499a7105a7da0a9b1afa959f12a4acdc21af4566de7de562c42094fe4",
+      "at": "2026-11-19T16:29:59.887Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

@@ -85,6 +85,13 @@
       "at": "2026-11-19T14:46:30.385Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Two leaps, a fuse, a pendulum. The calls hang over their long rests as in the approved reading, but each rest is now a real leap, the second taller than the first, so the opening rises (Opus's leaps, made into a rise of my own). The quick voice runs low and flat, faster and faster, and thins just before the first kick so that kick lands into space, the strongest moment of the song (Opus). From there the rider swings from kick to kick and only skims the words between them; plain kicks a little softer, accented kicks as they were (Opus). Where the accented kicks cluster, around 23 and 32 seconds, the swing opens up a little more air (Astra and Sol). When the treble loop takes the hook the swing grows taller and slightly slower, and the last three words drift out high (Opus)."
+    },
+    {
+      "spec": "productions/short_los_voltaje_slowed/variants/blend.ts",
+      "sha256": "2e854bef5f31db1c9ecd40f91d2db730dab4abfb1fe4320f6c5511322c010cad",
+      "at": "2026-11-19T16:30:00.396Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

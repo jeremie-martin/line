@@ -60,6 +60,13 @@
       "at": "2026-11-19T14:46:31.777Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The same road twice, the second time bigger (Opus, whose ride lands both drum entrances best). The song tells its story two times, a verse, the quick voice, the drum, and the second time everything is taller, faster and heavier. Into that road I put Astra's best gesture, which her ride shows clearly: at the end of each sung pair the rider hangs on the long vowel, and again over the missing beat just before the first drum's second half. The first verse starts low and soft and grows, as you asked, and its hangs are modest; the second verse hangs higher. The quick voice before each drum keeps its light syllable-by-syllable touches as approved. The first drum runs close to the line with modest hops, the break floats slow and high over the upper figure, and the return is the fastest, highest running of the song."
+    },
+    {
+      "spec": "productions/short_montagem_tomada_extended/variants/blend.ts",
+      "sha256": "66cd5b007c0e01140866f0c160706357a451bf9493c4190abed7e6a9b93073e1",
+      "at": "2026-11-19T16:30:00.788Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

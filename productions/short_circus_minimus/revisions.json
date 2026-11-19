@@ -72,6 +72,13 @@
       "at": "2026-11-19T14:46:29.414Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: The loved approved ride, with the hook given a visible period. The verse, the hats, the break with its five even notes and the full groove are as approved, strengths included. In the hook all three new readings found the same gesture, and their rides show it: the words skim low and close together, and the rider vaults the hole at the end of each line to come down on the bass. Its own: the vault is one stroke recurring every two bars, from the first stroke of the hook to the last line, always the same height, so the hook reads as a juggler's beat; between the vaults the rider stays low. From Opus and Astra: the held note near the end is one slow high lob, landing softly, and the last stroke is thrown once more into the cut."
+    },
+    {
+      "spec": "productions/short_circus_minimus/variants/blend.ts",
+      "sha256": "fccdd6882532d29878d127c6efb59c06b6fbe6cd47373dc980b02662ce88c36a",
+      "at": "2026-11-19T16:30:00.072Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

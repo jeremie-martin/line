@@ -27,6 +27,13 @@
       "at": "2026-11-19T14:46:29.809Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: A machine that stalls once and winds itself back up. From Opus: the faint clock is a slow pendulum, every tick the same small swing, and the calls swing a little wider; the four-note figure and the words with their drum replies stay close and quick. From Sol: the motor's first stroke is the hardest landing of the film. From the approved reading: the low motor ridden as one even run of high, fast strokes, which its ride shows cleanly (lower and flatter versions of the motor picked up stray touches). Its own: the hollow stroke halfway is a stall. As in Sol the rider lifts over it and loses its pace; then the motor restarts in slow, tall strokes and winds back up, a little faster and flatter each bar, until it is back at full speed for the last third of the ride. Strengths as approved otherwise."
+    },
+    {
+      "spec": "productions/short_funk_estranho_super_slowed/variants/blend.ts",
+      "sha256": "7602db32437ce0fe61ed3d87d720660e4646f76960c48409f12c815209172e21",
+      "at": "2026-11-19T16:30:00.203Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

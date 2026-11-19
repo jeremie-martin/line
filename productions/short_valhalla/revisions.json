@@ -27,6 +27,13 @@
       "at": "2026-11-19T14:46:33.803Z",
       "by": "Claude (Opus 5.5), from the four",
       "summary": "The intention: Call, walk, run, soar: the song climbs from the low singer's heavy walk to a flight over the high voice. The high pickup and the kick pairs keep the approved pace and weights, each big kick throwing the rider into an arc (Opus). When the low singer takes over, the rider slows to a walk close to the line, as all three new readings had it, rising only on the two long breaths of his phrases, at 20 and 28 seconds; his strokes keep their approved weights, which held his strongest syllables best. The quick words run flat and fast, one level all through (Opus); the roll launches the rider, and over the high voice it soars, fastest and highest, kicks full, replies light (Opus). My own part is the arrangement: one pace per singer, so the change of voice is seen as a change of gait, with the low singer's two breaths the only height between the opening's arcs and the final flight."
+    },
+    {
+      "spec": "productions/short_valhalla/variants/blend.ts",
+      "sha256": "6e49bb2021acdd266358e09384142822c88e0c2fbc31e4fa3d541a71c63f5684",
+      "at": "2026-11-19T16:30:01.451Z",
+      "by": "Claude",
+      "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
     }
   ]
 }

@@ -22,24 +22,6 @@ function strength(t: number, impact: number): number {
   return impact;
 }
 const strikes = base.contacts.map(({t, impact = 0}): [number, number] => [t, Number(strength(t, impact).toFixed(3))]);
-const times = strikes.map(([t]) => t);
-
-/** The tallest arc a span of `dt` seconds allows, on the 60 px scale. */
-const fullArc = (dt: number): number => Math.min(1, .175 * (dt * 40) ** 2 / 8 / 60);
-function share(t: number, dt: number): number {
-  if (t > 7.5 && t < 8.1) return 1;                    // room before the first slam
-  if (inBurst(t)) return dt >= .45 ? .95 : .1;          // the hammer
-  if (t > 25.1 && t < 26.11) return .9;                 // the held note
-  if (t > 22.5 && t < 32.09) return .15;                // the slide
-  if (t < 4.1) return .5;
-  return .3;
-}
-const amplitude = (t: number): number => {
-  const i = times.findIndex(ct => ct >= t);
-  const k = i < 0 ? times.length - 1 : i;
-  const dt = times[k] - (k > 0 ? times[k - 1] : 0);
-  return share(times[k], dt) * fullArc(dt);
-};
 
 const spec: Spec = {
   ...base,
@@ -55,7 +37,6 @@ const spec: Spec = {
       [22.096,.92],[22.607,.66],[24.6,.56],[25.138,.48],[26.0,.48],[26.6,.58],[27.843,.70],[29.2,.86],[31.8,1],
       [32.092,.98],[38.605,.98],[39.116,.72],[39.975,.90],[40.103,.98],[47.591,.98],[48.019,.92],
     ]),
-    amplitude,
   },
 };
 export default spec;

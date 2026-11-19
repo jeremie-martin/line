@@ -41,20 +41,9 @@ const air = perGap((end, len) => {
   return sway(len, 0.62 + 0.23 * k, 0.5 + 0.24 * k, 0.42 + 0.1 * k);
 }, 0.6);
 
-const amplitude = perGap((end, len) => {
-  if (end < 1.7) return len > 0.5 ? 0.16 : 0.03;
-  if (end < 4.0) return 0.03;
-  if (end < 23.6) return sway(len, 0.38, 0.18, 0.04);
-  if (end < 24.3) return 0.05;
-  if (end < 25.3) return 0.55;
-  const k = letGo(end);
-  return sway(len, 0.2 + 0.25 * k, 0.08 + 0.14 * k, 0.03 + 0.02 * k);
-}, 0.1);
-
 const spec: Spec = {...base, contacts,
   axes: {
     air,
-    amplitude,
     speed: curve([
       [0, .39], [1.28, .45], [2.264, .56], [3.251, .82], [3.918, .86], [4.586, .66], [6.3, .58], [23.255, .58],
       [24.242, .56], [25.252, .76], [30.592, .76], [36.583, .60], [40.25, .54], [44.187, .5],

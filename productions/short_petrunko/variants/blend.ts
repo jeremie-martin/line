@@ -1,7 +1,7 @@
-/** The growth is drawn in height, then in speed, then in one long loping gait.
- * The low phrase and the quiet ticks keep the approved pace and strengths; with every tick of the build the arcs open a
- * little taller, as in Opus's reading. When the strokes double the rider comes down onto the line and gathers speed,
- * and holds it low and fast through the roll, as in Astra's, the roll that came out clearest.
+/** The growth is drawn in speed, then in one long loping gait.
+ * The low phrase and the quiet ticks keep the approved pace and strengths; through the build the arcs stay a little
+ * taller than approved, as in Opus's reading. When the strokes double the rider comes down onto the line and gathers
+ * speed, and holds it low and fast through the roll, as in Astra's, the roll that came out clearest.
  * The lone high note is the tallest arc of the song, and the return lands out of it.
  * The replies are the same two-bar gait each time: a tall arc through each long breath, a smaller one through the
  * medium, as Opus sized them; my own part is the rush between, where the drum and bass answer close together and the
@@ -16,9 +16,8 @@ export {overlayMeta} from '../spec.ts';
 const times = base.contacts.map((c) => c.t);
 const gapAt = (t: number) => {
   const i = times.findIndex((x) => x >= t);
-  return i <= 0 ? {gap: 0, end: times[0]} : {gap: times[i] - times[i - 1], end: times[i]};
+  return {gap: i <= 0 ? 0 : times[i] - times[i - 1]};
 };
-const grow = (t: number) => Math.max(0, Math.min(1, (t - 1.96) / (16.94 - 1.96)));
 const inReplies = (t: number) => t > 22.45 && t <= 56.483;
 
 const flow = {
@@ -48,15 +47,6 @@ const spec: Spec = {
       if (!inReplies(t)) return flow.speed(t);
       const {gap} = gapAt(t);
       return gap > .9 ? .68 : gap > .55 ? .76 : .82;
-    },
-    amplitude: (t: number) => {
-      const {gap, end} = gapAt(t);
-      if (end < 1.9) return undefined;
-      if (end < 16.9) return gap > .5 ? .06 + .40 * grow(end) : .08;     // the ticks open up
-      if (end < 21) return .03;                                           // doubles and roll hug the line
-      if (end < 22.5) return .95;                                         // the lone high note
-      if (end <= 56.483) return gap > 1.2 ? .62 : gap > .9 ? .42 : gap > .55 ? .22 : .04;
-      return Math.max(.08, .3 - (end - 56.5) * .06);                      // the closing strokes come to rest
     },
   },
 };

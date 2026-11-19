@@ -1,7 +1,7 @@
 /** The verse limps, the chorus bounds, and the opening crash already shows the bound to come.
  * Under the words the rider glides level on the approved quiet catches, except in the three long silences, where the
  * crash lets go into one long bow each (Sol and Astra).
- * When the three stresses arrive it takes up their long-long-short lilt in its height, two arcs and a skip, and once
+ * When the three stresses arrive it takes up their long-long-short lilt, two arcs and a skip, and once
  * the little drum strokes fill the spaces it runs flat beneath them, as Opus had it; every strength there, the little
  * strokes he marked included, is the approved one. The exposed E and G hang slow and high.
  * In the chorus each heavy release throws the rider into a tall bound through the gap after it, with the close
@@ -16,7 +16,7 @@ export {overlayMeta} from '../spec.ts';
 const times = base.contacts.map((c) => c.t);
 const gapAt = (t: number) => {
   const i = times.findIndex((x) => x >= t);
-  return i <= 0 ? {gap: 0, end: times[0]} : {gap: times[i] - times[i - 1], end: times[i]};
+  return {end: i <= 0 ? times[0] : times[i]};
 };
 const bows = [3.518, 5.793, 12.539];          // the long silences between the words
 
@@ -32,16 +32,6 @@ const spec: Spec = {
   axes: {
     air: (t: number) => (bows.includes(gapAt(t).end) ? .72 : flow.air(t)),
     speed: flow.speed,
-    amplitude: (t: number) => {
-      const {gap, end} = gapAt(t);
-      if (end < .5) return undefined;
-      if (bows.includes(end)) return .5;
-      if (end < 14.7) return .05;                                     // the level glide
-      if (end < 27.7) return gap > .6 ? .36 : gap > .4 ? .12 : .03;   // the lilt: arc, arc, skip
-      if (end < 29.1) return gap > .4 ? .22 : .06;
-      if (end < 43.7) return gap > .8 ? .7 : gap > .5 ? .38 : .03;    // the bounds of the chorus
-      return .2;
-    },
   },
 };
 export default spec;

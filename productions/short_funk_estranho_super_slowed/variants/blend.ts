@@ -17,7 +17,7 @@ const contacts = base.contacts.map(({t, impact = 0}) => ({t, impact: t === 17.77
 
 const ends = contacts.map((c) => c.t);
 /** A value per gap, chosen by the landing that ends it and the gap's length (s); `tail` after the last landing. */
-const perGap = (f: (end: number, len: number) => number | undefined, tail: number) => (t: number) => {
+const perGap = (f: (end: number, len: number) => number, tail: number) => (t: number) => {
   const i = ends.findIndex((e) => e >= t);
   if (i < 0) return tail;
   return f(ends[i], ends[i] - (i > 0 ? ends[i - 1] : 0));
@@ -39,19 +39,9 @@ const air = perGap((end, len) => {
   return 0.84 - 0.08 * rewind(end);
 }, 0.74);
 
-const amplitude = perGap((end, len) => {
-  if (end < 4.0) return 0.12;
-  if (end < 7.7) return len > 0.5 ? 0.16 : 0.04;
-  if (end < MOTOR - 0.01) return len > 0.38 ? 0.06 : 0.02;
-  if (end < STALL - 0.01) return undefined;
-  if (near(end, STALL)) return 0.28;
-  return 0.22 - 0.16 * rewind(end); // Tall restart strokes, flattening as they wind up.
-}, 0.06);
-
 const spec: Spec = {...base, contacts,
   axes: {
     air,
-    amplitude: (t) => amplitude(t),
     speed: curve([
       [0, .28], [3.624, .30], [4.181, .44], [7.014, .48], [7.583, .64], [8.72, .70], [12.668, .70], [13.248, .68],
       [16.638, .68], [17.196, .86], [MOTOR, .98], [26.251, .98], [STALL, .64], [27.378, .62], [WOUND, .98], [45.434, .98],

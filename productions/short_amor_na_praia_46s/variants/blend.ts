@@ -35,22 +35,9 @@ const air = perGap((end, len) => {
   return end < 45 ? 0.68 : 0.8; // The echoes drift.
 }, 0.6);
 
-const amplitude = perGap((end, len) => {
-  if (end < 4.2) return 0.02;
-  if (end < 7.8) return len > 0.5 ? 0.2 : 0.06;
-  if (end < 9.2) return 0.75;
-  if (end < 25.1) return 0.02;
-  if (end < 26.8) return 0.2;
-  if (end < 39.95) return len > 0.5 ? 0.22 : 0.05;
-  if (end < 43.3) return len > 0.5 ? 0.12 : 0.03;
-  if (end < 44.4) return 0.05;
-  return end < 45 ? 0.14 : 0.26;
-}, 0.1);
-
 const spec: Spec = {...base, contacts,
   axes: {
     air,
-    amplitude,
     speed: curve([
       [0, .36], [2.548, .24], [3.895, .26], [4.174, .66], [4.458, .72], [7.755, .72], [8.4, .62], [9.131, .80],
       [12.98, .82], [20.13, .90], [26.18, .96], [26.732, .88], [39.93, .86], [43.24, .70], [44.339, .50],

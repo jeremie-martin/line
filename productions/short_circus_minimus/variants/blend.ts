@@ -32,12 +32,6 @@ const spec: Spec = {...base,
       if (t > 29.5 && t < 29.948) return 0.6; // Out of the low hook toward the break.
       return approvedAir(t);
     },
-    amplitude: (t) => {
-      const end = endOf(t);
-      if (inHook(t)) return vault(end) ? 0.38 : 0.03;
-      if (lob(end)) return near(end, 51.492) ? 0.4 : 0.2;
-      return undefined;
-    },
     speed: curve([[0, 0.72], [5.89, 0.84], [18.69, 0.9], [29.948, 0.98], [31.499, 0.97], [50.11, 0.9], [50.758, 0.84],
       [51.91, 0.84], [57.262, 0.88]]),
   }};

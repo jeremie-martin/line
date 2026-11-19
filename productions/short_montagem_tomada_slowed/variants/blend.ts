@@ -17,12 +17,12 @@ const strikes = base.contacts.map(({t, impact = 0}): [number, number] =>
   [t, t >= 9.492 && t < 15.668 ? Number((impact * .85).toFixed(3)) : impact]);
 const times = strikes.map(([t]) => t);
 
-type Passage = {from: number; slow: number; fast: number; floatAir: number; skimAir: number; arc: number};
+type Passage = {from: number; slow: number; fast: number; floatAir: number; skimAir: number};
 const passages: Passage[] = [
-  {from: 0, slow: .70, fast: .72, floatAir: .50, skimAir: .50, arc: .4},
-  {from: 1.12, slow: .72, fast: .92, floatAir: .68, skimAir: .50, arc: 1},
-  {from: 9.49, slow: .62, fast: .74, floatAir: .70, skimAir: .60, arc: .8},
-  {from: 17.85, slow: .80, fast: 1, floatAir: .72, skimAir: .50, arc: 1},
+  {from: 0, slow: .70, fast: .72, floatAir: .50, skimAir: .50},
+  {from: 1.12, slow: .72, fast: .92, floatAir: .68, skimAir: .50},
+  {from: 9.49, slow: .62, fast: .74, floatAir: .70, skimAir: .60},
+  {from: 17.85, slow: .80, fast: 1, floatAir: .72, skimAir: .50},
 ];
 const passageAt = (t: number) => [...passages].reverse().find(p => t >= p.from)!;
 const VOICE = [15.6, 17.84] as const;   // the voice across the swell keeps the approved ride
@@ -37,7 +37,6 @@ function stepAt(t: number): {dt: number; run: number} {
   for (let j = k; j > 0 && times[j] - times[j - 1] < .34; j--) run++;
   return {dt, run};
 }
-const fullArc = (dt: number): number => Math.min(1, .175 * (dt * 40) ** 2 / 8 / 60);
 /** In the opening figure the lift before the seventh grows with each bar. */
 const growth = (t: number) => t >= 1.12 && t < 9.49 ? (t < 3.4 ? 0 : t < 5.6 ? .05 : .1) : .03;
 
@@ -57,12 +56,6 @@ const speed = (t: number): number | undefined => {
   if (dt >= .36) return p.slow;
   return p.slow + (p.fast - p.slow) * Math.min(run, 6) / 6;
 };
-const amplitude = (t: number): number => {
-  if (t > VOICE[0] && t < VOICE[1]) return .02;
-  const {dt} = stepAt(t);
-  if (t > COAST) return .5 * fullArc(dt);
-  return (dt >= .36 ? passageAt(t).arc : .2) * fullArc(dt);
-};
 
-const spec: Spec = {...base, contacts: strikes.map(([t, impact]) => ({t, impact})), axes: {air, speed, amplitude}};
+const spec: Spec = {...base, contacts: strikes.map(([t, impact]) => ({t, impact})), axes: {air, speed}};
 export default spec;

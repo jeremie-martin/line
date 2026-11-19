@@ -35,10 +35,6 @@ const spec: Spec = {
       return l ? .74 + (l[2] - .16) * .5 : flow.air(t);
     },
     speed: flow.speed,
-    amplitude: (t: number) => {
-      const l = leap(t);
-      return l ? l[2] : undefined;
-    },
   },
 };
 export default spec;

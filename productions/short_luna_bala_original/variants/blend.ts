@@ -21,16 +21,6 @@ function strength(t: number, impact: number): number {
   return impact;
 }
 const contacts = base.contacts.map(({t, impact = 0}) => ({t, impact: Number(strength(t, impact).toFixed(3))}));
-const times = contacts.map(c => c.t);
-
-/** The tallest arc a span of `dt` seconds allows, on the 60 px scale; used only once the music opens up. */
-const fullArc = (dt: number): number => Math.min(1, .175 * (dt * 40) ** 2 / 8 / 60);
-const amplitude = (t: number): number | undefined => {
-  if (t < 25.6) return undefined;
-  const i = times.findIndex(ct => ct >= t);
-  const k = i < 0 ? times.length - 1 : i;
-  return .95 * fullArc(times[k] - times[k - 1]);
-};
 
 const spec: Spec = {
   ...base,
@@ -44,7 +34,6 @@ const spec: Spec = {
       [0,.48],[3.3,.54],[3.69,.74],[18.2,.90],[18.45,1],[25.6,1],[25.84,.92],[31.1,.86],[31.375,.76],
       [33.0,.62],[33.23,.50],[39.373,.42],
     ]),
-    amplitude,
   },
 };
 export default spec;

@@ -12,7 +12,8 @@ import base from '../spec.ts';
 
 export {overlayMeta} from '../spec.ts';
 
-const contacts = base.contacts.map(({t, impact = 0}) =>
+// The two chops at 2.55 and 2.64 s are one heard stroke, less than a tenth of a second apart: one landing, the first.
+const contacts = base.contacts.filter(({t}) => t !== 2.641).map(({t, impact = 0}) =>
   t > 9.2 && t < 26.0 && impact < 0.7 ? {t, impact: +(impact * 0.9).toFixed(3)} : {t, impact});
 
 const ends = contacts.map((c) => c.t);

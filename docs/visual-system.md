@@ -42,7 +42,9 @@ These are fixed for all themes (`look.js` `V1`):
 - **Zoom.** Written for the song, not derived from the ride: a song may carry a few zoom lanes
   (`productions/<song>/zooms.ts`), each following one thing in its music, and each video gets one of them from its
   ride's id. A lane is a few points saying how wide the picture is, on one scale shared by every song (0 closest, 1
-  widest, the widest showing about 1.37 times more than the closest; never stretched to a lane's own range). A song without
+  widest, the widest showing about 1.37 times more than the closest; never stretched to a lane's own range). The two ends
+  are two numbers in `scripts/video/zoom.js`: the magnification at the closest (1.10) and at the widest (0.805), against the
+  camera's base picture. `/generated/concept-lab/zoom-range.html` tries other ends on a playing ride. A song without
   lanes keeps one steady zoom, the middle of the scale. The hit movement keeps its size against the scene. No
   camera motion except the movement at strong hits.
 - **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first

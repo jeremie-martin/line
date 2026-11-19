@@ -77,6 +77,13 @@
       "at": "2026-11-19T16:29:59.822Z",
       "by": "Claude",
       "summary": "The height request is removed: a controlled test showed that it changes nothing in most gaps and nothing visible in the others. The landings, their strengths, the air time and the speed are exactly as before."
+    },
+    {
+      "spec": "productions/short_amor_na_praia_46s/variants/blend.ts",
+      "sha256": "940cce23aa791975707609176b8a462540ad953180de1b4c33be9d7b5d7881da",
+      "at": "2026-11-19T17:33:54.746Z",
+      "by": "Claude",
+      "summary": "The height request is removed (it changed nothing visible). Without it this ride missed the first of the two chops at 2.55 and 2.64 s, which are less than a tenth of a second apart and are one heard stroke: they are now one landing, at 2.55 s. Everything else is as before."
     }
   ]
 }

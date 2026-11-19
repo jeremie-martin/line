@@ -64,7 +64,7 @@ export function createPicture(canvas, scene, replay, sheet, paint, tune = null) 
   const hitTimes = hits.map(h => ({t: songTime(h.time, offset), s: h.strength}));
   const themeAt = createTheme(dropSpan(scene.drop, hitTimes));
   // the zoom: the lane this video was given (scene.zoom), or the steady zoom throughout; a multiple of the camera's base per frame
-  const lane = laneScale(scene.zoom?.keyframes, frames.length, offset);
+  const lane = laneScale(scene.zoom?.keyframes, frames.length, offset, scene.zoomRange);  // zoomRange: other ends of the scale, when one is tried
   const frameAt = createFraming(motion, songEnd, lane, tune?.ends);
 
   const applySplit = createSplit(canvas);

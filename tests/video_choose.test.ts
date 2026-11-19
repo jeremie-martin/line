@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {ALIKE, COLLECTION, DROPS, DROP_ONLY, LIT, VARIANTS} from '../scripts/video/collection.js';
 import {SCHEMES, DROP_SCHEMES} from '../scripts/video/palettes.js';
-import {DARK, GROUPS, LIGHT, SHARES, chooseLook} from '../scripts/video/choose.js';
+import {DARK, GROUPS, LIGHT, SHARES, HELD, chooseLook} from '../scripts/video/choose.js';
 import {resolveLook} from '../scripts/video/look.js';
 import {createTheme} from '../scripts/video/theme.js';
 
@@ -38,7 +38,13 @@ describe('the look of each video', () => {
     expect(Math.abs(withDrop.length / droppable.length - SHARES.drop)).toBeLessThan(0.04);
     expect(runs.filter(r => DARK.includes(r.theme)).every(r => !r.partner)).toBe(true);
     for (const r of withDrop) expect(Object.keys(DROPS[r.theme])).toContain(r.partner);
-    expect(new Set(runs.map(r => r.theme)).size).toBe(Object.keys(COLLECTION).length);
+    // every theme comes up, except those held back for now (the ones that write the title)
+    const held = Object.keys(COLLECTION).filter(k => HELD(resolveLook(k)));
+    expect(held.length).toBeGreaterThan(0);
+    expect(runs.some(r => HELD(r.look))).toBe(false);
+    // (a held theme still comes up through a variant that does not write the title)
+    const seen = new Set(runs.map(r => r.theme));
+    for (const k of Object.keys(COLLECTION)) if (!held.includes(k)) expect(seen.has(k), k).toBe(true);
     expect(Array.from({length: 500}, (_, i) => chooseLook(`x-${i}`, {hasDrop: false})).every(r => !r.partner && r.look.drop === 'off')).toBe(true);
   });
   it('lights the band on strong hits on the dark themes picked for it, while their band is bars', () => {
@@ -59,9 +65,12 @@ describe('the look of each video', () => {
     const runs = Array.from({length: 30000}, (_, i) => chooseLook(`ride-${i}`, {hasDrop: false}));
     // a list of four comes up as often as a theme alone
     const count = (keys: readonly string[]) => runs.filter(r => keys.includes(r.theme)).length;
-    const rothkos = ALIKE.find(l => l.includes('rothko'))!, share = (1 - SHARES.light) / GROUPS.dark.length;
+    // the share of a dark group, once the draws that fell on a held look have been drawn again
+    const heldShare = (groups: string[][], part: number) => groups.reduce((sum, g) => sum + part / groups.length * g.filter(k => HELD(resolveLook(k))).length / g.length, 0);
+    const rothkos = ALIKE.find(l => l.includes('rothko'))!, alone = GROUPS.dark.find(g => g.length === 1 && !HELD(resolveLook(g[0])))!;
+    const share = (1 - SHARES.light) / GROUPS.dark.length / (1 - heldShare(GROUPS.light, SHARES.light) - heldShare(GROUPS.dark, 1 - SHARES.light));
     expect(Math.abs(count(rothkos) / runs.length - share)).toBeLessThan(0.3 * share);
-    expect(Math.abs(count(['oldRose']) / runs.length - share)).toBeLessThan(0.3 * share);
+    expect(Math.abs(count(alone) / runs.length - share)).toBeLessThan(0.3 * share);
     for (const [theme, variants] of Object.entries(VARIANTS)) {
       expect(COLLECTION[theme], theme).toBeDefined();
       for (const v of variants) expect(() => resolveLook(theme, v)).not.toThrow();

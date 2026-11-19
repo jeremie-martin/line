@@ -39,6 +39,17 @@ function weighted(weights, u) {
 /** The look of one video: `key` names it for good (e.g. the ride's id); `hasDrop` says whether its song has a drop.
  * Returns the theme, its variant (the options changed, or null), the drop partner (or null) and the complete look to render. */
 export function chooseLook(key, {hasDrop, shares = SHARES} = {}) {
+  // a look that is held back is drawn again (a video whose first draw is not held keeps the look it always had)
+  for (let again = 0; ; again++) {
+    const chosen = drawLook(again ? `${key}\u0000again${again}` : key, {hasDrop, shares});
+    if (!HELD(chosen.look) || again === 50) return chosen;
+  }
+}
+/** Looks not given to videos for now: those that write the song's title at the top. Under a phone's player the title sits where
+ * the clock and the player's buttons are, or, moved below them, where the owner does not like it (2026-11-19). The themes stay in
+ * the collection and can be named (--look). */
+export const HELD = look => look.top === 'title';
+function drawLook(key, {hasDrop, shares}) {
   const light = unit(key, 'ground') < shares.light, theme = pick(pick(light ? GROUPS.light : GROUPS.dark, unit(key, 'theme')), unit(key, 'member'));
   const variants = VARIANTS[theme], variant = variants && unit(key, 'variant') < shares.variant ? pick(variants, unit(key, 'which')) : null;
   const partners = DROPS[theme], partner = light && hasDrop && partners && unit(key, 'drop') < shares.drop ? weighted(partners, unit(key, 'partner')) : null;

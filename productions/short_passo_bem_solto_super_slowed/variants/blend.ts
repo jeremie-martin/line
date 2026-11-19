@@ -20,8 +20,9 @@ const gapBefore = (e: number) => e - (times[times.indexOf(e) - 1] ?? 0);
 const cs = [14.693, 16.899, 19.082, 21.287, 23.47, 25.676, 27.87];
 const throws = [37.182, 45.97];
 const lift = (t: number): number | undefined => {
-  if (t <= 13.1) return t > 5.95 && t <= 6.45 ? .28 : undefined;   // the first big rise
+  if (t <= 13.1) return t > 5.95 && t < 6.42 ? .28 : undefined;   // the first big rise
   const e = end(t);
+  if (t < e - gapBefore(e) + .03 || t > e - .03) return undefined;   // only inside the gap, not on its ends
   if (cs.includes(e) && gapBefore(e) > .5) return .24;
   if (throws.includes(e)) return .28;
   return undefined;

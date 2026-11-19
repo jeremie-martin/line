@@ -20,18 +20,7 @@ function strength(t: number, impact: number): number {
   return impact;
 }
 
-// The long fourth strokes the bow rises into, and the breath between the two sung sentences.
-const fourths = new Set([9.985, 12.167, 14.344, 18.704, 20.881, 23.063, 36.148, 38.33, 40.513, 42.69]);
-const BREATH = 4.499;
 const contacts = base.contacts.map(({t, impact = 0}) => ({t, impact: Number(strength(t, impact).toFixed(3))}));
-const times = contacts.map(c => c.t);
-const amplitude = (t: number): number | undefined => {
-  const i = times.findIndex(ct => ct >= t);
-  if (i < 0) return undefined;
-  if (times[i] === BREATH) return .45;
-  if (fourths.has(times[i])) return .26;
-  return undefined;
-};
 
 const bow = (bars: [down: number, fourth: number][], low: number, high: number) =>
   bars.flatMap(([d, f]): [number, number][] => [[d, low], [f, high]]);
@@ -53,7 +42,6 @@ const spec: Spec = {
       [0,.44],[3.48,.42],[4.50,.36],[5.93,.48],[7.52,.56],[8.069,.90],[8.615,.94],[23.487,.94],[23.870,.74],
       [25.507,.74],[25.797,.86],[26.053,.98],[34.5,.98],[34.9,.90],[42.957,.90],[43.2,.40],[44,.38],
     ]),
-    amplitude,
   },
 };
 export default spec;

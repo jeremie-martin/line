@@ -18,12 +18,6 @@ function strength(t: number, v: number): number {
   return v >= .6 ? .70 : v >= .45 ? .40 : .14;
 }
 
-// The long breath before each strong syllable of the centre (Opus).
-const lofts = [13.903, 15.982, 18.054, 20.121, 22.187, 24.265, 26.332];
-const halfLofts = [14.942, 17.003, 19.081, 21.154, 23.22, 25.293];
-const times = base.contacts.map((c) => c.t);
-const end = (t: number) => times.find((x) => x >= t) ?? times[times.length - 1];
-
 const flow = {
   air: curve([[0, .47], [6.12, .64], [12.34, .64], [26.6, .66], [27.1, .76], [28.7, .72], [29.32, .56], [44.47, .53], [46.28, .55],
     [46.6, .80], [47.029, .80]]),
@@ -37,13 +31,6 @@ const spec: Spec = {
   axes: {
     air: flow.air,
     speed: flow.speed,
-    amplitude: (t: number) => {
-      if (t > 46.35) return .24;                     // the upper reply lifts clear
-      if (t < 12.4 || t > 26.8) return undefined;
-      const e = end(t);
-      if (lofts.includes(e)) return .40;
-      return halfLofts.includes(e) ? .14 : .04;
-    },
   },
 };
 export default spec;

@@ -47,18 +47,9 @@ const air = perGap((end, len) => {
   return 0.45;
 }, 0.45);
 
-const amplitude = perGap((end, len) => {
-  if (end < SLAM - 0.01) return undefined;
-  if (end < REPLIES - 0.01) return len > 0.45 ? 0.16 : 0.04;
-  if (closesPhrase(end, len)) return 0.14 + 0.14 * through(end);
-  if (end < WORDS - 0.01) return 0.03;
-  return 0.05;
-}, 0.05);
-
 const spec: Spec = {...base, contacts,
   axes: {
     air,
-    amplitude,
     speed: curve([
       [0,.44],[4.559,.50],[6.347,.50],[6.626,.60],[10.747,.60],[11.002,.74],[12.361,.82],[14.427,.94],[SLAM,.94],
       [15.4,.86],[23.158,.86],

@@ -28,14 +28,6 @@ const spec: Spec = {
       [25.90, .88], [26.94, .76], [28.37, .62], [31.59, .62], [32.93, .80], [33.86, .87], [34.78, .88], [41.47, .92],
       [42.16, .90], [43.09, .86], [43.988, .82],
     ]),
-    // Height only where the gaps are long enough to show it: the loft into the stab, the hook's two breaths, the end.
-    amplitude: (t: number) => {
-      if (t > 11.5 && t <= 12.164) return .34;
-      if (t > 13.8 && t <= 14.468) return .21;
-      if (t > 21.2 && t <= 21.858) return .21;
-      if (t > 42.65) return .15;
-      return undefined;
-    },
   },
 };
 export default spec;

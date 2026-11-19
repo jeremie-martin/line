@@ -13,11 +13,11 @@ import base from '../spec.ts';
 export {overlayMeta} from '../spec.ts';
 
 const times = base.contacts.map((c) => c.t);
-// The gap a moment belongs to, or nothing on a landing itself, so that no gap borrows its neighbour's height.
+// The gap a moment belongs to, or nothing on a landing itself, so that no gap borrows its neighbour's air.
 const gapAt = (t: number) => {
   const i = times.findIndex((x) => x >= t);
-  if (i <= 0 || t < times[i - 1] + .03 || t > times[i] - .03) return {gap: 0, end: -1};
-  return {gap: times[i] - times[i - 1], end: times[i]};
+  if (i <= 0 || t < times[i - 1] + .03 || t > times[i] - .03) return {end: -1};
+  return {end: times[i]};
 };
 const breaths = [20.254, 28.34];      // the low singer's two long breaths
 
@@ -37,14 +37,6 @@ const spec: Spec = {
   axes: {
     air: (t: number) => (breaths.includes(gapAt(t).end) ? .64 : flow.air(t)),
     speed: flow.speed,
-    amplitude: (t: number) => {
-      const {gap, end} = gapAt(t);
-      if (end < 1.0) return undefined;
-      if (end < 11.5) return gap > .55 ? .36 : undefined;     // the arc after each big kick
-      if (breaths.includes(end)) return .4;
-      if (end < 42.6) return undefined;                        // the walk and the run stay low by their pace
-      return gap > .55 ? .5 : undefined;                       // the flight's long breaths
-    },
   },
 };
 export default spec;

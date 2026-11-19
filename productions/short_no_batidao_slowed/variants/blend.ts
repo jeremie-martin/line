@@ -31,11 +31,6 @@ const spec: Spec = {
       [0, .94], [4.27, .93], [4.79, .72], [5.34, .53], [21.9, .54], [22.6, .62], [29.26, .64], [30.34, .80],
       [31.17, .90], [31.42, .94], [39.9, .94], [40.04, .72], [40.59, .86], [40.783, .90],
     ]),
-    amplitude: (t: number) => {
-      if (t > 4.4 && t <= 4.79) return .28;              // the bright signal
-      if (t > 5.4 && t <= 22.0) return t > 13.9 && t < 14.3 ? undefined : .30;   // the ball's round arcs
-      return undefined;
-    },
   },
 };
 export default spec;

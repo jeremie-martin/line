@@ -35,20 +35,9 @@ const air = perGap((end, len) => {
   return 0.6 - 0.22 * (end - 43.0) / 2.7; // Settling, lower each time.
 }, 0.36);
 
-const amplitude = perGap((end, len) => {
-  if (end < 11.8) return undefined;
-  if (end < 13.2) return len > 0.5 ? 0.2 : 0.04;
-  if (end < 13.5) return 0.04;
-  if (end < 22.1) return len > 0.5 ? 0.22 : 0.05;
-  if (end < 32.6) return len > 0.35 ? 0.12 : 0.01;
-  if (end < 43.0) return len > 0.5 ? 0.24 : len > 0.25 ? 0.08 : 0.02;
-  return Math.max(0.02, 0.12 - 0.1 * (end - 43.0) / 2.7);
-}, 0.02);
-
 const spec: Spec = {...base, contacts,
   axes: {
     air,
-    amplitude,
     speed: curve([
       [0,.56],[.342,.56],[.957,.86],[3.419,.86],[3.721,.78],[11.662,.76],[11.975,.48],[13.171,.56],[13.473,.64],
       [21.403,.64],[22.006,.74],[32.374,.78],[32.688,.72],[42.068,.68],[43.078,.6],[45.979,.56],

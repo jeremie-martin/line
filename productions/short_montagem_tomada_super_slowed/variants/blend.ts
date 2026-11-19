@@ -21,7 +21,6 @@ const inRun = (t: number) => (t >= OPENING_END && t <= DRUM) || (t >= RUN && t <
 const strikes = base.contacts.map(({t, impact = 0}): [number, number] =>
   [t, t > 8.97 && t < 14.5 && impact < .5 ? Number((impact * .8).toFixed(3)) : impact]);
 const times = strikes.map(([t]) => t);
-const fullArc = (dt: number): number => Math.min(1, .175 * (dt * 40) ** 2 / 8 / 60);
 /** How wide the swing is in each part of the opening (Opus). */
 const swing = (t: number): number => t < 6.23 ? .6 : t < 8.97 ? 1 : t < 14.5 ? .45 : .9;
 function span(t: number): {end: number; dt: number} {
@@ -52,11 +51,6 @@ const air = (t: number): number | undefined =>
   inRun(t) ? base.axes.air?.(t) : t < OPENING_END ? openingAir(t) : surgeAir(t);
 const speed = (t: number): number | undefined =>
   inRun(t) ? base.axes.speed?.(t) : t < OPENING_END ? openingSpeed(t) : surgeSpeed(t);
-const amplitude = (t: number): number | undefined => {
-  if (t >= OPENING_END) return undefined;
-  const {end, dt} = span(t);
-  return (dt >= .4 ? swing(end) : .2) * fullArc(dt);
-};
 
-const spec: Spec = {...base, contacts: strikes.map(([t, impact]) => ({t, impact})), axes: {air, speed, amplitude}};
+const spec: Spec = {...base, contacts: strikes.map(([t, impact]) => ({t, impact})), axes: {air, speed}};
 export default spec;

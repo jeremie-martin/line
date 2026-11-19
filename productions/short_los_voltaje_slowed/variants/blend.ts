@@ -33,22 +33,6 @@ function strength(t: number, impact: number): number {
 }
 
 const contacts = base.contacts.map(({t, impact = 0}) => ({t, impact: Number(strength(t, impact).toFixed(3))}));
-const times = contacts.map(c => c.t);
-
-/** Height over each span between two landings (1 = 60 px above the chord). */
-function arcHeight(i: number): number {
-  const t = times[i], prev = i > 0 ? times[i - 1] : 0, dt = t - prev;
-  if (t < 11.6) return t > 4 && dt > 1 ? .95 : dt > 1 ? .7 : dt > .45 ? .2 : .03; // the two leaps rise
-  if (t < 15.7) return 0;                                                        // the fuse: flat
-  if (kind(t) === 'word') return .03;
-  if (kind(t) === 'last') return dt > .5 ? .3 : .06;
-  const swing = t < 34.4 ? .2 : .28;
-  return i > 0 && kind(prev) === 'kick' && dt > .45 ? swing : swing * .5;
-}
-const amplitude = (t: number): number => {
-  const i = times.findIndex(ct => ct >= t);
-  return arcHeight(i < 0 ? times.length - 1 : i);
-};
 
 const spec: Spec = {
   ...base,
@@ -64,7 +48,6 @@ const spec: Spec = {
       [0,.34],[5.414,.36],[5.937,.52],[7.039,.60],[9.791,.62],[10.023,.66],[11.405,.68],[11.672,.74],
       [13.587,.86],[15.306,1],[15.770,1],[16.339,.93],[34.0,.93],[35.0,.86],[50.252,.86],[50.484,.62],[51.479,.52],
     ]),
-    amplitude,
   },
 };
 export default spec;

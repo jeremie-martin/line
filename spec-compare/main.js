@@ -79,6 +79,8 @@ async function setVersion(i) {
   state.v = i;
   history.replaceState(null, "", `?song=${song().dir.split("/")[1]}&reading=${reading().reading}`);
   show(); renderSide(); draw();
+  const shown = state.films.get(reading().path);
+  if (shown && audio.paused) place(shown, true);
 }
 
 function renderSide() {
@@ -129,19 +131,55 @@ async function flushWords() {
   if (body?.reading) { Object.assign(d.r, body.reading); if (d.r === reading()) $("saved").textContent = "Saved"; }
 }
 
-// ---- the clock: the song's own sound; every film follows it
-function toggle() { if (audio.paused) { if (audio.currentTime >= duration() - 0.05) audio.currentTime = 0; audio.play().catch(() => {}); } else audio.pause(); }
-function seek(t) { audio.currentTime = clamp(t, 0, duration() - 0.01); }
+// ---- the clock: the song's own sound; every film follows it.
+// A film is moved by a seek only when it has to be (a jump of the clock): a seek stalls its picture for a moment, and five
+// at once stall everything. While playing, a film that is a little early or late is brought back by playing it slightly
+// faster or slower. While the clock is being dragged only the film on top follows; the others are placed once it rests.
+const GUTTER = 52;
+let settle = 0, starting = false;
+const filmTime = (el, t = audio.currentTime) => clamp(t - el.from, 0, Math.max(0, (el.duration || 0) - 0.03));
+function place(el, exact = false) {
+  const at = filmTime(el);
+  if (el.readyState < 1 || el.seeking && !exact) return;
+  if (Math.abs(el.currentTime - at) > 0.02) el.currentTime = at;
+}
+const placeOthers = () => { for (const [path, el] of state.films) if (path !== reading()?.path) place(el, true); };
+function seek(t) {
+  audio.currentTime = clamp(t, 0, duration() - 0.01);
+  const shown = state.films.get(reading()?.path);
+  if (shown) place(shown);
+  clearTimeout(settle);
+  if (audio.paused) settle = setTimeout(placeOthers, 220); else placeOthers();
+}
+const ready = (el) => el.readyState >= 3 && !el.seeking ? Promise.resolve() : new Promise((done) => {
+  const end = () => { el.removeEventListener("seeked", end); el.removeEventListener("canplay", end); done(); };
+  el.addEventListener("seeked", end); el.addEventListener("canplay", end); setTimeout(end, 1500);
+});
+/** Play: every film is placed first, and the sound starts when the film on top is ready, so the start is clean. */
+async function toggle() {
+  if (starting) return;
+  if (!audio.paused) { audio.pause(); for (const el of state.films.values()) el.pause(); clearTimeout(settle); settle = setTimeout(() => { for (const el of state.films.values()) place(el, true); }, 120); return; }
+  if (audio.currentTime >= duration() - 0.05) audio.currentTime = 0;
+  starting = true; clearTimeout(settle);
+  for (const el of state.films.values()) place(el, true);
+  const shown = state.films.get(reading()?.path);
+  if (shown) await ready(shown);
+  starting = false;
+  await audio.play().catch(() => {});
+}
 function tick() {
-  const t = audio.currentTime, playing = !audio.paused, shown = reading()?.path;
-  for (const [path, el] of state.films) {
-    if (el.readyState < 1) continue;
-    const at = clamp(t - el.from, 0, el.duration || 0), running = playing && at < el.duration - 0.02;
-    const slack = running ? (path === shown ? 0.1 : 0.25) : 0.005;
-    if (!el.seeking && Math.abs(el.currentTime - at) > slack) el.currentTime = at;
-    if (running && el.paused) el.play().catch(() => {}); else if (!running && !el.paused) el.pause();
+  const t = audio.currentTime, playing = !audio.paused;
+  if (playing) for (const el of state.films.values()) {
+    if (el.readyState < 2) continue;
+    const at = filmTime(el, t), over = t - el.from >= (el.duration || 0) - 0.03;
+    if (over) { if (!el.paused) el.pause(); continue; }
+    if (el.seeking) continue;
+    const drift = el.currentTime - at;
+    if (Math.abs(drift) > 0.3) { el.currentTime = at + 0.03; el.playbackRate = 1; }
+    else el.playbackRate = Math.abs(drift) < 0.012 ? 1 : clamp(1 - drift * 0.9, 0.85, 1.15);
+    if (el.paused) el.play().catch(() => {});
   }
-  $("play").textContent = playing ? "Pause" : "Play";
+  $("play").textContent = playing || starting ? "Pause" : "Play";
   $("clock").textContent = `${fmt(t)} / ${fmt(duration())}`;
   draw();
   requestAnimationFrame(tick);
@@ -154,22 +192,31 @@ function draw() {
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
   const v = view(), base = view(song()?.versions[0]);
   if (!v || !base) return;
-  const x = (t) => (t - state.from) / (state.to - state.from) * W;
+  const x = (t) => GUTTER + (t - state.from) / (state.to - state.from) * (W - GUTTER);
+  const hover = state.hover != null && state.hover >= state.from && state.hover <= state.to ? state.hover : null;
+  const at = (points, t) => { if (!points?.length) return null; let prev = null; for (const p of points) { if (p[0] >= t) { if (p[1] == null) return null; if (!prev || prev[1] == null || p[0] === prev[0]) return p[1]; return prev[1] + (p[1] - prev[1]) * (t - prev[0]) / (p[0] - prev[0]); } prev = p; } return prev?.[1] ?? null; };
+  const tag = (text, X, Y, colour) => { const w = ctx.measureText(text).width + 8, left = X + 6 + w > W ? X - 6 - w : X + 6; ctx.fillStyle = css("--surface"); ctx.globalAlpha = 0.92; ctx.fillRect(left, Y - 8, w, 16); ctx.globalAlpha = 1; ctx.fillStyle = colour; ctx.fillText(text, left + 4, Y + 0.5); };
   const ink = css("--ink"), muted = css("--muted"), line = css("--line"), rust = css("--rust");
   ctx.font = "11px " + (css("--sans") || "sans-serif"); ctx.textBaseline = "middle";
   // phases, and the drop
   const top = 18;
+  ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
   for (const p of v.overlayMeta?.phases ?? []) {
     ctx.globalAlpha = 0.85; ctx.fillStyle = p.color ?? line; ctx.fillRect(x(p.t0), 0, x(p.t1) - x(p.t0) - 1, top);
     ctx.globalAlpha = 1; ctx.fillStyle = "#fff"; ctx.save(); ctx.beginPath(); ctx.rect(x(p.t0), 0, x(p.t1) - x(p.t0) - 1, top); ctx.clip(); ctx.fillText(p.name, Math.max(x(p.t0), 0) + 6, top / 2 + 0.5); ctx.restore();
   }
   if (v.drop) { ctx.fillStyle = rust; ctx.globalAlpha = 0.06; ctx.fillRect(x(v.drop[0]), top, x(v.drop[1]) - x(v.drop[0]), H - top); ctx.globalAlpha = 1; }
+  ctx.restore();
   // landings: one stem each, as tall as the landing is hard
   const laneH = Math.max(30, Math.round((H - top - 16) * 0.2)), impactH = H - top - 16 - LANES.length * (laneH + 8), y0 = top + impactH;
   // one scale per curve for all the readings of the song, so that two readings are compared on the same ruler
   const scale = (axis) => { let lo = 1, hi = 0; for (const r of song().versions) for (const p of view(r)?.axes?.[axis]?.points ?? []) if (p[1] != null) { lo = Math.min(lo, p[1]); hi = Math.max(hi, p[1]); }
     const pad = Math.max(0.03, (hi - lo) * 0.12); return hi > lo ? [Math.max(0, lo - pad), Math.min(1, hi + pad)] : [0, 1]; };
-  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, y0 + 0.5); ctx.lineTo(W, y0 + 0.5); ctx.stroke();
+  const ruler = (value, Y, strong = false) => { ctx.strokeStyle = line; ctx.globalAlpha = strong ? 1 : 0.5; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(GUTTER, Math.round(Y) + 0.5); ctx.lineTo(W, Math.round(Y) + 0.5); ctx.stroke(); ctx.globalAlpha = 1;
+    ctx.fillStyle = muted; ctx.textAlign = "right"; ctx.fillText(value, GUTTER - 5, Y); ctx.textAlign = "left"; };
+  for (const g of [0, 0.25, 0.5, 0.75, 1]) ruler(g.toFixed(2).replace(/0$/, "").replace(/\.$/, ""), y0 - g * (impactH - 8), g === 0);
+  ctx.save(); ctx.translate(9, y0 - impactH / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = "center"; ctx.fillStyle = muted; ctx.fillText("impact", 0, 0); ctx.restore();
+  ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
   const ghost = state.ghost && v !== base;
   if (ghost) { ctx.strokeStyle = muted; ctx.globalAlpha = 0.55; for (const c of base.contacts) { const X = Math.round(x(c.t)) + 3.5, h = (c.impact ?? 0) * (impactH - 8); ctx.beginPath(); ctx.moveTo(X - 3, y0 - h); ctx.lineTo(X + 3, y0 - h); ctx.stroke(); } ctx.globalAlpha = 1; }
   for (const c of v.contacts) {
@@ -179,12 +226,16 @@ function draw() {
     ctx.beginPath(); ctx.moveTo(X, y0); ctx.lineTo(X, y0 - h); ctx.stroke();
     ctx.beginPath(); ctx.arc(X, y0 - h, i >= 0.75 ? 3 : 2, 0, 7); ctx.fill();
   }
+  ctx.restore(); ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
   // the curves between the landings
   LANES.forEach(([axis, label, colour], k) => {
     const y1 = y0 + 8 + k * (laneH + 8) + laneH, pts = v.axes?.[axis]?.points, c = css(colour), [lo, hi] = scale(axis);
     const y = (val) => y1 - (val - lo) / (hi - lo) * (laneH - 4);
     const path = (points) => { let pen = false; ctx.beginPath(); for (const [t, val] of points) { if (val == null) { pen = false; continue; } const X = x(t), Y = y(val); pen ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); pen = true; } };
-    ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, y1 + 0.5); ctx.lineTo(W, y1 + 0.5); ctx.stroke();
+    ctx.restore();
+    ruler(lo.toFixed(2), y(lo), true); ruler(((lo + hi) / 2).toFixed(2), y((lo + hi) / 2)); ruler(hi.toFixed(2), y(hi));
+    ctx.save(); ctx.translate(9, y1 - laneH / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = "center"; ctx.fillStyle = c; ctx.fillText(label, 0, 0); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
     if (pts?.length) {
       const known = pts.filter((p) => p[1] != null);
       ctx.beginPath(); ctx.moveTo(x(known[0][0]), y1); for (const [t, val] of known) ctx.lineTo(x(t), y(val)); ctx.lineTo(x(known.at(-1)[0]), y1); ctx.closePath();
@@ -193,23 +244,39 @@ function draw() {
     }
     const basePts = base.axes?.[axis]?.points;
     if (ghost && basePts?.length) { path(basePts); ctx.setLineDash([4, 3]); ctx.strokeStyle = ink; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1; }
-    ctx.fillStyle = muted; ctx.fillText(pts?.length ? `${label}  ${lo.toFixed(2)}–${hi.toFixed(2)}` : `${label}: not written in this reading`, 6, y1 - laneH + 7);
+    if (!pts?.length) { ctx.fillStyle = muted; ctx.fillText("not written in this reading", GUTTER + 8, y1 - laneH / 2); }
+    if (hover != null) { const val = at(pts, hover), was = ghost ? at(basePts, hover) : null;
+      if (val != null) { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x(hover), y(val), 3.5, 0, 7); ctx.fill(); }
+      if (val != null || was != null) tag(`${val != null ? val.toFixed(2) : "–"}${was != null ? `  (approved ${was.toFixed(2)})` : ""}`, x(hover), val != null ? clamp(y(val), y1 - laneH + 8, y1 - 8) : y1 - laneH / 2, c); }
   });
+  // under the pointer: the moment, and the landing nearest to it
+  if (hover != null) {
+    const X = Math.round(x(hover)) + 0.5; ctx.strokeStyle = muted; ctx.globalAlpha = 0.6; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(X, top); ctx.lineTo(X, H - 14); ctx.stroke(); ctx.globalAlpha = 1;
+    const near = v.contacts.reduce((best, c) => !best || Math.abs(c.t - hover) < Math.abs(best.t - hover) ? c : best, null);
+    if (near && Math.abs(x(near.t) - x(hover)) < 14) {
+      const i = near.impact ?? 0, Y = y0 - i * (impactH - 8), was = ghost ? base.contacts.find((c) => Math.abs(c.t - near.t) < 0.002) : null;
+      ctx.strokeStyle = rust; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(Math.round(x(near.t)) + 0.5, Y, 5.5, 0, 7); ctx.stroke();
+      tag(`${i.toFixed(2)} at ${Math.floor(near.t / 60)}:${(near.t % 60).toFixed(2).padStart(5, "0")}${was && Math.abs((was.impact ?? 0) - i) > 0.004 ? `  (approved ${(was.impact ?? 0).toFixed(2)})` : ""}`, x(near.t), clamp(Y - 13, top + 10, y0 - 10), ink);
+    }
+    tag(fmt(hover), x(hover), H - 24, muted);
+  }
+  ctx.restore(); ctx.save(); ctx.beginPath(); ctx.rect(GUTTER, 0, W - GUTTER, H); ctx.clip();
   // seconds, and where we are
   ctx.fillStyle = muted; const step = [1, 2, 5, 10, 20].find((s) => (state.to - state.from) / s <= 14) ?? 30;
   for (let t = Math.ceil(state.from / step) * step; t <= state.to; t += step) ctx.fillText(fmt(t).replace(/\.0$/, ""), x(t) + 3, H - 7);
-  const X = Math.round(x(audio.currentTime)) + 0.5; ctx.strokeStyle = rust; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X, 0); ctx.lineTo(X, H); ctx.stroke();
+  const X = Math.round(x(audio.currentTime)) + 0.5; ctx.strokeStyle = rust; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X, 0); ctx.lineTo(X, H); ctx.stroke(); ctx.restore();
   $("legend").textContent = `${v.contacts.length} landings${ghost ? " · dashed and ticks: the approved reading" : ""}${state.to - state.from < duration() - 0.01 ? " · double-click for the whole song" : " · scroll to zoom"}`;
 }
 
-const timeAt = (event) => state.from + (event.clientX - canvas.getBoundingClientRect().left) / canvas.clientWidth * (state.to - state.from);
+const timeAt = (event) => state.from + (event.clientX - canvas.getBoundingClientRect().left - GUTTER) / (canvas.clientWidth - GUTTER) * (state.to - state.from);
 canvas.addEventListener("pointerdown", (e) => { canvas.setPointerCapture(e.pointerId); seek(timeAt(e)); });
-canvas.addEventListener("pointermove", (e) => { if (e.buttons & 1) seek(timeAt(e)); });
+canvas.addEventListener("pointermove", (e) => { state.hover = timeAt(e); if (e.buttons & 1) seek(timeAt(e)); });
+canvas.addEventListener("pointerleave", () => { state.hover = null; });
 canvas.addEventListener("dblclick", () => { state.from = 0; state.to = duration(); });
 canvas.addEventListener("wheel", (e) => {
   e.preventDefault();
   const span = state.to - state.from, d = duration();
-  if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) { const move = clamp((e.deltaX || e.deltaY) / canvas.clientWidth * span, -state.from, d - state.to); state.from += move; state.to += move; return; }
+  if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) { const move = clamp((e.deltaX || e.deltaY) / (canvas.clientWidth - GUTTER) * span, -state.from, d - state.to); state.from += move; state.to += move; return; }
   const at = timeAt(e), next = clamp(span * (e.deltaY > 0 ? 1.25 : 0.8), 3, d), k = (at - state.from) / span;
   state.from = clamp(at - k * next, 0, d - next); state.to = state.from + next;
 }, { passive: false });

@@ -37,7 +37,12 @@ try {
     await page.keyboard.press('c'); await page.keyboard.type('the float here'); await page.keyboard.press('Escape');
     await page.waitForFunction(() => document.getElementById('saved').textContent === 'Saved');
     check(posts.some(p => p.pick === true) && posts.some(p => p.verdict === 'love') && posts.some(p => p.note === 'the float here'), `best, verdict and words are sent: ${JSON.stringify(posts)}`);
+    // a jump of the clock while playing: the film on top is back with the sound within a moment, without a second seek
+    await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); await page.waitForTimeout(1500);
+    const after = await page.evaluate(() => { const v = document.querySelector('#stage video.on'); return {drift: v.currentTime - document.getElementById('audio').currentTime, paused: v.paused, seeking: v.seeking}; });
+    check(Math.abs(after.drift) < 0.12 && !after.paused && !after.seeking, `after a jump the film is with the sound: ${JSON.stringify(after)}`);
     await page.keyboard.press('m'); await page.keyboard.press('Space');
+    await page.mouse.move(1200, 700); await page.waitForTimeout(200);
     check(await page.evaluate(() => document.getElementById('ghost').checked), 'M puts the approved reading behind');
     await page.waitForTimeout(300);
     if (shot) await page.screenshot({path: shot});

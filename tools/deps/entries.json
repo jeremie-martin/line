@@ -16,6 +16,7 @@
     "scripts/v0/bench/sim_trace.ts",
     "motion-gallery/pairs.js",
     "spec-dashboard/main.js",
+    "spec-compare/main.js",
     "productions/*/spec.ts", "productions/*/variants/*.ts",
     "tools/deps/reach.mjs",
     "tools/eval/eval.ts", "tools/eval/compare.ts", "tools/eval/remeasure.ts", "tools/eval/harden.ts",

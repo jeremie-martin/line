@@ -47,6 +47,10 @@ These are fixed for all themes (`look.js` `V1`):
   camera's base picture. `/generated/concept-lab/zoom-range.html` tries other ends on a playing ride. A song without
   lanes keeps one steady zoom, the middle of the scale. The hit movement keeps its size against the scene. No
   camera motion except the movement at strong hits.
+- **The phone's frame.** A short is watched under a player: on an iPhone the video is scaled to fill the screen's height
+  (about 5 % cut off each side), the top 13 % lies under the clock and the player's buttons, the bottom 18 % under the
+  channel and title, the right 17 % under the like and share buttons from 57 % of the height down. The song's title starts
+  inside that frame (`PHONE` in `scripts/video/picture.js`); the band sits just above the caption.
 - **The line.** Drawn in pencil and inked as the rider passes; some themes ink the whole course or the whole rail on first
   touch.
 - **The music.** A band at the bottom, low-middle: bars in most themes, a fork or the Iris contour in a few. The hottest

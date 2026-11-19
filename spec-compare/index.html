@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Readings compared</title>
+<link rel="stylesheet" href="/shared/theme.css">
+<link rel="stylesheet" href="./style.css">
+<header>
+  <a class="brand" href="/spec-dashboard/" title="The spec dashboard">line</a>
+  <button id="prev" title="Previous song (↑)">‹</button>
+  <select id="songs" title="Song (↑ ↓)"></select>
+  <button id="next" title="Next song (↓)">›</button>
+  <div id="versions" role="group" aria-label="Readings of this song"></div>
+  <span id="progress"></span>
+  <span class="keys"><kbd>1</kbd>–<kbd>9</kbd> reading · <kbd>Space</kbd> play · <kbd>←</kbd> <kbd>→</kbd> 2 s · <kbd>↑</kbd> <kbd>↓</kbd> song · <kbd>B</kbd> best · <kbd>L</kbd> love <kbd>G</kbd> good <kbd>X</kbd> needs work · <kbd>M</kbd> main behind · <kbd>C</kbd> comment</span>
+</header>
+<main>
+  <div id="stage"></div>
+  <div id="right">
+    <section id="side">
+      <div id="judge">
+        <h1 id="title"></h1>
+        <button id="best" title="The best reading of this song (B); again to withdraw">★ Best of this song</button>
+        <span id="verdict" role="group" aria-label="Your verdict on this reading">
+          <button data-verdict="love">Love</button><button data-verdict="good">Good</button><button data-verdict="needs-work">Needs work</button>
+        </span>
+        <a id="open" title="Open this reading on the spec dashboard">Spec dashboard ↗</a>
+      </div>
+      <div id="about">
+        <div id="idea"><h2 id="by"></h2><p id="intention"></p></div>
+        <div id="say"><textarea id="words" placeholder="Your words on this reading (C; saved as you type)"></textarea><div id="saved"></div></div>
+      </div>
+    </section>
+    <div id="transport"><button id="play">Play</button><span id="clock">0:00.0</span><label><input type="checkbox" id="ghost"> the approved reading behind (M)</label><span id="legend"></span></div>
+    <canvas id="timeline"></canvas>
+  </div>
+</main>
+<audio id="audio" preload="auto"></audio>
+<script type="module" src="./main.js"></script>

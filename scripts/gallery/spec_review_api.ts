@@ -100,9 +100,21 @@ export function createSpecReviewApi(root = process.cwd()) {
       || (a.r.set === 'production' ? a.r.title.localeCompare(b.r.title) || a.r.song.localeCompare(b.r.song) : 0) || a.i - b.i).map(x => x.r);
   }
 
+  /** The reading he picked as the best of each song (`{song folder: spec path}`), from the journal of picks: each row
+   * `{song, spec | null, specSha256, at}`, the last row of a song standing; a pick of a reading that is gone is dropped. */
+  const picksPath = 'labels/spec-picks.jsonl', picksFile = join(root, picksPath);
+  const picks = () => {
+    const last: Record<string, string> = {};
+    if (existsSync(picksFile)) for (const line of readFileSync(picksFile, 'utf8').split('\n')) if (line.trim()) {
+      const row = JSON.parse(line);
+      if (row.spec && existsSync(join(root, row.spec))) last[row.song] = row.spec; else delete last[row.song];
+    }
+    return last;
+  };
+
   return async function handle(req: IncomingMessage, res: ServerResponse, u: URL): Promise<boolean> {
     if (u.pathname !== '/api/spec-review') return false;
-    if (req.method === 'GET') {reply(res, {verdictsPath, readings: readings()}); return true;}
+    if (req.method === 'GET') {reply(res, {verdictsPath, picksPath, picks: picks(), readings: readings()}); return true;}
     if (req.method !== 'POST') {reply(res, {error: 'method not allowed'}, 405); return true;}
     if (req.headers.origin && new URL(req.headers.origin).host !== req.headers.host) {reply(res, {error: 'same-origin requests only'}, 403); return true;}
     let text = '';
@@ -111,6 +123,12 @@ export function createSpecReviewApi(root = process.cwd()) {
     try {body = JSON.parse(text);} catch {reply(res, {error: 'invalid JSON'}, 400); return true;}
     const entry = listSpecs(root).find(s => s.path === body?.spec);
     if (!entry) {reply(res, {error: 'unknown spec'}, 400); return true;}
+    if ('pick' in body) {  // the best reading of its song (true), or no pick for the song any more (false)
+      const song = entry.path.split('/').slice(0, 2).join('/');
+      mkdirSync(dirname(picksFile), {recursive: true});
+      appendFileSync(picksFile, JSON.stringify({song, spec: body.pick ? entry.path : null, specSha256: specSha256(join(root, entry.path)), at: new Date().toISOString()}) + '\n');
+      reply(res, {picks: picks()}); return true;
+    }
     const before = bySpec().get(entry.path)?.at(-1), at = new Date().toISOString(), sha = specSha256(join(root, entry.path));
     let row: Row;
     if (typeof body.note === 'string' && !('verdict' in body))  // his words on this version; the verdict and the version it was given on stay

@@ -1,0 +1,49 @@
+/* One screen: the film, the reading's intention and the vote beside it, the spec under both. Colours from /shared/theme.css. */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body { display: flex; flex-direction: column; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--sans); overflow: hidden; }
+button, select, textarea { font: inherit; color: inherit; }
+button, select { border: 1px solid var(--line-strong); background: var(--surface); border-radius: 7px; padding: 4px 10px; cursor: pointer; }
+kbd { font: 11px var(--mono); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; background: var(--surface); }
+header { flex: none; display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--line); }
+.brand { font-weight: 700; color: var(--ink); text-decoration: none; margin-right: 4px; }
+#songs { max-width: 330px; font-weight: 650; }
+#versions { display: flex; gap: 4px; margin-left: 10px; }
+#versions button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; }
+#versions button.on { background: var(--ink); border-color: var(--ink); color: var(--surface); font-weight: 650; }
+#versions button.missing { opacity: .45; }
+#versions .n { font: 11px var(--mono); opacity: .6; }
+.mark { width: 9px; height: 9px; border-radius: 50%; border: 1px solid var(--line-strong); }
+.mark.love { background: var(--rust); border-color: var(--rust); } .mark.good { background: var(--green); border-color: var(--green); } .mark.needs-work { background: var(--gold); border-color: var(--gold); }
+.star { color: var(--gold); }
+#progress { color: var(--muted); font-size: 12px; margin-left: 6px; white-space: nowrap; }
+.keys { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+main { flex: 1; min-height: 0; display: flex; gap: 18px; padding: 12px 14px; }
+#stage { position: relative; height: 100%; aspect-ratio: 9 / 16; flex: none; background: #000; border-radius: 10px; overflow: hidden; }
+#stage video { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; }
+#stage video.on { opacity: 1; }
+#stage .none { position: absolute; inset: 0; display: grid; place-items: center; color: #bbb; }
+#right { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+#side { flex: none; display: flex; flex-direction: column; gap: 8px; }
+#judge { display: flex; gap: 8px; align-items: center; }
+#title { margin: 0 10px 0 0; font-size: 19px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+#best.on { background: var(--gold); border-color: var(--gold); color: var(--surface); font-weight: 650; }
+#verdict { display: inline-flex; gap: 4px; flex: none; }
+#best { flex: none; }
+#verdict button.on[data-verdict="love"] { background: var(--rust); border-color: var(--rust); color: var(--surface); }
+#verdict button.on[data-verdict="good"] { background: var(--green); border-color: var(--green); color: var(--surface); }
+#verdict button.on[data-verdict="needs-work"] { background: var(--gold); border-color: var(--gold); color: var(--surface); }
+#open { margin-left: auto; color: var(--muted); font-size: 12px; white-space: nowrap; }
+#about { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 16px; height: 168px; }
+#idea { overflow: auto; }
+#by { margin: 0 0 3px; font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+#intention { margin: 0; font-size: 15px; line-height: 1.45; }
+#say { display: flex; flex-direction: column; min-height: 0; }
+#words { flex: 1; min-height: 0; resize: none; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); }
+#saved { color: var(--muted); font-size: 12px; height: 16px; }
+#transport { flex: none; display: flex; align-items: center; gap: 14px; }
+#clock { font: 13px var(--mono); min-width: 110px; }
+#transport label { color: var(--muted); font-size: 12px; display: inline-flex; gap: 5px; align-items: center; }
+#legend { margin-left: auto; color: var(--muted); font-size: 12px; }
+#timeline { flex: 1; min-height: 0; display: block; width: 100%; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); cursor: crosshair; }
+@media (max-height: 820px) { #about { height: 120px; } }

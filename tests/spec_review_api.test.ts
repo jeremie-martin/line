@@ -160,3 +160,28 @@ it('keeps his words on a reading with the version they were written on, and serv
     rmSync(root, {recursive: true, force: true});
   }
 });
+
+it('keeps one pick per song: the best of its readings, moved or withdrawn, journalled', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'spec-review-'));
+  mkdirSync(join(root, 'productions/short_song/variants'), {recursive: true});
+  writeFileSync(join(root, 'productions/short_song/spec.ts'), 'export default {};\n');
+  writeFileSync(join(root, 'productions/short_song/variants/upper.ts'), 'export default {};\n');
+  const main = 'productions/short_song/spec.ts', upper = 'productions/short_song/variants/upper.ts', song = 'productions/short_song';
+  const api = createSpecReviewApi(root);
+  const server = createServer(async (req, res) => {
+    if (!await api(req, res, new URL(req.url!, 'http://local'))) res.writeHead(404).end();
+  }).listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const base = `http://127.0.0.1:${(server.address() as any).port}/api/spec-review`;
+  const post = async (body: unknown) => (await (await fetch(base, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)})).json()).picks;
+  try {
+    expect((await (await fetch(base)).json()).picks).toEqual({});
+    expect(await post({spec: upper, pick: true})).toEqual({[song]: upper});
+    expect(await post({spec: main, pick: true})).toEqual({[song]: main});
+    expect((await (await fetch(base)).json()).picks).toEqual({[song]: main});
+    expect(await post({spec: main, pick: false})).toEqual({});
+    const rows = readFileSync(join(root, 'labels/spec-picks.jsonl'), 'utf8').trim().split('\n').map(l => JSON.parse(l));
+    expect(rows.map(r => r.spec)).toEqual([upper, main, null]);
+    expect(rows[0]).toMatchObject({song, specSha256: specSha256(join(root, upper))});
+  } finally {server.close(); rmSync(root, {recursive: true, force: true});}
+});

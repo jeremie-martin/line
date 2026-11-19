@@ -115,7 +115,7 @@ server (`npm run serve`).
 | looks and themes | the concept lab, `/rate/`, `/collection` (docs/visual-system.md) |
 | a setting to tune on a playing ride (hit movement, a song's zoom lanes, the opening and ending, how much unused track is trimmed) | the tuning pages in `/generated/concept-lab/`: `hit-move.html`, `zoom.html`, `ends.html`, `trim-video.html`. One ride per song (`generated/lab-rides/`, made by `prepare-rides.mjs`), the setting on a control, today's value held or beside. |
 | a spec against its music, and its ride's video; his verdict on each reading of the production set; what an author changed in a revision | `/spec-dashboard/?spec=productions/SONG/variants/NAME.ts` |
-| several readings of one song against each other: the films switched at the same instant, the spec alone under them, one best reading per song, a verdict and words per reading | `/spec-compare/?song=SONG` |
+| several readings of one song against each other: the films switched at the same instant, the spec alone under them, one best reading per song, a verdict and words per reading | `/spec-compare/?song=SONG` (the blend under each zoom lane: films made by `node tools/music/lane_films.mjs`) |
 
 Rides for the owner's eye on motion are rendered in the plain look (`npm run video -- --look=plain`): no theme, no
 hit effects. Loose links to single videos are for one or two files, not for a comparison.
